@@ -1,5 +1,5 @@
 blueprint:
-  name: Awtrix current playing song
+  name: Awtrix current playing 2 
   description: Shows the  title and artist of your current playing song on Awtrix.
   domain: automation
   author: N1c093
