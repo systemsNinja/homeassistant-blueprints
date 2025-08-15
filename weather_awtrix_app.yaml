@@ -431,7 +431,7 @@ trigger:
     enabled: true
 condition: []
 action:
-  - service: weather.get_forecast
+  - service: weather.get_forecasts
     target:
       entity_id: "{{forecast_var}}"
     data:
@@ -445,7 +445,7 @@ action:
           data:
             topic: "{{repeat.item}}"
             payload: >-
-              {%- set forecast = forecast_response.forecast -%}
+              {%- set forecast = forecast_response[forecast_var]['forecast'] -%}
               {%- macro interpolate(dictionary, x) -%}
               {%- set sorted_keys = dictionary|dictsort -%}
               {%- set above = sorted_keys|selectattr('0', 'gt', x)|map(attribute='0')|list|first -%}
