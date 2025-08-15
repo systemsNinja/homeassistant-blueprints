@@ -267,7 +267,7 @@ variables:
   # Weather Variables
   #---------------------------------
   forecast_var: !input forecast_var
-  current_condition: "{{ states(forecast_var) | lower | trim }}"
+  current_condition: "{{states(forecast_var)}}"
   current_temp: "{{state_attr(forecast_var,'temperature')}}"
   hours_to_show: !input hours_to_show
 
