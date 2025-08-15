@@ -420,7 +420,7 @@ variables:
     'windy': icon_windy, 
     'windy-variant': icon_windy_variant})}}
 
-  icon: "{{ icon_dict[current_condition] }}"
+  icon: "{{ icon_dict[current_condition] if current_condition in icon_dict else '' }}"
 
 trigger:
   - platform: time_pattern
@@ -445,7 +445,7 @@ action:
           data:
             topic: "{{repeat.item}}"
             payload: >-
-              {%- set forecast = forecast_response[forecast_var]['forecast'] -%}
+              {%- set forecast = forecast_response.forecast -%}
               {%- macro interpolate(dictionary, x) -%}
               {%- set sorted_keys = dictionary|dictsort -%}
               {%- set above = sorted_keys|selectattr('0', 'gt', x)|map(attribute='0')|list|first -%}
@@ -517,10 +517,10 @@ action:
 
                 {
                   "draw": [
-                    {%- if hours_to_show > 0 %}
+                    {%- if hours_to_show > 0 and forecast %}
                     {{draw_forecast_lines(8,hours_to_show,0)}}
-                  {%- endif %}
-                  {%- if current_temp != 'unavailable' -%}
+                    {%- endif %}
+                    {%- if current_temp != 'unavailable' -%}
                   ,{"dt":[{{text_x}},1,"{{temp_text}}","{{interpolate(color_dict, current_temp | float)}}"]}
                   {%- else -%}
                   ,{"dt":[10,1,"err","#ff0000"]}
@@ -538,6 +538,6 @@ action:
           data:
             qos: 0
             retain: false
-            topic: "{{ repeat.item | replace('/custom/', '/custom_sun/') }}"
+            topic: "{{ repeat.item ~ '_sun' }}"
             payload: >
               {{sun_payload}}
