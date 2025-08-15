@@ -8,7 +8,7 @@ blueprint:
 
     ### Features
     - Shows scrolling artist and song title.
-    - **Optional song progress bar.**
+    - **Conditional song progress bar** based on icon behavior.
     - Can function as a one-time notification or a persistent custom app.
     - Highly customizable (colors, text case, icon behavior).
     - Works with multiple AWTRIX devices at the same time.
@@ -50,41 +50,36 @@ blueprint:
           mode: dropdown
       default: "custom"
 
-    show_progress_bar:
-      name: Show Song Progress Bar
-      description: "Requires a Spotify media_player. If enabled, a progress bar will be shown."
-      selector:
-        boolean:
-      default: true
-
     progress_bar_color:
       name: Progress Bar Color
-      description: Select the color for the progress bar.
+      description: Select the color for the progress bar (if enabled by the icon behavior).
       selector:
         color_rgb:
       default: [24, 176, 76] # Spotify Green
 
     icon_in:
       name: Icon ID
-      description: Enter the Icon Name or ID (e.g., 18207 for Spotify).
+      description: Enter the Icon Name or ID (e.g., 18207 for Spotify). Not used if "No Icon" is selected.
       selector:
         text:
       default: "18207"
 
     push_icon:
-      name: Icon Behavior
-      description: Select how the icon should move with the text.
+      name: Icon & Progress Bar Behavior
+      description: Select how the icon and progress bar should be displayed.
       selector:
         select:
           options:
-            - label: "Icon doesn't move"
+            - label: "Icon doesn't move (with Progress Bar)"
               value: "0"
-            - label: "Icon moves with text and will not appear again"
+            - label: "Icon moves with text (No Progress Bar)"
               value: "1"
-            - label: "Icon moves with text and reappears on loop"
+            - label: "Icon moves & reappears (No Progress Bar)"
               value: "2"
+            - label: "No Icon (Progress Bar Only)"
+              value: "3"
           mode: dropdown
-      default: "2"
+      default: "0"
 
     repeat_text:
       name: Repeat Scroll
@@ -137,7 +132,6 @@ variables:
   device_ids: !input awtrix_devices
   media_player: !input media_player
   display_type: !input display_type
-  show_progress_bar: !input show_progress_bar
   icon_in: !input icon_in
   background_color: !input background_color
   text_color: !input text_color
@@ -150,15 +144,17 @@ variables:
   # Now, build the payload using the variables above
   payload_content: >-
     {
-      "text": "{{ state_attr(media_player, 'media_artist') }} - {{ state_attr(media_player, 'media_title') }}",
-      "icon": "{{ icon_in }}",
+      "text": "{{ state_attr(media_player, 'media_artist') }} - {{ state_attr(media_player, 'media_title') }}"
+      {%- if push_icon != "3" %},
+      "icon": "{{ icon_in }}"
+      {%- endif %},
       "background": {{ background_color }},
       "color": {{ text_color }},
       "rainbow": {{ show_rainbow | lower }},
       "textCase": {{ text_case }},
-      "pushIcon": {{ push_icon }},
+      "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
       "repeat": {{ repeat_text }}
-      {%- if show_progress_bar %}
+      {%- if push_icon == "0" or push_icon == "3" %}
       , {% set duration = state_attr(media_player, 'media_duration') %}
         {% set position = state_attr(media_player, 'media_position') %}
         "progress": {% if duration and duration > 0 %}{{ (position / duration * 100) | round(0) }}{% else %}0{% endif %},
