@@ -82,15 +82,15 @@ blueprint:
       default: "°"
 
     current_temp_var:
-      name: The current outside temperature
+      name: The current outside temperature (Optional)
       description: >
-        Select a sensor that provides the current outside temperature you wish to display.
+        (Optional) Select a specific sensor for the current temperature. If left blank, the temperature from the main weather entity will be used.
       selector:
         entity:
           filter:
             domain:
               - sensor
-          multiple: false
+      default: ""
 
     color_matrix_json:
       name: Color Matrix
@@ -281,14 +281,14 @@ variables:
   temp_suffix: !input temp_suffix
 
   temp_text: >-
-    {%- macro round_and_set_temp(temp_var, temp_suffix, digits=0) -%}
-    {%- if has_value(temp_var) -%}
-      {{ states(temp_var) | round(digits) ~ temp_suffix}} 
-    {%- else -%}
-    {{current_temp ~ temp_suffix}}
-    {%- endif -%}
+    {%- macro round_and_set_temp(temp_entity_id, temp_fallback, temp_suffix, digits=0) -%}
+      {%- if temp_entity_id != "" and states(temp_entity_id) not in ['unknown', 'unavailable'] -%}
+        {{ states(temp_entity_id) | round(digits) ~ temp_suffix}} 
+      {%- else -%}
+        {{ temp_fallback | round(digits) ~ temp_suffix}}
+      {%- endif -%}
     {%- endmacro -%}
-    {{ round_and_set_temp(current_temp_var, temp_suffix, temp_digits)}}
+    {{ round_and_set_temp(current_temp_var, current_temp, temp_suffix, temp_digits)}}
 
   text_available_width: 24
   text_len: >-
@@ -445,7 +445,7 @@ action:
           data:
             topic: "{{repeat.item}}"
             payload: >-
-              {%- set forecast = forecast_response['forecast'] -%}
+              {%- set forecast = forecast_response.forecast -%}
               {%- macro interpolate(dictionary, x) -%}
               {%- set sorted_keys = dictionary|dictsort -%}
               {%- set above = sorted_keys|selectattr('0', 'gt', x)|map(attribute='0')|list|first -%}
