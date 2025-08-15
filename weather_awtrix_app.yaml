@@ -525,8 +525,8 @@ action:
                   {%- else -%}
                   ,{"dt":[10,1,"err","#ff0000"]}
                   {%- endif -%}
-                  ],
-                  "icon": "{{icon}}",
+                  ]
+                  {%- if icon %}, "icon": "{{icon}}"{% endif %},
                   "duration": {{message_duration}},
                   "pushIcon": 2,
                   "lifetime": 120,
