@@ -11,16 +11,14 @@ blueprint:
           filter:
             - domain: media_player
           multiple: false
-
     awtrix_device:
-      name: AWTRIX device
-      description: The AWTRIX device for show playing status.
+      name: AWTRIX Device(s)
+      description: Select the Awtrix Light device(s) to display the notification on.
       selector:
         device:
           integration: mqtt
           manufacturer: Blueforcer
-          multiple: false
-
+          multiple: true
 trigger:
   - platform: state
     entity_id: !input media_player
