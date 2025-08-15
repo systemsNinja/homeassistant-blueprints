@@ -13,7 +13,6 @@ blueprint:
           filter:
             - integration: mqtt
               manufacturer: Blueforcer
-              model: AWTRIX Light
           multiple: true
     awtrix_app_name:
       name: AWTRIX Application name
