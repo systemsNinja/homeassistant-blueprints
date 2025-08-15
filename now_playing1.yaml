@@ -18,8 +18,7 @@ blueprint:
       selector:
         device:
           integration: mqtt
-          manufacturer: Blueforcer
-          model: AWTRIX Light
+          manufacturer: Blueforcert
           multiple: false
 
 trigger:
