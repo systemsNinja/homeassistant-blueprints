@@ -12,7 +12,7 @@ blueprint:
         device:
           integration: mqtt
           manufacturer: Blueforcer
-          multiple: true
+          multiple: false
     awtrix_app_name:
       name: AWTRIX Application name
       description: This is the custom app name that will be added to AWTRIX, should be unique
