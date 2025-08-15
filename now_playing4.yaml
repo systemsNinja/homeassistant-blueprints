@@ -1,0 +1,97 @@
+blueprint:
+  name: AWTRIX New Song Notification
+  description: >
+    ## AWTRIX New Song Notification 🎵
+
+    Sends a notification to your AWTRIX Light device(s) every time a new song starts playing on a selected media player.
+
+    This automation sends a short, one-time notification with the artist and title. It does **not** create a persistent app on the screen.
+
+    ### Prerequisites
+    - An AWTRIX Light device running firmware v0.72 or newer.
+    - Any `media_player` integration that provides artist and title attributes (e.g., Spotify, Sonos).
+
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Light Device(s)
+      description: Select the Awtrix Light device(s) to send the notification to.
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          multiple: true
+    media_player:
+      name: Media Player
+      description: Select the media player entity to monitor for new songs.
+      selector:
+        entity:
+          domain: media_player
+    icon_id:
+      name: Icon ID
+      description: The Lametric Icon ID to display with the notification.
+      default: 647
+      selector:
+        number:
+          min: 0
+          max: 99999
+          mode: box
+    repeat_count:
+      name: Repeat Count
+      description: How many times the notification text should scroll across the screen.
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          mode: slider
+
+variables:
+  device_ids: !input awtrix
+  media_player_entity: !input media_player
+  icon_id: !input icon_id
+  repeat_count: !input repeat_count
+  awtrix_devices: >-
+    {%- set ns = namespace(awtrix = []) -%}
+    {%- for device_id in device_ids -%}
+      {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
+      {%- set topic = states(entity) -%}
+      {% set ns.awtrix = ns.awtrix + [{"entity": entity, "topic": topic}] -%}
+    {%- endfor -%}
+    {{ ns.awtrix }}
+  payload_content: >-
+    {
+      "icon": {{ icon_id }},
+      "repeat": {{ repeat_count }},
+      "text": "{{ state_attr(media_player_entity, 'media_artist') }} - {{ state_attr(media_player_entity, 'media_title') }}"
+    }
+
+trigger:
+  # This triggers only when the song title changes, not on play/pause.
+  - platform: state
+    entity_id: !input media_player
+    attribute: media_title
+
+condition:
+  # This prevents the automation from running when playback stops.
+  - condition: not
+    conditions:
+      - condition: state
+        entity_id: !input media_player
+        state: idle
+
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        # Safety check to ensure the AWTRIX device is online before sending.
+        - if:
+            - condition: template
+              value_template: "{{ states(repeat.item.entity) not in ['unavailable', 'unknown'] }}"
+          then:
+            - service: mqtt.publish
+              data:
+                topic: "{{ repeat.item.topic ~ '/notify' }}"
+                payload: "{{ payload_content }}"
+
+mode: single
