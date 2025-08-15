@@ -1,32 +1,79 @@
 blueprint:
-  name: Awtrix current playing 2 
-  description: Shows the  title and artist of your current playing song on Awtrix.
+  name: AWTRIX Now Playing (with Progress Bar)
+  description: >
+    ## AWTRIX Now Playing 🎹
+
+    Shows the title and artist of your currently playing song on your AWTRIX Light device(s). 
+    You can choose to display it as a temporary notification or as a persistent custom app that is removed when playback stops.
+
+    ### Features
+    - Shows scrolling artist and song title.
+    - **Optional song progress bar.**
+    - Can function as a one-time notification or a persistent custom app.
+    - Highly customizable (colors, text case, icon behavior).
+    - Works with multiple AWTRIX devices at the same time.
+
+    ### Prerequisites
+    - **AWTRIX Light Device**: An AWTRIX Light device running firmware v0.72 or newer.
+    - **Spotify Integration**: For the progress bar to function correctly, you **must use** a `media_player` entity from the Spotify integration. Other media players might work for displaying text, but they often lack the required attributes (`media_position`, `media_duration`) for the progress bar.
+
   domain: automation
-  author: N1c093
+  author: N1c093 (Modified to add progress bar)
+
   input:
-    awtrix_3:
-      name: Awtrix Display
-      description: Select the target Awtrix display.
+    awtrix_devices:
+      name: AWTRIX Light Device(s)
+      description: Select the target Awtrix display(s).
       selector:
         device:
-          model: "AWTRIX 3"
+          integration: mqtt
+          manufacturer: Blueforcer
+          multiple: true
+
     media_player:
       name: Media Player Entity
-      description: Select your Media Player.
+      description: Select your Media Player. For the progress bar, this must be a Spotify player.
       selector:
         entity:
-          filter:
-            - domain: media_player
-          multiple: false
+          domain: media_player
+
+    display_type:
+      name: Display Mode (Custom App / Notification)
+      description: Select if you want the information as a single notification or a persistent custom app.
+      selector:
+        select:
+          options:
+            - label: "Custom App (Stays until music stops)"
+              value: "custom"
+            - label: "Notification (Shows once per song)"
+              value: "notify"
+          mode: dropdown
+      default: "custom"
+
+    show_progress_bar:
+      name: Show Song Progress Bar
+      description: "Requires a Spotify media_player. If enabled, a progress bar will be shown."
+      selector:
+        boolean:
+      default: true
+
+    progress_bar_color:
+      name: Progress Bar Color
+      description: Select the color for the progress bar.
+      selector:
+        color_rgb:
+      default: [24, 176, 76] # Spotify Green
+
     icon_in:
-      name: Icon
-      description: Enter the Icon Name or ID of the icon.
+      name: Icon ID
+      description: Enter the Icon Name or ID (e.g., 18207 for Spotify).
       selector:
         text:
-      default: ""
+      default: "18207"
+
     push_icon:
-      name: Push Icon
-      description: Icon behavior
+      name: Icon Behavior
+      description: Select how the icon should move with the text.
       selector:
         select:
           options:
@@ -34,134 +81,130 @@ blueprint:
               value: "0"
             - label: "Icon moves with text and will not appear again"
               value: "1"
-            - label: "Icon moves with text but appears again when the text starts"
+            - label: "Icon moves with text and reappears on loop"
               value: "2"
           mode: dropdown
       default: "2"
+
     repeat_text:
-      name: Repeat
-      description: Select how how often the text should be repeated.
-      default: "2"
+      name: Repeat Scroll
+      description: How many times the text should scroll. 0 means it scrolls until removed.
+      default: 0
       selector:
-        text:
+        number:
+          min: 0
+          max: 10
+          mode: slider
+
     text_case:
       name: Text Case
       description: Select how you would like your text to display.
       selector:
         select:
           options:
-            - label: "Use global setting"
+            - label: "Use global AWTRIX setting"
               value: "0"
             - label: "Force Uppercase"
               value: "1"
-            - label: "Show as the media player reports it"
+            - label: "Show as is (Default)"
               value: "2"
           mode: dropdown
-      default: "0"
-    display_type:
-      name: Custom App/Notification
-      description: Select if you want the information as a single notification or an custom app.
-      selector:
-        select:
-          options:
-            - label: "Notification"
-              value: "0"
-            - label: "Custom App"
-              value: "1"
-          mode: dropdown
-      default: "1"
+      default: "2"
+
     background_color:
       name: Background Color
-      description: Select the Background color
+      description: Select the background color.
       selector:
         color_rgb:
       default: [0, 0, 0]
+
     text_color:
       name: Text Color
-      description: Select the Text color.
+      description: Select the text color. Will be overridden by Rainbow effect if enabled.
       selector:
         color_rgb:
       default: [255, 255, 255]
+
     show_rainbow:
       name: Rainbow Colors
-      description: Should the notification be shown in Rainbow colors?
+      description: Should the text be shown in Rainbow colors?
       selector:
         boolean:
       default: false
 
-mode: queued
+variables:
+  # Input variables
+  device_ids: !input awtrix_devices
+  media_player: !input media_player
+  display_type: !input display_type
+  show_progress_bar: !input show_progress_bar
+  # Payload variables
+  payload_content: >-
+    {
+      "text": "{{ state_attr(media_player, 'media_artist') }} - {{ state_attr(media_player, 'media_title') }}",
+      "icon": "{{ !input icon_in }}",
+      "background": {{ !input background_color }},
+      "color": {{ !input text_color }},
+      "rainbow": {{ 'true' if not input show_rainbow else 'false' }},
+      "textCase": {{ !input text_case }},
+      "pushIcon": {{ !input push_icon }},
+      "repeat": {{ !input repeat_text }}
+      {%- if show_progress_bar %}
+      , {% set duration = state_attr(media_player, 'media_duration') %}
+        {% set position = state_attr(media_player, 'media_position') %}
+        "progress": {% if duration and duration > 0 %}{{ (position / duration * 100) | round(0) }}{% else %}0{% endif %},
+        "progressC": "{{ !input progress_bar_color }}"
+      {%- endif %}
+    }
+  # Device topic helper
+  awtrix_devices_topics: >-
+    {%- set ns = namespace(topics = []) -%}
+    {%- for device_id in device_ids -%}
+      {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
+      {%- set topic = states(entity) -%}
+      {% set ns.topics = ns.topics + [topic] -%}
+    {%- endfor -%}
+    {{ ns.topics }}
 
+# This trigger runs on any state change to update the progress bar in real-time.
 trigger:
   - platform: state
     entity_id: !input media_player
-    attribute: media_title
-    from:
-  - platform: state
-    entity_id: !input media_player
-    from:
-
-variables:
-  device_id: !input awtrix_3
-  awtrix_3: "{{ iif( device_attr(device_id, 'name_by_user') != none, device_attr(device_id, 'name_by_user'), device_attr(device_id, 'name') ) }}"
-  repeat_text: !input repeat_text
-  show_rainbow: !input show_rainbow
-  push_icon: !input push_icon
-  icon_in: !input icon_in
-  background_color: !input background_color
-  text_color: !input text_color
-  text_case: !input text_case
-  media_player: !input media_player
-  display_type: !input display_type
-  all_text: "{{state_attr(media_player, 'media_title')}} - {{state_attr(media_player, 'media_artist')}}"
 
 action:
-  if:
-    - condition: state
-      entity_id: !input media_player
-      state: playing
-  then:
-    if: "{{ display_type == '1' }}"
-    then:
-      - service: mqtt.publish
-        data:
-          qos: 0
-          retain: false
-          topic: "{{awtrix_3}}/custom/mediaplayer"
-          payload: |-
-            {   
-              "text": "{{ all_text }}",
-              "icon": "{{ icon_in }}",
-              "background": {{ background_color }},
-              "color": {{ text_color }},
-              "textCase": {{ text_case }},
-              "pushIcon": {{ push_icon }},
-              "rainbow": {{ iif(show_rainbow, "true", "false") }},
-              "repeat": {{ repeat_text }}
-            }
-    else:
-      - service: mqtt.publish
-        data:
-          qos: 0
-          retain: false
-          topic: "{{awtrix_3}}/notify"
-          payload: |-
-            {   
-              "text": "{{ all_text }}",
-              "icon": "{{ icon_in }}",
-              "background": {{ background_color }},
-              "color": {{ text_color }},
-              "textCase": {{ text_case }},
-              "pushIcon": {{ push_icon }},
-              "rainbow": {{ iif(show_rainbow, "true", "false") }},
-              "repeat": {{ repeat_text }}
-            }
-  else:
-    - if: "{{ display_type == '1' }}"
-      then:
-        - service: mqtt.publish
-          data:
-            qos: 0
-            retain: false
-            topic: "{{awtrix_3}}/custom/mediaplayer"
-            payload: |-
-              {}
+  - choose:
+      # CASE 1: Music is playing
+      - conditions:
+          - condition: state
+            entity_id: !input media_player
+            state: "playing"
+        sequence:
+          - repeat:
+              for_each: "{{ awtrix_devices_topics }}"
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    qos: 0
+                    retain: false
+                    topic: "{{ repeat.item ~ '/' ~ display_type ~ ('/mediaplayer' if display_type == 'custom' else '') }}"
+                    payload: "{{ payload_content }}"
+
+      # CASE 2: Music is NOT playing (paused, stopped, idle, etc.)
+      - conditions:
+          - condition: template
+            value_template: "{{ states(media_player) != 'playing' }}"
+          # Only try to remove a custom app, notifications don't need to be cleared.
+          - condition: template
+            value_template: "{{ display_type == 'custom' }}"
+        sequence:
+          - repeat:
+              for_each: "{{ awtrix_devices_topics }}"
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    qos: 0
+                    retain: false
+                    topic: "{{ repeat.item }}/custom/mediaplayer"
+                    payload: "{}" # Empty payload removes the app
+
+mode: queued
