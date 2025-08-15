@@ -1,5 +1,5 @@
 blueprint:
-  name: AWTRIX Now Playing (with Progress Bar)
+  name: AWTRIX Now Playing 2 (with Progress Bar)
   description: >
     ## AWTRIX Now Playing 🎹
 
@@ -133,29 +133,39 @@ blueprint:
       default: false
 
 variables:
-  # Input variables
+  # Define all inputs as variables first
   device_ids: !input awtrix_devices
   media_player: !input media_player
   display_type: !input display_type
   show_progress_bar: !input show_progress_bar
-  # Payload variables
+  icon_in: !input icon_in
+  background_color: !input background_color
+  text_color: !input text_color
+  show_rainbow: !input show_rainbow
+  text_case: !input text_case
+  push_icon: !input push_icon
+  repeat_text: !input repeat_text
+  progress_bar_color: !input progress_bar_color
+
+  # Now, build the payload using the variables above
   payload_content: >-
     {
       "text": "{{ state_attr(media_player, 'media_artist') }} - {{ state_attr(media_player, 'media_title') }}",
-      "icon": "{{ !input icon_in }}",
-      "background": {{ !input background_color }},
-      "color": {{ !input text_color }},
-      "rainbow": {{ 'true' if not input show_rainbow else 'false' }},
-      "textCase": {{ !input text_case }},
-      "pushIcon": {{ !input push_icon }},
-      "repeat": {{ !input repeat_text }}
+      "icon": "{{ icon_in }}",
+      "background": {{ background_color }},
+      "color": {{ text_color }},
+      "rainbow": {{ show_rainbow | lower }},
+      "textCase": {{ text_case }},
+      "pushIcon": {{ push_icon }},
+      "repeat": {{ repeat_text }}
       {%- if show_progress_bar %}
       , {% set duration = state_attr(media_player, 'media_duration') %}
         {% set position = state_attr(media_player, 'media_position') %}
         "progress": {% if duration and duration > 0 %}{{ (position / duration * 100) | round(0) }}{% else %}0{% endif %},
-        "progressC": "{{ !input progress_bar_color }}"
+        "progressC": "{{ '%02x%02x%02x' | format(progress_bar_color[0], progress_bar_color[1], progress_bar_color[2]) }}"
       {%- endif %}
     }
+    
   # Device topic helper
   awtrix_devices_topics: >-
     {%- set ns = namespace(topics = []) -%}
