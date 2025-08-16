@@ -24,8 +24,8 @@ blueprint:
       selector:
         device:
           filter:
-            integration: mqtt
-            manufacturer: Blueforcer
+            - integration: mqtt
+              manufacturer: Blueforcer
           multiple: true
 
     forecast_var:
@@ -35,8 +35,8 @@ blueprint:
       selector:
         entity:
           filter:
-            domain:
-              - weather
+            - domain:
+                - weather
           multiple: false
 
     hours_to_show:
@@ -88,8 +88,8 @@ blueprint:
       selector:
         entity:
           filter:
-            domain:
-              - sensor
+            - domain:
+                - sensor
       default: ""
 
     color_matrix_json:
@@ -250,7 +250,7 @@ blueprint:
 mode: restart
 variables:
   device_ids: !input awtrix
-  app_topic: jeef_weather
+  app_topic: weather # FIXED: Renamed from jeef_weather
   topics: >-
     {%- macro get_device_topic(device_id) %}
     {{ states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}
@@ -353,21 +353,27 @@ variables:
       {% set remaining_minutes = sun_min_until_next_event % 60 %}
 
       {% if hours == 0 %}
-          {{ remaining_minutes }} min
+        {{ remaining_minutes }} min
       {% else %}
-          [
-            {"t":"{{hours}}", "c":"#ffffff"},
-            {"t":"h", "c":"#9c9d97"},
-            {"t":"{{remaining_minutes}}", "c":"#ffffff"},
-            {"t":"m", "c":"#9c9d97"}
+        [
+          {"t":"{{hours}}", "c":"#ffffff"},
+          {"t":"h", "c":"#9c9d97"},
+          {"t":"{{remaining_minutes}}", "c":"#ffffff"},
+          {"t":"m", "c":"#9c9d97"}
         ]
       {% endif %}
       
     {%- endif %}
   sun_event_icon: >-
     {{ iif(sun_next_event == 'sunrise', icon_sunrise, icon_sunset) }}
+  # FIXED: This logic now checks if sun_next_str is a JSON array (for rich text)
+  # and constructs the payload accordingly to avoid a JSON error.
   sun_event_payload: >-
+    {% if sun_next_str is defined and sun_next_str.strip().startswith('[') %}
+    {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}}
+    {% else %}
     {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}}}
+    {% endif %}
   sun_payload: >-
     {%- if show_sun_rise_set %}
     {{ iif(sun_event_minute_threshold >= sun_min_until_next_event, sun_event_payload, "{}") }}
@@ -538,7 +544,9 @@ action:
           data:
             qos: 0
             retain: false
-            topic: "{{ repeat.item | replace('/custom/', '/custom_sun/') }}"
+            # FIXED: This now correctly builds the topic for the 'sun' app
+            # by replacing the last part of the weather topic.
+            topic: "{{ repeat.item.rsplit('/', 1)[0] ~ '/sun' }}"
             payload: >
               {{sun_payload}}
               
