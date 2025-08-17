@@ -25,7 +25,7 @@ mode: restart
 
 trigger:
   - platform: mqtt
-    topic: "{{ device_entities(awtrix) | map('entity_id') | first | regex_replace('^sensor\\.|\\.state$', '') }}/custom/#"
+    topic: minibyt/custom/#
 
 variables:
   new_app: "{{ trigger.topic.split('/')[-1] }}"
