@@ -1,7 +1,8 @@
 blueprint:
-  name: "AWTRIX MQTT Discovered Apps Dropdown"
+  name: "AWTRIX Apps → Dropdown"
   description: >
-    Discover apps from a selected AWTRIX device via MQTT and update an input_select dropdown.
+    Update an input_select dropdown with discovered AWTRIX apps
+    from the Minibyt AWTRIX Custom Apps sensor.
   domain: automation
   input:
     input_select_target:
@@ -14,17 +15,35 @@ blueprint:
 mode: restart
 
 trigger:
-  - platform: mqtt
-    topic: Minibyt/custom/#
-
-variables:
-  new_app: "{{ trigger.topic.split('/')[-1] }}"
-  existing_apps: "{{ state_attr(this.entity_id, 'apps') | default([]) }}"
-  updated_apps: "{{ (existing_apps + [new_app]) | unique | sort }}"
+  - platform: state
+    entity_id: sensor.minibyt_awtrix_custom_apps
 
 action:
   - service: input_select.set_options
     target:
       entity_id: !input input_select_target
     data:
-      options: "{{ updated_apps }}"
+      options: "{{ state_attr('sensor.minibyt_awtrix_custom_apps', 'apps') }}"
+
+
+#template:
+#  - trigger:
+#      # This platform listens for any message on any topic under Minibyt/custom/
+#      - platform: mqtt
+#        topic: "Minibyt/custom/#"
+#    sensor:
+#      - name: "Minibyt AWTRIX Custom Apps"
+#        # The main state will be a count of the discovered apps.
+#        state: "{{ this.attributes.apps | count }}"
+#        attributes:
+#          # This template runs each time the trigger fires.
+#          apps: >
+#            {# Get the app name from the end of the topic string (e.g., "Minibyt/custom/weather" -> "weather") #}
+#            {% set new_app = trigger.topic.split('/')[-1] %}
+#
+#            {# Get the list of apps we have already found #}
+#            {% set existing_apps = this.attributes.apps | default([]) %}
+#            
+#            {# Add the new app to the list, then filter for unique values and sort it alphabetically. #}
+#            {{ (existing_apps + [new_app]) | unique | sort }}
+#
