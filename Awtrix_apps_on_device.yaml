@@ -24,12 +24,17 @@ trigger:
   - platform: state
     entity_id: !input sensor_source
 
+# Define variables from inputs for cleaner templates
+variables:
+  source_entity: !input sensor_source
+  target_entity: !input input_select_target
+
 action:
   - service: input_select.set_options
     target:
-      entity_id: !input input_select_target
+      entity_id: !input input_select_target # Or use "{{ target_entity }}"
     data:
-      options: "{{ state_attr(sensor_source, 'apps') }}"
+      options: "{{ state_attr(source_entity, 'apps') }}"
 
 #template sensor or BETTER an MQTT sensor:
 
