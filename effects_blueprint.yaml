@@ -2,7 +2,7 @@ blueprint:
   name: Awtrix random effect
   description: This blueprint allows you to select the effects, which should be randomly displayed on your Awtrix light
   domain: automation
-  author: N1c093
+  author: N1c093 (updated by systemsNinja)
   input:
     awtrix_3:
       name: Awtrix Display
