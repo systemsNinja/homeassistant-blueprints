@@ -1,0 +1,203 @@
+---
+blueprint:
+  name: AWTRIX UV☀️ Humidity💧️
+  description: >
+    Display both a humidity value and the UV index on the awtrix.
+
+    ### Notes about UV
+
+    The Weatherflow UV readings seem to be instantaneous so it may be best to create an average sensor for the readings if you don't want to see wild fluctuations. You can do this by adding the following sensor to your `sensors:` block in `configuration.yaml`
+
+        - platform: statistics
+          name: "Weatherflow uv index 10 minute average"
+          entity_id: sensor.weatherflow_uv_index
+          state_characteristic: mean
+          max_age:
+            minutes: 10
+
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device
+      description: Select the Awtrix light
+      selector:
+        device:
+          filter:
+            integration: mqtt
+            manufacturer: Blueforcer
+            model: AWTRIX 3
+          multiple: true
+    hum:
+      name: Humidity Sensor
+      description: >
+
+        A sensor that provides a humidity value
+
+          - `sensor.weatherflow_relative_humidity`
+
+          - `sensor.openweathermap_humidity`
+
+      selector:
+        entity:
+    uv:
+      name: UV Index
+      description: >
+
+        A sesnor that provides a uv index like:
+
+          - `sensor.weatherflow_uv_index`
+
+          - `sensor.openweathermap_uv_index`
+
+      selector:
+        entity:
+    show_forecast:
+      name: Show Hourly UV Forecast
+      description: If you have a valid data source to obtain an hourly UV forecast you should use it
+      selector:
+        boolean:
+      default: true
+
+    forecast:
+      name: Hourly UV Forecast
+      description: >
+        Select a forecast with `uv_index` available
+
+        This integration has been tested with:
+
+          - HACS [Weatherflow](https://github.com/briis/hass-weatherflow) integration 
+          
+          - NOTE: [Openweather](https://www.home-assistant.io/integrations/openweathermap/) DOES NOT HAVE AN HOURLY UV FORECAST
+      selector:
+        entity:
+          filter:
+            domain:
+              - weather
+          multiple: false
+
+mode: restart
+variables:
+  app_topic: jeef_uv_hum
+  device_ids: !input awtrix
+  devices_topics: >-
+    {%- macro get_device_topic(device_id) %}
+    {{- states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}
+    {%- endmacro %}
+
+    {%- set ns = namespace(devices=[]) %}
+    {%- for device_id in device_ids %}
+      {%- set device = get_device_topic(device_id)|replace(' ','') %}
+      {% set ns.devices = ns.devices + [ device ~ '/custom/' ~ app_topic] %}
+    {%- endfor %}
+    {{ ns.devices | reject('match','unavailable') | list}}
+
+  humidity_sensor: !input hum
+  uv_sensor: !input uv
+
+  humidity: "{{states(humidity_sensor) | round}}"
+  uv: "{{states(uv_sensor) | round}}"
+  forecast_var: !input forecast
+  forecast_field: "uv_index"
+  show_forecast: !input show_forecast
+
+trigger:
+  - trigger: time_pattern
+    minutes: "/5"
+
+condition: []
+action:
+  - action: weather.get_forecasts
+    target:
+      entity_id: "{{forecast_var}}"
+    data:
+      type: hourly
+    response_variable: forecast_response
+
+  - repeat:
+      for_each: "{{ devices_topics }}"
+      sequence:
+        - action: mqtt.publish
+          data:
+            qos: 0
+            retain: false
+            topic: "{{ repeat.item }}"
+            payload: >
+              {%- set forecast = forecast_response[forecast_var]['forecast'] -%}
+
+              {%- macro get_uv_color(index) -%} {%- if index | float > 10 -%}
+              #EE82EE
+              {%- elif index | float >= 8 -%}
+              #FF0000
+              {%- elif index | float >= 6 -%}
+              #FF8C00
+              {%- elif index | float >= 3 -%}
+              #FFFF00
+              {%- else -%}
+              #00FF00
+              {%- endif -%}
+              {%- endmacro -%}
+
+              {%- macro draw_uv_forecast_h(x,y,hours,height) %}
+                {%- for hour in range(hours) %}
+                  {%- set uv_index = forecast[hour][forecast_field] |int %}
+                  {%- set uv_color = get_uv_color(uv_index) %}
+                  {%- if height == 0 %}
+                    {"dp": [{{x+hour}},{{y}},"{{uv_color }}"]}
+                  {%- else %}
+                    {"dl": [{{x+hour}},{{y}},{{x+hour}},{{y - height}},"{{uv_color}}"]}
+                  {%- endif %}
+                  {%- if hour+1 != hours %},{%endif%}
+                {%- endfor %}
+              {%- endmacro %}
+
+              {%- macro get_uv_color(index) -%} {%- if index | float > 10 -%}
+              #EE82EE
+              {%- elif index | float >= 8 -%}
+              #FF0000
+              {%- elif index | float >= 6 -%}
+              #FF8C00
+              {%- elif index | float >= 3 -%}
+              #FFFF00
+              {%- else -%}
+              #00FF00
+              {%- endif -%}
+              {%- endmacro -%}
+              {% set uv_color = get_uv_color(uv) %}
+
+
+
+
+              {#- Calculate UV Offset -#}
+              {%- if uv|float >= 10-%}
+                  {%- set uv_offset = "23,1" -%}
+                {%- else %}
+                  {%- set uv_offset = "25,1" -%}
+                {%- endif %}
+
+              {% macro draw_uv() %}
+              {"dt":[{{uv_offset}},"{{uv}}","{{uv_color}}"]}
+              {% endmacro %}
+
+              {%- macro draw_u(x,y,color) -%}
+              {"dl":[{{x}},{{y}},{{x}},{{y+2}},"{{color}}"]},
+              {"dl":[{{x}},{{y+2}},{{x+2}},{{y+2}},"{{color}}"]},
+              {"dl":[{{x+2}},{{y}},{{x+2}},{{y+2}},"{{color}}"]}
+              {%- endmacro -%}
+
+              {%- macro draw_v(x,y,color) -%}
+              {"dl":[{{x}},{{y}},{{x+1}},{{y+2}},"{{color}}"]},
+              {"dl":[{{x+2}},{{y}},{{x+1}},{{y+2}},"{{color}}"]}
+              {%- endmacro -%}
+
+              {
+                "draw": [
+                  {"db":[0,1,8,8,[0,0,15657727,0,0,0,0,65536,0,16777215,15132415,12961791,0,0,0,0,16711422,15657982,15198207,12895742,11315711,65536,0,0,15723775,15132415,15066623,11381503,11185150,0,256,0,15592191,12961534,12961535,11315452,8224464,0,0,2,2,11315966,11315965,8158669,0,0,0,0,0,0,0,0,256,0,0,0,0,65793,0,65536,0,2,256,2]]},
+                  {"dt":[6,2,"{{humidity}}%"]},
+                  {{draw_u(19,1,"#00ffaa")}},
+                  {{draw_v(19,5,"#00ffaa")}},
+                  {%- if show_forecast %}{{ draw_uv_forecast_h(22,7,8,0) }},{%- endif %}
+                  {{draw_uv()}}
+                ],
+                "lifetime": 620,
+                "lifetimeMode":1
+              }

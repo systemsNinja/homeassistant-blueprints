@@ -1,0 +1,75 @@
+blueprint:
+  name: AWTRIX Countdown to Date/Time
+  description: >
+    Countdown to a selected date/time using AWTRIX Light via MQTT.
+    Removes the app from AWTRIX rotation when the event is reached.
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Light Device(s)
+      description: Select the Awtrix Light device(s) to display the countdown.
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          multiple: true
+    input_datetime:
+      name: Date/Time
+      description: Select the date and time for the countdown.
+      selector:
+        entity:
+          domain: input_datetime
+    app_name:
+      name: AWTRIX App Name
+      description: The name for the custom app on AWTRIX. This should be unique.
+      default: "countdown"
+      selector:
+        text:
+
+variables:
+  device_ids: !input awtrix
+  input_datetime: !input input_datetime
+  app_name: !input app_name
+  awtrix_devices: >-
+    {%- set ns = namespace(awtrix = []) -%}
+    {%- for device_id in device_ids -%}
+      {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
+      {%- set topic = states(entity) -%}
+      {% set ns.awtrix = ns.awtrix + [{"entity": entity, "topic": topic}] -%}
+    {%- endfor -%}
+    {{ ns.awtrix }}
+  target_ts: "{{ as_timestamp(states(input_datetime)) }}"
+  now_ts: "{{ as_timestamp(now()) }}"
+  countdown: "{{ (target_ts - now_ts) | int }}"
+  payload_countdown: >-
+    {% if countdown > 0 %}
+      {"app":"{{ app_name }}","countdown":{{ countdown }}}
+    {% else %}
+      {}
+    {% endif %}
+
+trigger:
+  - platform: time_pattern
+    minutes: "/1"
+  - platform: state
+    entity_id: !input input_datetime
+
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - service: mqtt.publish
+          data:
+            topic: "{{ repeat.item.topic ~ '/custom/' ~ app_name }}"
+            payload: "{{ payload_countdown }}"
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ countdown <= 0 }}"
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ repeat.item.topic ~ '/custom/' ~ app_name }}"
+                    payload: "{}"
+
+mode: single
