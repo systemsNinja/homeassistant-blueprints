@@ -2,9 +2,15 @@ blueprint:
   name: "AWTRIX Apps → Dropdown"
   description: >
     Update an input_select dropdown with discovered AWTRIX apps
-    from the Minibyt AWTRIX Custom Apps sensor.
+    from a selected AWTRIX Custom Apps sensor.
   domain: automation
   input:
+    sensor_source:
+      name: AWTRIX Apps Sensor
+      description: "The template sensor that tracks discovered AWTRIX apps"
+      selector:
+        entity:
+          domain: sensor
     input_select_target:
       name: Input Select
       description: "Dropdown entity for discovered apps"
@@ -16,15 +22,16 @@ mode: restart
 
 trigger:
   - platform: state
-    entity_id: sensor.minibyt_awtrix_custom_apps
+    entity_id: !input sensor_source
 
 action:
   - service: input_select.set_options
     target:
       entity_id: !input input_select_target
     data:
-      options: "{{ state_attr('sensor.minibyt_awtrix_custom_apps', 'apps') }}"
+      options: "{{ state_attr(sensor_source, 'apps') }}"
 
+#template sensor or BETTER an MQTT sensor:
 
 #template:
 #  - trigger:
@@ -46,4 +53,17 @@ action:
 #            
 #            {# Add the new app to the list, then filter for unique values and sort it alphabetically. #}
 #            {{ (existing_apps + [new_app]) | unique | sort }}
-#
+#          last_fetch: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+#mqtt:
+#  sensor:
+#    - name: "Minibyt AWTRIX Apps in Loop"
+#      # This sensor listens to the loop topic directly.
+#      state_topic: "Minibyt/stats/loop"
+#      # The state will be the count of active apps from the JSON keys.
+#      value_template: "{{ value_json.keys() | list | count }}"
+#      # This template extracts the list of app names from the JSON object's keys.
+#      json_attributes_topic: "Minibyt/stats/loop"
+#      json_attributes_template: >
+#        {{ {'apps': value_json.keys() | list} | tojson }}
+#        {{ {'apps': value_json.keys() | list,'last_fetch': now().strftime('%Y-%m-%d %H:%M:%S')} | tojson }}
