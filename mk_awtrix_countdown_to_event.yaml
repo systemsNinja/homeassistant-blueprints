@@ -37,7 +37,7 @@ variables:
       {% set ns.awtrix = ns.awtrix + [{"entity": entity, "topic": topic}] -%}
     {%- endfor -%}
     {{ ns.awtrix }}
-  target_ts: "{{ as_timestamp(states(input_datetime)) }}"
+  target_ts: "{{ as_timestamp(target_datetime) }}"
   now_ts: "{{ as_timestamp(now()) }}"
   countdown: "{{ (target_ts - now_ts) | int }}"
   payload_countdown: >-
