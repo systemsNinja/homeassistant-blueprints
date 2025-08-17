@@ -37,7 +37,7 @@ variables:
       {% set ns.awtrix = ns.awtrix + [{"entity": entity, "topic": topic}] -%}
     {%- endfor -%}
     {{ ns.awtrix }}
-  target_ts: "{{ as_timestamp(target_datetime) }}"
+  target_ts: "{{ as_timestamp(states(input_datetime)) }}"
   now_ts: "{{ as_timestamp(now()) }}"
   countdown: "{{ (target_ts - now_ts) | int }}"
   payload_countdown: >-
@@ -51,7 +51,7 @@ trigger:
   - platform: time_pattern
     minutes: "/1"
   - platform: state
-    entity_id: !input target_datetime
+    entity_id: "{{ target_datetime }}"
 
 action:
   - repeat:
