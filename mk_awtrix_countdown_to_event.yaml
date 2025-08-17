@@ -48,10 +48,10 @@ blueprint:
           mode: slider
     text_color:
       name: Text Color (Optional)
-      description: Set a HEX color for the text (e.g., #FF0000). Overridden by Rainbow Effect.
+      description: Set a color for the text. Overridden by Rainbow Effect.
       default: ""
       selector:
-        text:
+        color_rgb:
     rainbow_effect:
       name: Rainbow Effect
       description: Enable to make the text cycle through rainbow colors.
