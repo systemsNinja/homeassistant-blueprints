@@ -36,6 +36,28 @@ blueprint:
       default: ""
       selector:
         text:
+    repeat_count:
+      name: Scroll Repeat Count
+      description: Set how many times the text scrolls. This determines the app's display duration.
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
+    text_color:
+      name: Text Color (Optional)
+      description: Set a HEX color for the text (e.g., #FF0000). Overridden by Rainbow Effect.
+      default: ""
+      selector:
+        text:
+    rainbow_effect:
+      name: Rainbow Effect
+      description: Enable to make the text cycle through rainbow colors.
+      default: false
+      selector:
+        boolean:
 
 variables:
   # --- Inputs ---
@@ -44,6 +66,9 @@ variables:
   app_name: !input app_name
   event_name: !input event_name
   icon: !input icon
+  repeat_count: !input repeat_count
+  text_color: !input text_color
+  rainbow_effect: !input rainbow_effect
 
   # --- Device Topic Derivation ---
   awtrix_devices: >-
@@ -74,16 +99,24 @@ variables:
       {% endif %}
 
       {# Generate the JSON payload for the countdown #}
-      {
-        "text": "{{ countdown_text }}",
-        "icon": "{{ icon }}"
-      }
+      {% set payload_dict = {"text": countdown_text, "icon": icon, "repeat": repeat_count} %}
+      {% if rainbow_effect %}
+        {% set _ = payload_dict.update({"rainbow": true}) %}
+      {% elif text_color | length > 0 %}
+        {% set _ = payload_dict.update({"color": text_color}) %}
+      {% endif %}
+      {{ payload_dict | to_json }}
+
     {% elif 0 >= time_left > -60 %}
       {# Generate the JSON payload for the final message #}
-      {
-        "text": "Its time for {{ event_name }}!",
-        "icon": "{{ icon }}"
-      }
+      {% set payload_dict = {"text": "Its time for " ~ event_name ~ "!", "icon": icon, "repeat": repeat_count} %}
+      {% if rainbow_effect %}
+        {% set _ = payload_dict.update({"rainbow": true}) %}
+      {% elif text_color | length > 0 %}
+        {% set _ = payload_dict.update({"color": text_color}) %}
+      {% endif %}
+      {{ payload_dict | to_json }}
+
     {% else %}
       {# Generate an empty payload to remove the app after the event #}
       {}
