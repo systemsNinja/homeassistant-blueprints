@@ -1,0 +1,29 @@
+automation:
+- id: awtrix_year_progress
+  alias: Year Progress
+  description: Publishes the current year progress in % to the Awtrix clock
+  trigger:
+    - platform: time_pattern
+      hours: "*"
+      minutes: 0
+  condition: []
+  action:
+    - service: mqtt.publish
+      data:
+        payload: >-
+          {# Get current timestamp #}
+          {%- set now = now() -%}
+          {# Start of current year #}
+          {%- set startOfYear = now.replace(year=now.year, month=1, day=1, hour=0, minute=0, second=0, microsecond=0) -%}
+          {# Determine end of current year #}
+          {%- set endOfYear = startOfYear.replace(month=12, day=31, hour=23, minute=59, second=59, microsecond=999999) -%}
+          {# Calculate progress #}
+          {%- set total = as_timestamp(endOfYear) - as_timestamp(startOfYear) -%}
+          {%- set current = as_timestamp(now) - as_timestamp(startOfYear) -%}
+          {%- set progress = ( current / total  * 100 ) | round(0, "floor", 0) -%}
+          {# Output #}
+          { "text": "{{ progress }} %", "icon": "y2023"}
+        topic: awtrix_dd2824/custom/yearprogress
+        qos: 0
+        retain: false
+  mode: single
