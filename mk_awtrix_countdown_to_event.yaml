@@ -13,12 +13,11 @@ blueprint:
           integration: mqtt
           manufacturer: Blueforcer
           multiple: true
-    input_datetime:
-      name: Date/Time
-      description: Select the date and time for the countdown.
+    target_datetime:
+      name: Target Date/Time
+      description: Enter the target date and time for the countdown (e.g., 2024-06-10 18:00:00).
       selector:
-        entity:
-          domain: input_datetime
+        datetime:
     app_name:
       name: AWTRIX App Name
       description: The name for the custom app on AWTRIX. This should be unique.
@@ -28,7 +27,7 @@ blueprint:
 
 variables:
   device_ids: !input awtrix
-  input_datetime: !input input_datetime
+  target_datetime: !input target_datetime
   app_name: !input app_name
   awtrix_devices: >-
     {%- set ns = namespace(awtrix = []) -%}
@@ -38,7 +37,7 @@ variables:
       {% set ns.awtrix = ns.awtrix + [{"entity": entity, "topic": topic}] -%}
     {%- endfor -%}
     {{ ns.awtrix }}
-  target_ts: "{{ as_timestamp(states(input_datetime)) }}"
+  target_ts: "{{ as_timestamp(target_datetime) }}"
   now_ts: "{{ as_timestamp(now()) }}"
   countdown: "{{ (target_ts - now_ts) | int }}"
   payload_countdown: >-
@@ -52,7 +51,7 @@ trigger:
   - platform: time_pattern
     minutes: "/1"
   - platform: state
-    entity_id: !input input_datetime
+    entity_id: !input target_datetime
 
 action:
   - repeat:
