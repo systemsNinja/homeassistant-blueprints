@@ -4,16 +4,6 @@ blueprint:
     Discover apps from a selected AWTRIX device via MQTT and update an input_select dropdown.
   domain: automation
   input:
-    awtrix:
-      name: AWTRIX Device
-      description: "Select the AWTRIX light"
-      selector:
-        device:
-          filter:
-            integration: mqtt
-            manufacturer: Blueforcer
-            model: AWTRIX 3
-          multiple: false
     input_select_target:
       name: Input Select
       description: "Dropdown entity for discovered apps"
@@ -25,7 +15,7 @@ mode: restart
 
 trigger:
   - platform: mqtt
-    topic: minibyt/custom/#
+    topic: Minibyt/custom/#
 
 variables:
   new_app: "{{ trigger.topic.split('/')[-1] }}"
