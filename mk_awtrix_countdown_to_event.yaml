@@ -119,14 +119,16 @@ action:
                   data:
                     topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
                     payload: >-
-                      {% set payload_dict = {"text": countdown_text, "icon": icon, "repeat": repeat_count} %}
-                      {% if rainbow_effect %}
-                        {% set payload_dict = payload_dict | merge({"rainbow": true}) %}
-                      {% elif text_color is defined and text_color != none %}
-                        {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
-                        {% set payload_dict = payload_dict | merge({"color": hex_color }) %}
-                      {% endif %}
-                      {{ payload_dict | to_json }}
+                      {
+                        "text": "{{ countdown_text }}",
+                        "icon": "{{ icon }}",
+                        "repeat": {{ repeat_count }}
+                        {% if rainbow_effect %}
+                          , "rainbow": true
+                        {% elif text_color is defined and text_color != none %}
+                          , "color": "#{{ '%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) }}"
+                        {% endif %}
+                      }
 
             # Case 2: Event message is active
             - conditions:
@@ -136,14 +138,16 @@ action:
                   data:
                     topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
                     payload: >-
-                      {% set payload_dict = {"text": "Its time for " ~ event_name ~ "!", "icon": icon, "repeat": repeat_count} %}
-                      {% if rainbow_effect %}
-                        {% set payload_dict = payload_dict | merge({"rainbow": true}) %}
-                      {% elif text_color is defined and text_color != none %}
-                        {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
-                        {% set payload_dict = payload_dict | merge({"color": hex_color }) %}
-                      {% endif %}
-                      {{ payload_dict | to_json }}
+                      {
+                        "text": "Its time for {{ event_name }}!",
+                        "icon": "{{ icon }}",
+                        "repeat": {{ repeat_count }}
+                        {% if rainbow_effect %}
+                          , "rainbow": true
+                        {% elif text_color is defined and text_color != none %}
+                          , "color": "#{{ '%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) }}"
+                        {% endif %}
+                      }
 
           # Default Case: Time is up, remove the app
           default:
