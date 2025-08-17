@@ -36,6 +36,16 @@ blueprint:
       default: ""
       selector:
         text:
+    repeat_count:
+      name: Scroll Repeat Count
+      description: Set how many times the text scrolls. This determines the app's display duration.
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
     event_duration:
       name: Event Message Duration (Minutes)
       description: How long the final event message should display after the event time is reached.
@@ -51,7 +61,6 @@ blueprint:
       description: Set a color for the text. Overridden by Rainbow Effect.
       selector:
         color_rgb:
-      default: [255, 255, 255]
     rainbow_effect:
       name: Rainbow Effect
       description: Enable to make the text cycle through rainbow colors.
@@ -66,6 +75,7 @@ variables:
   app_name: !input app_name
   event_name: !input event_name
   icon: !input icon
+  repeat_count: !input repeat_count
   event_duration: !input event_duration
   text_color: !input text_color
   rainbow_effect: !input rainbow_effect
@@ -80,69 +90,66 @@ trigger:
 
 action:
   - variables:
-      awtrix_topics: >-
-        {%- set ns = namespace(topics = []) -%}
-        {%- for device_id in awtrix_devices -%}
-          {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
-          {%- set topic = states(entity) -%}
-          {% set ns.topics = ns.topics + [topic] -%}
-        {%- endfor -%}
-        {{ ns.topics }}
       time_left: "{{ (as_timestamp(target_datetime) - as_timestamp(now())) | int }}"
       duration_seconds: "{{ event_duration * 60 }}"
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - variables:
+            device_topic: >-
+              {{ expand(device_entities(repeat.item)) | select('search', 'device_topic') | map(attribute='state') | first }}
+        - choose:
+            # Case 1: Countdown is active
+            - conditions:
+                - "{{ time_left > 0 }}"
+              sequence:
+                - variables:
+                    days: "{{ (time_left / 86400) | int }}"
+                    hours: "{{ ((time_left % 86400) / 3600) | int }}"
+                    minutes: "{{ ((time_left % 3600) / 60) | int }}"
+                    countdown_text: >-
+                      {% if days > 0 %}
+                        {{ event_name }} in {{ days }}d {{ hours }}h
+                      {% elif hours > 0 %}
+                        {{ event_name }} in {{ hours }}h {{ minutes }}m
+                      {% else %}
+                        {{ event_name }} in {{ minutes }}m
+                      {% endif %}
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
+                    payload: >-
+                      {% set payload_dict = {"text": countdown_text, "icon": icon, "repeat": repeat_count} %}
+                      {% if rainbow_effect %}
+                        {% set payload_dict = payload_dict | merge({"rainbow": true}) %}
+                      {% elif text_color is defined and text_color != none %}
+                        {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
+                        {% set payload_dict = payload_dict | merge({"color": hex_color }) %}
+                      {% endif %}
+                      {{ payload_dict | to_json }}
 
-  - choose:
-      # Case 1: Countdown is active
-      - conditions:
-          - "{{ time_left > 0 }}"
-        sequence:
-          - variables:
-              days: "{{ (time_left / 86400) | int }}"
-              hours: "{{ ((time_left % 86400) / 3600) | int }}"
-              minutes: "{{ ((time_left % 3600) / 60) | int }}"
-              countdown_text: >-
-                {% if days > 0 %}
-                  {{ event_name }} in {{ days }}d {{ hours }}h
-                {% elif hours > 0 %}
-                  {{ event_name }} in {{ hours }}h {{ minutes }}m
-                {% else %}
-                  {{ event_name }} in {{ minutes }}m
-                {% endif %}
-          - service: mqtt.publish
-            data:
-              topic: "{{ awtrix_topics[0] ~ '/custom/' ~ app_name }}"
-              payload: >-
-                {% set payload_dict = {"text": countdown_text, "icon": icon} %}
-                {% if rainbow_effect %}
-                  {% do payload_dict.update({"rainbow": true}) %}
-                {% elif text_color is defined and text_color != none %}
-                  {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
-                  {% do payload_dict.update({"color": hex_color }) %}
-                {% endif %}
-                {{ payload_dict | to_json }}
+            # Case 2: Event message is active
+            - conditions:
+                - "{{ 0 >= time_left > -duration_seconds }}"
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
+                    payload: >-
+                      {% set payload_dict = {"text": "Its time for " ~ event_name ~ "!", "icon": icon, "repeat": repeat_count} %}
+                      {% if rainbow_effect %}
+                        {% set payload_dict = payload_dict | merge({"rainbow": true}) %}
+                      {% elif text_color is defined and text_color != none %}
+                        {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
+                        {% set payload_dict = payload_dict | merge({"color": hex_color }) %}
+                      {% endif %}
+                      {{ payload_dict | to_json }}
 
-      # Case 2: Event message is active
-      - conditions:
-          - "{{ 0 >= time_left > -duration_seconds }}"
-        sequence:
-          - service: mqtt.publish
-            data:
-              topic: "{{ awtrix_topics[0] ~ '/custom/' ~ app_name }}"
-              payload: >-
-                {% set payload_dict = {"text": "Its time for " ~ event_name ~ "!", "icon": icon} %}
-                {% if rainbow_effect %}
-                  {% do payload_dict.update({"rainbow": true}) %}
-                {% elif text_color is defined and text_color != none %}
-                  {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
-                  {% do payload_dict.update({"color": hex_color }) %}
-                {% endif %}
-                {{ payload_dict | to_json }}
-
-    # Default Case: Time is up, remove the app
-    default:
-      - service: mqtt.publish
-        data:
-          topic: "{{ awtrix_topics[0] ~ '/custom/' ~ app_name }}"
-          payload: "{}"
+          # Default Case: Time is up, remove the app
+          default:
+            - service: mqtt.publish
+              data:
+                topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
+                payload: "{}"
 
 mode: single
