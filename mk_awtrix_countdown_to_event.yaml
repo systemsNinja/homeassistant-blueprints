@@ -3,7 +3,7 @@ blueprint:
   description: >
     Displays a countdown to a selected date and time on an AWTRIX Light device.
     The countdown format changes as the event gets closer (days/hours -> hours/minutes -> minutes).
-    When the event time is reached, it displays a custom message for one minute and then removes the app.
+    When the event time is reached, it displays a custom message for one hour and then removes the app.
   domain: automation
   input:
     awtrix:
@@ -49,7 +49,6 @@ blueprint:
     text_color:
       name: Text Color (Optional)
       description: Set a color for the text. Overridden by Rainbow Effect.
-      default: ""
       selector:
         color_rgb:
     rainbow_effect:
@@ -101,19 +100,21 @@ variables:
       {# Generate the JSON payload for the countdown #}
       {% set payload_dict = {"text": countdown_text, "icon": icon, "repeat": repeat_count} %}
       {% if rainbow_effect %}
-        {% set _ = payload_dict.update({"rainbow": true}) %}
-      {% elif text_color | length > 0 %}
-        {% set _ = payload_dict.update({"color": text_color}) %}
+        {% do payload_dict.update({"rainbow": true}) %}
+      {% elif text_color is defined and text_color != none %}
+        {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
+        {% do payload_dict.update({"color": hex_color }) %}
       {% endif %}
       {{ payload_dict | to_json }}
 
-    {% elif 0 >= time_left > -60 %}
-      {# Generate the JSON payload for the final message #}
+    {% elif 0 >= time_left > -3600 %}
+      {# Generate the JSON payload for the final message (displays for 1 hour) #}
       {% set payload_dict = {"text": "Its time for " ~ event_name ~ "!", "icon": icon, "repeat": repeat_count} %}
       {% if rainbow_effect %}
-        {% set _ = payload_dict.update({"rainbow": true}) %}
-      {% elif text_color | length > 0 %}
-        {% set _ = payload_dict.update({"color": text_color}) %}
+        {% do payload_dict.update({"rainbow": true}) %}
+      {% elif text_color is defined and text_color != none %}
+        {% set hex_color = '#%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) %}
+        {% do payload_dict.update({"color": hex_color }) %}
       {% endif %}
       {{ payload_dict | to_json }}
 
