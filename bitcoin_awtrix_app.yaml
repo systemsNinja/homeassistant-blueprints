@@ -12,7 +12,6 @@ blueprint:
           filter:
             - integration: mqtt
               manufacturer: Blueforcer
-              model: AWTRIX Light
           multiple: true
     awtrix_app_name:
       name: AWTRIX Application name
@@ -28,6 +27,7 @@ blueprint:
           multiple: false
           filter:
             - integration: bitcoin
+            - integration: Cryptoinfo
     bitcoin_icon:
       name: Icon
       description: Enter the Icon Name or ID of the icon that you like to show.
