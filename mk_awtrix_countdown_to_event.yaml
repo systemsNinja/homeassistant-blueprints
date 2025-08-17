@@ -3,7 +3,7 @@ blueprint:
   description: >
     Displays a countdown to a selected date and time on an AWTRIX Light device.
     The countdown format changes as the event gets closer (days/hours -> hours/minutes -> minutes).
-    When the event time is reached, it displays a custom message for one hour and then removes the app.
+    When the event time is reached, it displays a custom message for a configurable duration and then removes the app.
   domain: automation
   input:
     awtrix:
@@ -36,14 +36,14 @@ blueprint:
       default: ""
       selector:
         text:
-    repeat_count:
-      name: Scroll Repeat Count
-      description: Set how many times the text scrolls. This determines the app's display duration.
-      default: 1
+    event_duration:
+      name: Event Message Duration (Minutes)
+      description: How long the final event message should display after the event time is reached.
+      default: 60
       selector:
         number:
-          min: 0
-          max: 10
+          min: 1
+          max: 1440
           step: 1
           mode: slider
     text_color:
@@ -65,7 +65,7 @@ variables:
   app_name: !input app_name
   event_name: !input event_name
   icon: !input icon
-  repeat_count: !input repeat_count
+  event_duration: !input event_duration
   text_color: !input text_color
   rainbow_effect: !input rainbow_effect
 
@@ -82,6 +82,7 @@ variables:
   # --- Countdown & Payload Logic ---
   payload: >-
     {% set time_left = (as_timestamp(target_datetime) - as_timestamp(now())) | int %}
+    {% set duration_seconds = event_duration * 60 %}
     {% if time_left > 0 %}
       {# Calculate days, hours, and minutes for the countdown text #}
       {% set days = (time_left / 86400) | int %}
@@ -98,7 +99,7 @@ variables:
       {% endif %}
 
       {# Generate the JSON payload for the countdown #}
-      {% set payload_dict = {"text": countdown_text, "icon": icon, "repeat": repeat_count} %}
+      {% set payload_dict = {"text": countdown_text, "icon": icon} %}
       {% if rainbow_effect %}
         {% do payload_dict.update({"rainbow": true}) %}
       {% elif text_color is defined and text_color != none %}
@@ -107,9 +108,9 @@ variables:
       {% endif %}
       {{ payload_dict | to_json }}
 
-    {% elif 0 >= time_left > -3600 %}
-      {# Generate the JSON payload for the final message (displays for 1 hour) #}
-      {% set payload_dict = {"text": "Its time for " ~ event_name ~ "!", "icon": icon, "repeat": repeat_count} %}
+    {% elif 0 >= time_left > -duration_seconds %}
+      {# Generate the JSON payload for the final message #}
+      {% set payload_dict = {"text": "Its time for " ~ event_name ~ "!", "icon": icon} %}
       {% if rainbow_effect %}
         {% do payload_dict.update({"rainbow": true}) %}
       {% elif text_color is defined and text_color != none %}
