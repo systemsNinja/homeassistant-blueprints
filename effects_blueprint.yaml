@@ -17,23 +17,24 @@ blueprint:
         select:
           options:
             - BrickBreaker
-            - Fireworks
-            - Radar
-            - Snake
-            - TheaterChase
-            - SwirlOut
-            - LookingEyes
-            - Pacifica
-            - PlasmaCloud
             - Checkerboard
-            - PingPong
-            - Ripple
-            - TwinklingStars
             - ColorWaves
-            - SwirlIn
+            - Fade
+            - Fireworks
+            - LookingEyes
             - Matrix
-            - Plasma
             - MovingLine
+            - Pacifica
+            - PingPong
+            - Plasma
+            - PlasmaCloud
+            - Radar
+            - Ripple
+            - Snake
+            - SwirlIn
+            - SwirlOut
+            - TheaterChase
+            - TwinklingStars
           mode: list
           multiple: true
     duration:
