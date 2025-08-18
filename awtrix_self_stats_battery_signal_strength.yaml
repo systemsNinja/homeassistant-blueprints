@@ -124,7 +124,8 @@ variables:
 # The automation will be triggered based on a time pattern.
 trigger:
   - platform: time_pattern
-    minutes: '/{{ !input update_frequency }}'
+    minutes: >
+      /{{ !input update_frequency }}
 
 condition: []
 
