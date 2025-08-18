@@ -80,10 +80,16 @@ blueprint:
     # --- Visuals ---
     text_color:
       name: Text Color
-      description: The color of the scrolling text.
+      description: The color of the scrolling text (ignored if Rainbow Text is enabled).
       selector:
         color_rgb: {}
       default: [160, 160, 0]
+    rainbow_text:
+      name: Rainbow Text
+      description: Overrides the text color and makes the text a rainbow gradient.
+      selector:
+        boolean: {}
+      default: false
     effect:
       name: Effect
       description: The display effect to use for the background.
@@ -97,6 +103,16 @@ blueprint:
             - "TwinklingStars"
             - "Rainbow"
       default: "TwinklingStars"
+    repeat_count:
+      name: Scroll Repeat Count
+      description: Set how many times the text scrolls. This determines the app's display duration.
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
 
 # This defines how the automation will run.
 mode: single
@@ -112,9 +128,11 @@ variables:
   show_version: !input show_version
   app_name: !input app_name
   text_color: !input text_color
+  rainbow_text: !input rainbow_text
   effect: !input effect
   lifetime: !input lifetime
   update_frequency: !input update_frequency
+  repeat_count: !input repeat_count
 
 # The automation will be triggered based on a template that checks the minute and second.
 trigger:
@@ -186,10 +204,15 @@ action:
               retain: false
               topic: "{{ topic }}"
               payload: >
-                {
-                  "text": "{{ text_payload }}",
-                  "color": {{ text_color | tojson }},
-                  "effect": "{{ effect }}",
-                  "duration": {{ (update_frequency * 60) - 5 }},
-                  "lifetime": {{ lifetime }}
-                }
+                {% set payload_dict = {
+                  "text": text_payload,
+                  "effect": effect,
+                  "repeat": repeat_count,
+                  "lifetime": lifetime
+                } %}
+                {% if rainbow_text %}
+                  {% set _ = payload_dict.update({"rainbow": true}) %}
+                {% else %}
+                  {% set _ = payload_dict.update({"color": text_color}) %}
+                {% endif %}
+                {{ payload_dict | tojson }}
