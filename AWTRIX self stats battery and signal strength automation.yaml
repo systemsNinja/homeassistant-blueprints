@@ -1,92 +1,101 @@
-Take the Awtrix outside and let it show you how good your WiFi reception is and how long the battery lasts. Helpful if you have a doorbell or other live sensors connected to it.
 
-The App is Updating every Minute... No Assets needed...
+blueprint:
+  name: AWTRIX - Self Stats App
+  description: >
+    Sends AWTRIX device self-stats (WiFi strength, battery, free RAM, uptime, version) as a custom app message.
+    You can choose which stats to include.
+    Take the Awtrix outside and let it show you how good your WiFi reception is and how long the battery lasts. Helpful if you have a doorbell or other live sensors connected to it.
+    The App is Updating every Minute... No Assets needed...
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device
+      description: Select your AWTRIX 3 device
+      selector:
+        device:
+          filter:
+            integration: mqtt
+            manufacturer: Blueforcer
+            model: AWTRIX 3
+          multiple: false
 
-To make it work, just replace XXXXXX with your Awtrix. You have to do this in 6 places. Enjoy. Go out your door or into your garden and have fun with it. May the wifi be strong enough for you. Signal Strength Identifier Appropriate Uses -30 dBm Excellent This is the maximum achievable signal strength suitable for every application scenario. -50 dBm Excellent This excellent signal level is suitable for all network applications. -65 dBm Very good Recommended for supporting smartphones and tablets. -68 dBm Very good This signal strength is sufficient for voice over IP and video streaming. -70 dBm Acceptable This level is the minimum signal strength required to ensure reliable packet delivery and enables Internet surfing and email exchange. -80 dBm Poor Allows basic connectivity, but packet delivery is unreliable. -90 dBm Very Poor Mostly noise, confuses most functions. -100 dBm Worst case Just noise.
+    show_wifi:
+      name: Show WiFi Strength
+      default: true
+      selector:
+        boolean:
 
-alias: "- AWTRIX - SELF - STATS - APP -"
-description: "- WIFI Strenght - Battery - Free Ram - Uptime -"
+    show_battery:
+      name: Show Battery
+      default: true
+      selector:
+        boolean:
+
+    show_ram:
+      name: Show Free RAM
+      default: true
+      selector:
+        boolean:
+
+    show_uptime:
+      name: Show Uptime
+      default: true
+      selector:
+        boolean:
+
+    show_version:
+      name: Show Version
+      default: true
+      selector:
+        boolean:
+
 trigger:
   - platform: time_pattern
-    minutes: /1
-condition: []
+    minutes: "/1"
+
+variables:
+  device_id: !input awtrix
+  device_name: "{{ device_attr(device_id, 'name') | lower | replace(' ', '_') }}"
+  topic: "awtrix_{{ device_name }}/custom/self-stats"
+
 action:
   - service: mqtt.publish
     data:
       qos: 0
       retain: false
-      topic: awtrix_XXXXXX/custom/self-stats
-      payload_template: >-
+      topic: "{{ topic }}"
+      payload: >-
         {
-
-        "text":"·      WIFI STRENGTH {{
-        states('sensor.awtrix_XXXXXX_wifi_strength') }} dB      ·      BATTERY  
-        {{ states('sensor.awtrix_XXXXXX_battery') }} %      ·       FREE RAM  
-        {{ states('sensor.awtrix_XXXXXX_free_ram') }} Byte      ·      
-        UPTIME    {% set s =  states('sensor.awtrix_XXXXXX_uptime') | int(0)
-        %}{% set seconds = s % 60 %}{% set minutes = ((s % 3600) / 60) | int
-        %}{% set hours = ((s % 86400) / 3600) | int %}{% set days = (s / 86400)
-        | int %}
-
-        {%- if days > 0 -%}
-          {%- if days == 1 -%}
-          · 1 DAY
-          {%- else -%}
-          · {{ days }} DAYS
-          {%- endif -%}
-          {{ ' ' }}
-        {%- endif -%}
-
-        {%- if hours > 0 -%}
-          {%- if hours == 1 -%}
-          · 1 HOUR
-          {%- else -%}
-          · {{ hours }} HOURS
-          {%- endif -%}
-          {{ ' ' }}
-        {%- endif -%}
-
-        {%- if minutes > 0 -%}
-          {%- if minutes == 1 -%}
-          · 1 MINUTE
-          {%- else -%}
-          · {{ minutes }} MINUTES
-          {%- endif -%}
-        {%- endif -%}
-          {{ ' ' }}
-        {%- if seconds > 0 -%}
-          {%- if seconds == 1 -%}
-          · 1 SECOND
-          {%- else -%}
-          · {{ seconds }} SECONDS
-          {%- endif -%}
-        {%- endif -%}
-          {{ '  ·' }}      VERSION {{ states('sensor.awtrix_XXXXXX_version') }}                                         ",
-        "textOffset": 34,
-
-        "repeat": 1,
-
-        "color": [160,160,0],
-          "effect":"TwinklingStars",
-          "effectSettings":{
+          "text": "·
+          {% if show_wifi %} WIFI {{ states('sensor.' ~ device_name ~ '_wifi_strength') }} dB · {% endif %}
+          {% if show_battery %} BATTERY {{ states('sensor.' ~ device_name ~ '_battery') }} % · {% endif %}
+          {% if show_ram %} FREE RAM {{ states('sensor.' ~ device_name ~ '_free_ram') }} Byte · {% endif %}
+          {% if show_uptime %}
+            UPTIME
+            {% set s = states('sensor.' ~ device_name ~ '_uptime') | int(0) %}
+            {% set seconds = s % 60 %}
+            {% set minutes = ((s % 3600) / 60) | int %}
+            {% set hours = ((s % 86400) / 3600) | int %}
+            {% set days = (s / 86400) | int %}
+            {% if days > 0 %} · {{ days }} DAY{{ 'S' if days > 1 }} {% endif %}
+            {% if hours > 0 %} · {{ hours }} HOUR{{ 'S' if hours > 1 }} {% endif %}
+            {% if minutes > 0 %} · {{ minutes }} MINUTE{{ 'S' if minutes > 1 }} {% endif %}
+            {% if seconds > 0 %} · {{ seconds }} SECOND{{ 'S' if seconds > 1 }} {% endif %}
+          {% endif %}
+          {% if show_version %} · VERSION {{ states('sensor.' ~ device_name ~ '_version') }} {% endif %}
+          ",
+          "textOffset": 34,
+          "repeat": 1,
+          "color": [160,160,0],
+          "effect": "TwinklingStars",
+          "effectSettings": {
             "speed": -4,
-            "palette":["220000",
-                            "330000",
-                            "550000",
-                            "770000",
-                            "990000",
-                            "BB0000",
-                            "DD0000",
-                            "FF0000",
-                            "FF0000",
-                            "DD0000",
-                            "BB0000",
-                            "990000",
-                            "770000",
-                            "550000",
-                            "330000",
-                            "220000"],
-            "blend":true
+            "palette": [
+              "220000","330000","550000","770000","990000","BB0000","DD0000",
+              "FF0000","FF0000","DD0000","BB0000","990000","770000","550000",
+              "330000","220000"
+            ],
+            "blend": true
           }
         }
 mode: single
