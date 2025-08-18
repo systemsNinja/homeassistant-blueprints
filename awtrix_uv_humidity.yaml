@@ -77,7 +77,7 @@ blueprint:
 
 mode: restart
 variables:
-  app_topic: jeef_uv_hum
+  app_topic: uv_hum
   device_ids: !input awtrix
   devices_topics: >-
     {%- macro get_device_topic(device_id) %}
