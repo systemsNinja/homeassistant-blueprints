@@ -63,19 +63,19 @@ blueprint:
         select:
           options:
             - label: "Every minute"
-              value: "/1"
+              value: "1"
             - label: "Every 2 minutes"
-              value: "/2"
+              value: "2"
             - label: "Every 3 minutes"
-              value: "/3"
+              value: "3"
             - label: "Every 4 minutes"
-              value: "/4"
+              value: "4"
             - label: "Every 5 minutes"
-              value: "/5"
+              value: "5"
             - label: "Every 10 minutes"
-              value: "/10"
+              value: "10"
             - label: "Every 30 minutes"
-              value: "/30"
+              value: "30"
           mode: dropdown
       default: "/1"
     lifetime:
@@ -162,7 +162,8 @@ variables:
 # The automation will be triggered based on a time pattern.
 trigger:
   - platform: time_pattern
-    minutes: !input update_frequency
+#    minutes: !input update_frequency
+    seconds: "/{{ update_interval }}"
 
 condition: []
 
