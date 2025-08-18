@@ -9,188 +9,189 @@ blueprint:
     (e.g., a device named 'awtrix_abcdef' should have entities like 'sensor.awtrix_abcdef_wifi_strength').
   domain: automation
 
-input:
-  awtrix_device:
-    name: AWTRIX Device(s)
-    description: Select the Awtrix Light device(s) to display the stats on.
-    selector:
-      device:
-        filter:
-          - integration: mqtt
-            manufacturer: Blueforcer
-            model: AWTRIX 3
-        multiple: true
-
-  # --- Content Selection ---
-  show_wifi:
-    name: Show WiFi Strength
-    description: Display the current WiFi signal strength (dB).
-    selector:
-      boolean: {}
-    default: true
-  show_battery:
-    name: Show Battery Level
-    description: Display the current battery percentage.
-    selector:
-      boolean: {}
-    default: true
-  show_ram:
-    name: Show Free RAM
-    description: Display the available RAM (in Bytes).
-    selector:
-      boolean: {}
-    default: true
-  show_uptime:
-    name: Show Uptime
-    description: Display the device uptime.
-    selector:
-      boolean: {}
-    default: true
-  show_version:
-    name: Show Firmware Version
-    description: Display the current AWTRIX firmware version.
-    selector:
-      boolean: {}
-    default: true
-
-  # --- Configuration ---
-  app_name:
-    name: Custom App Name
-    description: The name for the custom app topic (e.g., self-stats). This will be the last part of the MQTT topic.
-    selector:
-      text: {}
-    default: "self-stats"
-  update_frequency:
-    name: Update Frequency (minutes)
-    description: How often to send the stats to the device.
-    selector:
-      number:
-        min: 1
-        max: 60
-        step: 1
-        unit_of_measurement: "minutes"
-    default: 1
-  lifetime:
-    name: Lifetime of the app (in seconds)
-    description: Removes the custom app when there is no update after the given time in seconds. Keep this value higher than your update frequency in seconds.
-    selector:
-      number:
-        min: 60
-        max: 3600
-        step: 1
-        unit_of_measurement: "seconds"
-    default: 70
-
-  # --- Visuals ---
-  text_color:
-    name: Text Color
-    description: The color of the scrolling text.
-    selector:
-      color_rgb: {}
-    default: [160, 160, 0]
-  effect:
-    name: Effect
-    description: The display effect to use for the background.
-    selector:
-      select:
-        options:
-          - "None"
-          - "Fade"
-          - "Scroll"
-          - "Matrix"
-          - "TwinklingStars"
-          - "Rainbow"
-    default: "TwinklingStars"
-
-# This defines how the automation will run.
-# 'single' mode ensures that if the automation is triggered again while it's already running,
-# the previous run is cancelled and a new one starts.
-mode: single
-max_exceeded: silent
-
-# These are variables created from the user inputs for easier use in the action.
-variables:
-  devices: !input awtrix_device
-  show_wifi: !input show_wifi
-  show_battery: !input show_battery
-  show_ram: !input show_ram
-  show_uptime: !input show_uptime
-  show_version: !input show_version
-  app_name: !input app_name
-  text_color: !input text_color
-  effect: !input effect
-  lifetime: !input lifetime
-  update_frequency: !input update_frequency
-
-# The automation will be triggered based on a time pattern.
-trigger:
-  - platform: time_pattern
-    minutes: "/{{ !input update_frequency }}"
-
-condition: []
-
-# This is the sequence of actions that will be performed when the automation is triggered.
-action:
-  # This 'repeat' block will loop through each device selected in the input.
-  - repeat:
-      for_each: "{{ devices }}"
-      sequence:
-        # Define variables specific to the current device in the loop.
-        - variables:
-            # Get the device name from Home Assistant (e.g., 'awtrix_abcdef').
-            # It's converted to lowercase and spaces are replaced with underscores to match entity/topic formats.
-            device_name: "{{ device_attr(repeat.item, 'name') | lower | replace(' ', '_') }}"
-            # Construct the full MQTT topic for the custom app on the current device.
-            topic: "{{ device_name }}/custom/{{ app_name }}"
-            # This block constructs the text payload by conditionally adding each selected stat.
-            text_payload: >
-              {% set parts = namespace(text = []) %}
-              {% if show_wifi %}
-                {% set wifi_state = states('sensor.' ~ device_name ~ '_wifi_strength') %}
-                {% set parts.text = parts.text + ['· WIFI ' ~ wifi_state ~ ' dB'] if wifi_state not in ['unavailable', 'unknown'] else parts.text %}
-              {% endif %}
-              {% if show_battery %}
-                {% set battery_state = states('sensor.' ~ device_name ~ '_battery') %}
-                {% set parts.text = parts.text + ['· BATTERY ' ~ battery_state ~ ' %'] if battery_state not in ['unavailable', 'unknown'] else parts.text %}
-              {% endif %}
-              {% if show_ram %}
-                {% set ram_state = states('sensor.' ~ device_name ~ '_free_ram') %}
-                {% set parts.text = parts.text + ['· RAM ' ~ ram_state ~ ' B'] if ram_state not in ['unavailable', 'unknown'] else parts.text %}
-              {% endif %}
-              {% if show_uptime %}
-                {% set s = states('sensor.' ~ device_name ~ '_uptime') | int(0) %}
-                {% if s > 0 %}
-                  {% set days = (s / 86400) | int %}
-                  {% set hours = ((s % 86400) / 3600) | int %}
-                  {% set minutes = ((s % 3600) / 60) | int %}
-                  {% set uptime_str = namespace(value='') %}
-                  {% if days > 0 %}{% set uptime_str.value = uptime_str.value ~ days ~ 'd ' %}{% endif %}
-                  {% if hours > 0 %}{% set uptime_str.value = uptime_str.value ~ hours ~ 'h ' %}{% endif %}
-                  {% if minutes > 0 %}{% set uptime_str.value = uptime_str.value ~ minutes ~ 'm' %}{% endif %}
-                  {% set parts.text = parts.text + ['· UPTIME ' ~ uptime_str.value | trim] %}
+  input:
+    awtrix_device:
+      name: AWTRIX Device(s)
+      description: Select the Awtrix Light device(s) to display the stats on.
+      selector:
+        device:
+          filter:
+            - integration: mqtt
+              manufacturer: Blueforcer
+              model: AWTRIX 3
+          multiple: true
+  
+    # --- Content Selection ---
+    show_wifi:
+      name: Show WiFi Strength
+      description: Display the current WiFi signal strength (dB).
+      selector:
+        boolean: {}
+      default: true
+    show_battery:
+      name: Show Battery Level
+      description: Display the current battery percentage.
+      selector:
+        boolean: {}
+      default: true
+    show_ram:
+      name: Show Free RAM
+      description: Display the available RAM (in Bytes).
+      selector:
+        boolean: {}
+      default: true
+    show_uptime:
+      name: Show Uptime
+      description: Display the device uptime.
+      selector:
+        boolean: {}
+      default: true
+    show_version:
+      name: Show Firmware Version
+      description: Display the current AWTRIX firmware version.
+      selector:
+        boolean: {}
+      default: true
+  
+    # --- Configuration ---
+    app_name:
+      name: Custom App Name
+      description: The name for the custom app topic (e.g., self-stats). This will be the last part of the MQTT topic.
+      selector:
+        text: {}
+      default: "self-stats"
+    update_frequency:
+      name: Update Frequency (minutes)
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          unit_of_measurement: "minutes"
+      default: 1
+    lifetime:
+      name: Lifetime of the app (in seconds)
+      description: Removes the custom app when there is no update after the given time in seconds. Keep this value higher than your update frequency in seconds.
+      selector:
+        number:
+          min: 60
+          max: 3600
+          step: 1
+          unit_of_measurement: "seconds"
+      default: 70
+  
+    # --- Visuals ---
+    text_color:
+      name: Text Color
+      description: The color of the scrolling text.
+      selector:
+        color_rgb: {}
+      default: [160, 160, 0]
+    effect:
+      name: Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "Scroll"
+            - "Matrix"
+            - "TwinklingStars"
+            - "Rainbow"
+      default: "TwinklingStars"
+  
+  # This defines how the automation will run.
+  # 'single' mode ensures that if the automation is triggered again while it's already running,
+  # the previous run is cancelled and a new one starts.
+  mode: single
+  max_exceeded: silent
+  
+  # These are variables created from the user inputs for easier use in the action.
+  variables:
+    devices: !input awtrix_device
+    show_wifi: !input show_wifi
+    show_battery: !input show_battery
+    show_ram: !input show_ram
+    show_uptime: !input show_uptime
+    show_version: !input show_version
+    app_name: !input app_name
+    text_color: !input text_color
+    effect: !input effect
+    lifetime: !input lifetime
+    update_frequency: !input update_frequency
+  
+  # The automation will be triggered based on a time pattern.
+  trigger:
+    - platform: time_pattern
+      minutes: "/{{ !input update_frequency }}"
+  
+  condition: []
+  
+  # This is the sequence of actions that will be performed when the automation is triggered.
+  action:
+    # This 'repeat' block will loop through each device selected in the input.
+    - repeat:
+        for_each: "{{ devices }}"
+        sequence:
+          # Define variables specific to the current device in the loop.
+          - variables:
+              # Get the device name from Home Assistant (e.g., 'awtrix_abcdef').
+              # It's converted to lowercase and spaces are replaced with underscores to match entity/topic formats.
+              device_name: "{{ device_attr(repeat.item, 'name') | lower | replace(' ', '_') }}"
+              # Construct the full MQTT topic for the custom app on the current device.
+              topic: "{{ device_name }}/custom/{{ app_name }}"
+              # This block constructs the text payload by conditionally adding each selected stat.
+              text_payload: >
+                {% set parts = namespace(text = []) %}
+                {% if show_wifi %}
+                  {% set wifi_state = states('sensor.' ~ device_name ~ '_wifi_strength') %}
+                  {% set parts.text = parts.text + ['· WIFI ' ~ wifi_state ~ ' dB'] if wifi_state not in ['unavailable', 'unknown'] else parts.text %}
                 {% endif %}
-              {% endif %}
-              {% if show_version %}
-                {% set version_state = states('sensor.' ~ device_name ~ '_version') %}
-                {% set parts.text = parts.text + ['· VER ' ~ version_state] if version_state not in ['unavailable', 'unknown'] else parts.text %}
-              {% endif %}
-              {{ parts.text | join('     ') }}
-
-        # Only publish to MQTT if the text_payload is not empty.
-        - if:
-            - "{{ text_payload | length > 0 }}"
-          then:
-            # The service call to publish the data to the MQTT broker.
-            - service: mqtt.publish
-              data:
-                qos: 0
-                retain: false
-                topic: "{{ topic }}"
-                payload: >
-                  {
-                    "text": "{{ text_payload }}",
-                    "color": {{ text_color | tojson }},
-                    "effect": "{{ effect }}",
-                    "duration": {{ (update_frequency * 60) - 5 }},
-                    "lifetime": {{ lifetime }}
-                  }
+                {% if show_battery %}
+                  {% set battery_state = states('sensor.' ~ device_name ~ '_battery') %}
+                  {% set parts.text = parts.text + ['· BATTERY ' ~ battery_state ~ ' %'] if battery_state not in ['unavailable', 'unknown'] else parts.text %}
+                {% endif %}
+                {% if show_ram %}
+                  {% set ram_state = states('sensor.' ~ device_name ~ '_free_ram') %}
+                  {% set parts.text = parts.text + ['· RAM ' ~ ram_state ~ ' B'] if ram_state not in ['unavailable', 'unknown'] else parts.text %}
+                {% endif %}
+                {% if show_uptime %}
+                  {% set s = states('sensor.' ~ device_name ~ '_uptime') | int(0) %}
+                  {% if s > 0 %}
+                    {% set days = (s / 86400) | int %}
+                    {% set hours = ((s % 86400) / 3600) | int %}
+                    {% set minutes = ((s % 3600) / 60) | int %}
+                    {% set uptime_str = namespace(value='') %}
+                    {% if days > 0 %}{% set uptime_str.value = uptime_str.value ~ days ~ 'd ' %}{% endif %}
+                    {% if hours > 0 %}{% set uptime_str.value = uptime_str.value ~ hours ~ 'h ' %}{% endif %}
+                    {% if minutes > 0 %}{% set uptime_str.value = uptime_str.value ~ minutes ~ 'm' %}{% endif %}
+                    {% set parts.text = parts.text + ['· UPTIME ' ~ uptime_str.value | trim] %}
+                  {% endif %}
+                {% endif %}
+                {% if show_version %}
+                  {% set version_state = states('sensor.' ~ device_name ~ '_version') %}
+                  {% set parts.text = parts.text + ['· VER ' ~ version_state] if version_state not in ['unavailable', 'unknown'] else parts.text %}
+                {% endif %}
+                {{ parts.text | join('     ') }}
+  
+          # Only publish to MQTT if the text_payload is not empty.
+          - if:
+              - "{{ text_payload | length > 0 }}"
+            then:
+              # The service call to publish the data to the MQTT broker.
+              - service: mqtt.publish
+                data:
+                  qos: 0
+                  retain: false
+                  topic: "{{ topic }}"
+                  payload: >
+                    {
+                      "text": "{{ text_payload }}",
+                      "color": {{ text_color | tojson }},
+                      "effect": "{{ effect }}",
+                      "duration": {{ (update_frequency * 60) - 5 }},
+                      "lifetime": {{ lifetime }}
+                    }
+  
