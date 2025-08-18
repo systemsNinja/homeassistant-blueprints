@@ -57,15 +57,27 @@ blueprint:
         text: {}
       default: "self-stats"
     update_frequency:
-      name: Update Frequency (minutes)
-      description: How often to send the stats to the device.
+      name: Update Frequency
+      description: "How often to send the stats to the device."
       selector:
-        number:
-          min: 1
-          max: 60
-          step: 1
-          unit_of_measurement: "minutes"
-      default: 1
+        select:
+          options:
+            - label: "Every minute"
+              value: "/1"
+            - label: "Every 2 minutes"
+              value: "/2"
+            - label: "Every 3 minutes"
+              value: "/3"
+            - label: "Every 4 minutes"
+              value: "/4"
+            - label: "Every 5 minutes"
+              value: "/5"
+            - label: "Every 10 minutes"
+              value: "/10"
+            - label: "Every 30 minutes"
+              value: "/30"
+          mode: dropdown
+      default: "/1"
     lifetime:
       name: Lifetime of the app (in seconds)
       description: Removes the custom app when there is no update after the given time in seconds. Keep this value higher than your update frequency in seconds.
@@ -83,11 +95,11 @@ blueprint:
         select:
           options:
             - label: "Remove app from rotation"
-              value: 0
+              value: "0"
             - label: "Show a 'stale' indicator"
-              value: 1
-      default: 0
-      mode: dropdown
+              value: "1"
+          mode: dropdown
+      default: "0"
 
     # --- Visuals ---
     text_color:
@@ -114,6 +126,7 @@ blueprint:
             - "Matrix"
             - "TwinklingStars"
             - "Rainbow"
+          mode: dropdown
       default: "TwinklingStars"
     repeat_count:
       name: Scroll Repeat Count
@@ -144,14 +157,12 @@ variables:
   effect: !input effect
   lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
-  update_frequency: !input update_frequency
   repeat_count: !input repeat_count
 
-# The automation will be triggered based on a template that checks the minute.
+# The automation will be triggered based on a time pattern.
 trigger:
-  - platform: template
-    value_template: >
-      {{ (now().minute % (update_frequency | int(1))) == 0 }}
+  - platform: time_pattern
+    minutes: !input update_frequency
 
 condition: []
 
@@ -222,7 +233,7 @@ action:
                   "effect": "{{ effect }}",
                   "repeat": {{ repeat_count }},
                   "lifetime": {{ lifetime }},
-                  "lifetimeMode": {{ lifetimeMode }}
+                  "lifetimeMode": {{ lifetimeMode | int }}
                   {% if rainbow_text %}
                     , "rainbow": true
                   {% else %}
