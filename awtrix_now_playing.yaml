@@ -1,9 +1,9 @@
 blueprint:
-  name: AWTRIX Now Playing 2 (with Progress Bar)
+  name: AWTRIX Now Playing with Progress Bar
   description: >
     ## AWTRIX Now Playing 🎹
 
-    Shows the title and artist of your currently playing song on your AWTRIX Light device(s). 
+    Shows the title and artist of your currently playing song on your AWTRIX device(s). 
     You can choose to display it as a temporary notification or as a persistent custom app that is removed when playback stops.
 
     ### Features
@@ -14,15 +14,15 @@ blueprint:
     - Works with multiple AWTRIX devices at the same time.
 
     ### Prerequisites
-    - **AWTRIX Light Device**: An AWTRIX Light device running firmware v0.72 or newer.
+    - **AWTRIX Device**: An AWTRIX device running firmware v0.98.
     - **Spotify Integration**: For the progress bar to function correctly, you **must use** a `media_player` entity from the Spotify integration. Other media players might work for displaying text, but they often lack the required attributes (`media_position`, `media_duration`) for the progress bar.
 
   domain: automation
-  author: N1c093 (Modified to add progress bar)
+  author: N1c093 (Modified by SystemsNinja to add progress bar, effects, lifetime, etc)
 
   input:
     awtrix_devices:
-      name: AWTRIX Light Device(s)
+      name: AWTRIX Device(s)
       description: Select the target Awtrix display(s).
       selector:
         device:
@@ -127,6 +127,72 @@ blueprint:
         boolean:
       default: false
 
+    effect:
+      name: Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
+
+    lifetime:
+      name: Lifetime of the app if automation is not running
+      description: >-
+        Defines how long the app should stay alive after the last update if nothing is updating it. Time is from the time of the last update.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "3 seconds"
+              value: "3"
+            - label: "5 seconds"
+              value: "5"
+            - label: "10 seconds"
+              value: "10"
+            - label: "15 seconds"
+              value: "15"
+            - label: "20 seconds"
+              value: "20"
+            - label: "30 seconds"
+              value: "30"
+            - label: "45 seconds"
+              value: "45"
+            - label: "1 minute"
+              value: "60"
+            - label: "2 minutes"
+              value: "120"
+            - label: "3 minutes"
+              value: "180"
+            - label: "4 minutes"
+              value: "240"
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "30 minutes"
+              value: "1800"
+      default: "30"
+
 variables:
   # Define all inputs as variables first
   device_ids: !input awtrix_devices
@@ -140,6 +206,8 @@ variables:
   push_icon: !input push_icon
   repeat_text: !input repeat_text
   progress_bar_color: !input progress_bar_color
+  effect: !input effect
+  lifetime: !input lifetime
 
   # Now, build the payload using the variables above
   payload_content: >-
@@ -153,7 +221,9 @@ variables:
       "rainbow": {{ show_rainbow | lower }},
       "textCase": {{ text_case }},
       "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
-      "repeat": {{ repeat_text }}
+      "repeat": {{ repeat_text }},
+      "effect": "{{ effect }}",
+      "lifetime": {{ lifetime }}
       {%- if push_icon == "0" or push_icon == "3" %}
       , {% set duration = state_attr(media_player, 'media_duration') %}
         {% set position = state_attr(media_player, 'media_position') %}

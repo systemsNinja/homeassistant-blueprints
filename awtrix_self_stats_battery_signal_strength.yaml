@@ -6,10 +6,11 @@ blueprint:
     
     This blueprint requires your AWTRIX device to be integrated via MQTT.
   domain: automation
+  author: SystemsNinja
   input:
     awtrix_device:
       name: AWTRIX Device
-      description: Select the Awtrix Light device to display the stats on.
+      description: Select the Awtrix device to display the stats on.
       selector:
         device:
           filter:
