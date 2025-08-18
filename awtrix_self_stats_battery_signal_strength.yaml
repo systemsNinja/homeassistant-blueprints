@@ -73,6 +73,7 @@ blueprint:
           max: 250
           step: 25
           mode: slider
+      default: 100
     push_icon:
       name: Icon Behavior
       description: Select how the icon should be displayed.
