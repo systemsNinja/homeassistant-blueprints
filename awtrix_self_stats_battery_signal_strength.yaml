@@ -8,7 +8,6 @@ blueprint:
     device name in Home Assistant matches the one used in the MQTT topic and entity IDs
     (e.g., a device named 'awtrix_abcdef' should have entities like 'sensor.awtrix_abcdef_wifi_strength').
   domain: automation
-  source_url: https://gist.github.com/gemini-user/0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d # Placeholder URL
 
 input:
   awtrix_device:
@@ -126,7 +125,7 @@ variables:
 # The automation will be triggered based on a time pattern.
 trigger:
   - platform: time_pattern
-    minutes: "/{{ update_frequency }}"
+    minutes: "/{{ !input update_frequency }}"
 
 condition: []
 
