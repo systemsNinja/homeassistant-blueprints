@@ -83,8 +83,8 @@ blueprint:
 
     repeat_text:
       name: Repeat Scroll
-      description: How many times the text should scroll. 0 means it scrolls until removed.
-      default: 0
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      default: 1
       selector:
         number:
           min: 0

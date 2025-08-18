@@ -51,12 +51,36 @@ blueprint:
       default: true
 
     # --- Configuration ---
+
     app_name:
       name: Custom App Name
       description: The name for the custom app topic (e.g., self-stats). This will be the last part of the MQTT topic.
       selector:
         text: {}
       default: "self-stats"
+    icon_in:
+      name: Icon ID
+      description: Enter the Icon Name or ID (e.g., 50417 for Gear). Not used if "No Icon" is selected.
+      selector:
+        text:
+      default: "50417"
+
+    push_icon:
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
+      selector:
+        select:
+          options:
+            - label: "Icon doesn't move"
+              value: "0"
+            - label: "Icon moves with text"
+              value: "1"
+            - label: "Icon moves & reappears"
+              value: "2"
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
+      default: "0"
     update_unit:
       name: Update Unit
       description: Choose whether the update interval is in seconds or minutes.
@@ -135,6 +159,20 @@ blueprint:
       selector:
         color_rgb: {}
       default: [160, 160, 0]
+    text_case:
+      name: Text Case
+      description: Select how you would like your text to display.
+      selector:
+        select:
+          options:
+            - label: "Use global AWTRIX setting"
+              value: "0"
+            - label: "Force Uppercase"
+              value: "1"
+            - label: "Show as is (Default)"
+              value: "2"
+          mode: dropdown
+      default: "2"
     rainbow_text:
       name: Rainbow Text
       description: Overrides the text color and makes the text a rainbow gradient.
@@ -170,7 +208,7 @@ blueprint:
       default: "TwinklingStars"
     repeat_count:
       name: Scroll Repeat Count
-      description: Set how many times the text scrolls. This determines the app's display duration.
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
       default: 1
       selector:
         number:
@@ -194,7 +232,10 @@ variables:
   show_uptime: !input show_uptime
   show_version: !input show_version
   app_name: !input app_name
+  push_icon: !input push_icon
+  icon_in: !input icon_in
   text_color: !input text_color
+  text_case: !input text_case
   rainbow_text: !input rainbow_text
   effect: !input effect
   lifetime_grace: !input lifetime_grace
@@ -279,7 +320,12 @@ action:
               topic: "{{ topic }}"
               payload: >
                 {
-                  "text": "{{ text_payload }}",
+                  "text": "{{ text_payload }}"
+                  {%- if push_icon != "3" %},
+                  "icon": "{{ icon_in }}"
+                  {%- endif %},
+                  "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
+                  "textCase": {{ text_case }},
                   "effect": "{{ effect }}",
                   "repeat": {{ repeat_count }},
                   "lifetime": {{ lifetime }},
