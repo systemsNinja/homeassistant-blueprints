@@ -76,6 +76,18 @@ blueprint:
           step: 1
           unit_of_measurement: "seconds"
       default: 70
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: 0
+            - label: "Show a 'stale' indicator"
+              value: 1
+      default: 0
+      mode: dropdown
 
     # --- Visuals ---
     text_color:
@@ -131,6 +143,7 @@ variables:
   rainbow_text: !input rainbow_text
   effect: !input effect
   lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
   update_frequency: !input update_frequency
   repeat_count: !input repeat_count
 
@@ -208,7 +221,8 @@ action:
                   "text": "{{ text_payload }}",
                   "effect": "{{ effect }}",
                   "repeat": {{ repeat_count }},
-                  "lifetime": {{ lifetime }}
+                  "lifetime": {{ lifetime }},
+                  "lifetimeMode": {{ lifetimeMode }}
                   {% if rainbow_text %}
                     , "rainbow": true
                   {% else %}
