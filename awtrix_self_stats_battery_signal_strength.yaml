@@ -75,12 +75,12 @@ blueprint:
           step: 1
           mode: slider
       default: 1
-    lifetime:
+    lifetime_grace:
       name: Lifetime of the app after no update from automation
       description: >-
         Defines how long the app should stay alive after the last update.
         EX: If updating every 1 minute, and this is set to 30 seconds,
-        the app will be removed 30 seconds after the last update.
+        the app will be removed 90 seconds (60s update + 30s grace) after the last update.
       selector:
         select:
           mode: dropdown
@@ -182,7 +182,10 @@ variables:
   text_color: !input text_color
   rainbow_text: !input rainbow_text
   effect: !input effect
-  lifetime: !input lifetime
+  lifetime_grace: !input lifetime_grace
+  lifetime: >
+    {% set interval = iif(update_unit == "minutes", update_interval|int * 60, update_interval|int) %}
+    {{ interval + (lifetime_grace | int) }}
   lifetimeMode: !input lifetimeMode
   repeat_count: !input repeat_count
 
