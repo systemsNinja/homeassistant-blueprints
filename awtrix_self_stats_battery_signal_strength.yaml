@@ -1,7 +1,7 @@
 blueprint:
-  name: AWTRIX Light - Device Self-Stats (Single Device)
+  name: AWTRIX Device Self-Stats
   description: >-
-    Displays internal device statistics on a single AWTRIX Light display as a custom app.
+    Displays internal device statistics on a single AWTRIX Device display as a custom app.
     Select which stats to show (WiFi, Battery, RAM, Uptime, Version) and customize the appearance.
     
     This blueprint requires your AWTRIX device to be integrated via MQTT.
