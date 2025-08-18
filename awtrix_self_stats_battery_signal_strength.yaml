@@ -8,7 +8,6 @@ blueprint:
     device name in Home Assistant matches the one used in the MQTT topic and entity IDs
     (e.g., a device named 'awtrix_abcdef' should have entities like 'sensor.awtrix_abcdef_wifi_strength').
   domain: automation
-
   input:
     awtrix_device:
       name: AWTRIX Device(s)
@@ -20,7 +19,7 @@ blueprint:
               manufacturer: Blueforcer
               model: AWTRIX 3
           multiple: true
-  
+
     # --- Content Selection ---
     show_wifi:
       name: Show WiFi Strength
@@ -52,7 +51,7 @@ blueprint:
       selector:
         boolean: {}
       default: true
-  
+
     # --- Configuration ---
     app_name:
       name: Custom App Name
@@ -80,7 +79,7 @@ blueprint:
           step: 1
           unit_of_measurement: "seconds"
       default: 70
-  
+
     # --- Visuals ---
     text_color:
       name: Text Color
@@ -101,7 +100,7 @@ blueprint:
             - "TwinklingStars"
             - "Rainbow"
       default: "TwinklingStars"
-  
+
 # This defines how the automation will run.
 # 'single' mode ensures that if the automation is triggered again while it's already running,
 # the previous run is cancelled and a new one starts.
