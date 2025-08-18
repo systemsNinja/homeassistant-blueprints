@@ -64,7 +64,15 @@ blueprint:
       selector:
         text:
       default: "50417"
-
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
     push_icon:
       name: Icon Behavior
       description: Select how the icon should be displayed.
@@ -234,6 +242,7 @@ variables:
   app_name: !input app_name
   push_icon: !input push_icon
   icon_in: !input icon_in
+  scroll_speed: !input scroll_speed
   text_color: !input text_color
   text_case: !input text_case
   rainbow_text: !input rainbow_text
@@ -328,6 +337,7 @@ action:
                   "textCase": {{ text_case }},
                   "effect": "{{ effect }}",
                   "repeat": {{ repeat_count }},
+                  "scroll_speed": {{ scroll_speed }},
                   "lifetime": {{ lifetime }},
                   "lifetimeMode": {{ lifetimeMode | int }}
                   {% if rainbow_text %}
