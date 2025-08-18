@@ -24,7 +24,9 @@ blueprint:
       description: Bitcoin sensor
       selector:
         entity:
-          integration: cryptoinfo
+          integration: 
+            - cryptoinfo
+            - bitcoin
           multiple: false
     bitcoin_icon:
       name: Icon
