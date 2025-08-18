@@ -159,16 +159,14 @@ variables:
 # The automation will be triggered based on a time pattern for either seconds or minutes.
 trigger:
   - platform: time_pattern
-    seconds: "/{{ update_interval }}"
-    id: "seconds"
-  - platform: time_pattern
-    minutes: "/{{ update_interval }}"
-    id: "minutes"
+    seconds: "/1"   # fires every second
 
-# This condition ensures the automation only runs if the trigger (seconds/minutes) matches the selected unit.
 condition:
   - condition: template
-    value_template: "{{ trigger.id == update_unit }}"
+    value_template: >-
+      {% set interval = iif(update_unit == "minutes", update_interval * 60, update_interval) %}
+      {{ (as_timestamp(now()) | int) % interval == 0 }}
+
 
 # This is the sequence of actions that will be performed when the automation is triggered.
 action:
