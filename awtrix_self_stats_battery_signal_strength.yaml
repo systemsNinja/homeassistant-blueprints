@@ -337,7 +337,7 @@ action:
                   "textCase": {{ text_case }},
                   "effect": "{{ effect }}",
                   "repeat": {{ repeat_count }},
-                  "scroll_speed": {{ scroll_speed }},
+                  "scrollSpeed": {{ scroll_speed }},
                   "lifetime": {{ lifetime }},
                   "lifetimeMode": {{ lifetimeMode | int }}
                   {% if rainbow_text %}
