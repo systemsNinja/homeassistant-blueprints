@@ -1,24 +1,21 @@
 blueprint:
-  name: AWTRIX Light - Device Self-Stats
+  name: AWTRIX Light - Device Self-Stats (Single Device)
   description: >-
-    Displays internal device statistics on an AWTRIX Light display as a custom app.
+    Displays internal device statistics on a single AWTRIX Light display as a custom app.
     Select which stats to show (WiFi, Battery, RAM, Uptime, Version) and customize the appearance.
     
-    This blueprint requires your AWTRIX device to be integrated via MQTT and that the
-    device name in Home Assistant matches the one used in the MQTT topic and entity IDs
-    (e.g., a device named 'awtrix_abcdef' should have entities like 'sensor.awtrix_abcdef_wifi_strength').
+    This blueprint requires your AWTRIX device to be integrated via MQTT.
   domain: automation
   input:
     awtrix_device:
-      name: AWTRIX Device(s)
-      description: Select the Awtrix Light device(s) to display the stats on.
+      name: AWTRIX Device
+      description: Select the Awtrix Light device to display the stats on.
       selector:
         device:
           filter:
             - integration: mqtt
               manufacturer: Blueforcer
               model: AWTRIX 3
-          multiple: true
 
     # --- Content Selection ---
     show_wifi:
@@ -107,7 +104,7 @@ max_exceeded: silent
 
 # These are variables created from the user inputs for easier use in the action.
 variables:
-  devices: !input awtrix_device
+  device: !input awtrix_device
   show_wifi: !input show_wifi
   show_battery: !input show_battery
   show_ram: !input show_ram
@@ -129,75 +126,70 @@ condition: []
 
 # This is the sequence of actions that will be performed when the automation is triggered.
 action:
-  # This 'repeat' block will loop through each device selected in the input.
-  - repeat:
-      for_each: "{{ devices }}"
-      sequence:
-        # Define variables specific to the current device in the loop.
-        - variables:
-            # This is the reliable way to get the device's base MQTT topic.
-            # It finds the sensor that stores the topic and gets its state.
-            base_topic: >
-              {% set topic_entity = device_entities(repeat.item) | select('search', '_device_topic') | first %}
-              {{ states(topic_entity) if topic_entity else 'unknown' }}
+  # Define variables specific to the selected device.
+  - variables:
+      # This is the reliable way to get the device's base MQTT topic.
+      # It finds the sensor that stores the topic and gets its state.
+      base_topic: >
+        {% set topic_entity = device_entities(device) | select('search', '_device_topic') | first %}
+        {{ states(topic_entity) if topic_entity else 'unknown' }}
 
-        # Proceed only if the base_topic was found.
-        - if:
-            - "{{ base_topic != 'unknown' }}"
-          then:
-            - variables:
-                # Construct the full topic for publishing the custom app payload.
-                topic: "{{ base_topic }}/custom/{{ app_name }}"
-                # This block constructs the text payload by conditionally adding each selected stat.
-                # It now correctly uses the 'base_topic' to build the sensor entity IDs.
-                text_payload: >
-                  {% set parts = namespace(text = []) %}
-                  {% if show_wifi %}
-                    {% set wifi_state = states('sensor.' ~ base_topic ~ '_wifi_strength') %}
-                    {% set parts.text = parts.text + ['· WIFI ' ~ wifi_state ~ ' dB'] if wifi_state not in ['unavailable', 'unknown'] else parts.text %}
-                  {% endif %}
-                  {% if show_battery %}
-                    {% set battery_state = states('sensor.' ~ base_topic ~ '_battery') %}
-                    {% set parts.text = parts.text + ['· BATTERY ' ~ battery_state ~ ' %'] if battery_state not in ['unavailable', 'unknown'] else parts.text %}
-                  {% endif %}
-                  {% if show_ram %}
-                    {% set ram_state = states('sensor.' ~ base_topic ~ '_free_ram') %}
-                    {% set parts.text = parts.text + ['· RAM ' ~ ram_state ~ ' B'] if ram_state not in ['unavailable', 'unknown'] else parts.text %}
-                  {% endif %}
-                  {% if show_uptime %}
-                    {% set s = states('sensor.' ~ base_topic ~ '_uptime') | int(0) %}
-                    {% if s > 0 %}
-                      {% set days = (s / 86400) | int %}
-                      {% set hours = ((s % 86400) / 3600) | int %}
-                      {% set minutes = ((s % 3600) / 60) | int %}
-                      {% set uptime_str = namespace(value='') %}
-                      {% if days > 0 %}{% set uptime_str.value = uptime_str.value ~ days ~ 'd ' %}{% endif %}
-                      {% if hours > 0 %}{% set uptime_str.value = uptime_str.value ~ hours ~ 'h ' %}{% endif %}
-                      {% if minutes > 0 %}{% set uptime_str.value = uptime_str.value ~ minutes ~ 'm' %}{% endif %}
-                      {% set parts.text = parts.text + ['· UPTIME ' ~ uptime_str.value | trim] %}
-                    {% endif %}
-                  {% endif %}
-                  {% if show_version %}
-                    {% set version_state = states('sensor.' ~ base_topic ~ '_version') %}
-                    {% set parts.text = parts.text + ['· VER ' ~ version_state] if version_state not in ['unavailable', 'unknown'] else parts.text %}
-                  {% endif %}
-                  {{ parts.text | join('     ') }}
+  # Proceed only if the base_topic was found.
+  - if:
+      - "{{ base_topic != 'unknown' }}"
+    then:
+      - variables:
+          # Construct the full topic for publishing the custom app payload.
+          topic: "{{ base_topic }}/custom/{{ app_name }}"
+          # This block constructs the text payload by conditionally adding each selected stat.
+          text_payload: >
+            {% set parts = namespace(text = []) %}
+            {% if show_wifi %}
+              {% set wifi_state = states('sensor.' ~ base_topic ~ '_wifi_strength') %}
+              {% set parts.text = parts.text + ['· WIFI ' ~ wifi_state ~ ' dB'] if wifi_state not in ['unavailable', 'unknown'] else parts.text %}
+            {% endif %}
+            {% if show_battery %}
+              {% set battery_state = states('sensor.' ~ base_topic ~ '_battery') %}
+              {% set parts.text = parts.text + ['· BATTERY ' ~ battery_state ~ ' %'] if battery_state not in ['unavailable', 'unknown'] else parts.text %}
+            {% endif %}
+            {% if show_ram %}
+              {% set ram_state = states('sensor.' ~ base_topic ~ '_free_ram') %}
+              {% set parts.text = parts.text + ['· RAM ' ~ ram_state ~ ' B'] if ram_state not in ['unavailable', 'unknown'] else parts.text %}
+            {% endif %}
+            {% if show_uptime %}
+              {% set s = states('sensor.' ~ base_topic ~ '_uptime') | int(0) %}
+              {% if s > 0 %}
+                {% set days = (s / 86400) | int %}
+                {% set hours = ((s % 86400) / 3600) | int %}
+                {% set minutes = ((s % 3600) / 60) | int %}
+                {% set uptime_str = namespace(value='') %}
+                {% if days > 0 %}{% set uptime_str.value = uptime_str.value ~ days ~ 'd ' %}{% endif %}
+                {% if hours > 0 %}{% set uptime_str.value = uptime_str.value ~ hours ~ 'h ' %}{% endif %}
+                {% if minutes > 0 %}{% set uptime_str.value = uptime_str.value ~ minutes ~ 'm' %}{% endif %}
+                {% set parts.text = parts.text + ['· UPTIME ' ~ uptime_str.value | trim] %}
+              {% endif %}
+            {% endif %}
+            {% if show_version %}
+              {% set version_state = states('sensor.' ~ base_topic ~ '_version') %}
+              {% set parts.text = parts.text + ['· VER ' ~ version_state] if version_state not in ['unavailable', 'unknown'] else parts.text %}
+            {% endif %}
+            {{ parts.text | join('     ') }}
 
-            # Only publish to MQTT if the text_payload is not empty.
-            - if:
-                - "{{ text_payload | length > 0 }}"
-              then:
-                # The service call to publish the data to the MQTT broker.
-                - service: mqtt.publish
-                  data:
-                    qos: 0
-                    retain: false
-                    topic: "{{ topic }}"
-                    payload: >
-                      {
-                        "text": "{{ text_payload }}",
-                        "color": {{ text_color | tojson }},
-                        "effect": "{{ effect }}",
-                        "duration": {{ (update_frequency * 60) - 5 }},
-                        "lifetime": {{ lifetime }}
-                      }
+      # Only publish to MQTT if the text_payload is not empty.
+      - if:
+          - "{{ text_payload | length > 0 }}"
+        then:
+          # The service call to publish the data to the MQTT broker.
+          - service: mqtt.publish
+            data:
+              qos: 0
+              retain: false
+              topic: "{{ topic }}"
+              payload: >
+                {
+                  "text": "{{ text_payload }}",
+                  "color": {{ text_color | tojson }},
+                  "effect": "{{ effect }}",
+                  "duration": {{ (update_frequency * 60) - 5 }},
+                  "lifetime": {{ lifetime }}
+                }
