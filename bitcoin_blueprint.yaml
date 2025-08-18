@@ -25,10 +25,8 @@ blueprint:
       selector:
         entity:
           multiple: false
-          filter:
-            - integration: 
-              - bitcoin
-              - cryptoinfo
+          integration: cryptoinfo
+          multiple: false
     bitcoin_icon:
       name: Icon
       description: Enter the Icon Name or ID of the icon that you like to show.
