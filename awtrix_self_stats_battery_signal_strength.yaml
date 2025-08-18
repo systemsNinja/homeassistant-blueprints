@@ -204,15 +204,14 @@ action:
               retain: false
               topic: "{{ topic }}"
               payload: >
-                {% set payload_dict = {
-                  "text": text_payload,
-                  "effect": effect,
-                  "repeat": repeat_count,
-                  "lifetime": lifetime
-                } %}
-                {% if rainbow_text %}
-                  {% set _ = payload_dict.update({"rainbow": true}) %}
-                {% else %}
-                  {% set _ = payload_dict.update({"color": text_color}) %}
-                {% endif %}
-                {{ payload_dict | tojson }}
+                {
+                  "text": "{{ text_payload }}",
+                  "effect": "{{ effect }}",
+                  "repeat": {{ repeat_count }},
+                  "lifetime": {{ lifetime }}
+                  {% if rainbow_text %}
+                    , "rainbow": true
+                  {% else %}
+                    , "color": {{ text_color | tojson }}
+                  {% endif %}
+                }
