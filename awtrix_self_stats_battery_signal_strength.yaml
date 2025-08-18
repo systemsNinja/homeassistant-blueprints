@@ -134,11 +134,11 @@ variables:
   update_frequency: !input update_frequency
   repeat_count: !input repeat_count
 
-# The automation will be triggered based on a template that checks the minute and second.
+# The automation will be triggered based on a template that checks the minute.
 trigger:
   - platform: template
     value_template: >
-      {{ (now().minute % (update_frequency | int(1))) == 0 and now().second == 0 }}
+      {{ (now().minute % (update_frequency | int(1))) == 0 }}
 
 condition: []
 
