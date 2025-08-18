@@ -56,42 +56,25 @@ blueprint:
       selector:
         text: {}
       default: "self-stats"
-    update_frequency:
-      name: Update Frequency
-      description: "How often to send the stats to the device."
+    update_unit:
+      name: Update Unit
+      description: Choose whether the update interval is in seconds or minutes.
       selector:
         select:
           options:
-            - label: "3 seconds"
-              value: "/3"
-            - label: "5 seconds"
-              value: "/5"
-            - label: "10 seconds"
-              value: "/10"
-            - label: "15 seconds"
-              value: "/15"
-            - label: "20 seconds"
-              value: "/20"
-            - label: "30 seconds"
-              value: "/30"
-            - label: "45 seconds"
-              value: "/45"
-            - label: "1 minute"
-              value: "/60"
-            - label: "2 minutes"
-              value: "/120"
-            - label: "3 minutes"
-              value: "/180"
-            - label: "4 minutes"
-              value: "/240"
-            - label: "5 minutes"
-              value: "/300"
-            - label: "10 minutes"
-              value: "/600"
-            - label: "30 minutes"
-              value: "/1800"
-          mode: dropdown
-      default: "/1"
+            - "seconds"
+            - "minutes"
+      default: "minutes"
+    update_interval:
+      name: Update Interval
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 1
     lifetime:
       name: Lifetime of the app (in seconds)
       description: Removes the custom app when there is no update after the given time in seconds. Keep this value higher than your update frequency in seconds.
@@ -112,7 +95,6 @@ blueprint:
               value: "0"
             - label: "Show a 'stale' indicator"
               value: "1"
-          mode: dropdown
       default: "0"
 
     # --- Visuals ---
@@ -140,7 +122,6 @@ blueprint:
             - "Matrix"
             - "TwinklingStars"
             - "Rainbow"
-          mode: dropdown
       default: "TwinklingStars"
     repeat_count:
       name: Scroll Repeat Count
@@ -160,6 +141,8 @@ max_exceeded: silent
 # These are variables created from the user inputs for easier use in the action.
 variables:
   device: !input awtrix_device
+  update_unit: !input update_unit
+  update_interval: !input update_interval
   show_wifi: !input show_wifi
   show_battery: !input show_battery
   show_ram: !input show_ram
@@ -173,12 +156,19 @@ variables:
   lifetimeMode: !input lifetimeMode
   repeat_count: !input repeat_count
 
-# The automation will be triggered based on a time pattern.
+# The automation will be triggered based on a time pattern for either seconds or minutes.
 trigger:
   - platform: time_pattern
-    seconds: !input update_frequency
+    seconds: "/{{ update_interval }}"
+    id: "seconds"
+  - platform: time_pattern
+    minutes: "/{{ update_interval }}"
+    id: "minutes"
 
-condition: []
+# This condition ensures the automation only runs if the trigger (seconds/minutes) matches the selected unit.
+condition:
+  - condition: template
+    value_template: "{{ trigger.id == update_unit }}"
 
 # This is the sequence of actions that will be performed when the automation is triggered.
 action:
