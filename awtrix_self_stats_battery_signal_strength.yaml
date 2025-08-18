@@ -1,23 +1,26 @@
-
 blueprint:
-  name: AWTRIX - Self Stats App
+  name: "AWTRIX - Self Stats App"
   description: >
     Sends AWTRIX device self-stats (WiFi strength, battery, free RAM, uptime, version) as a custom app message.
-    You can choose which stats to include.
-    Take the Awtrix outside and let it show you how good your WiFi reception is and how long the battery lasts. Helpful if you have a doorbell or other live sensors connected to it.
-    The App is Updating every Minute... No Assets needed...
+    You can select which stats to include and customize app behavior.
   domain: automation
   input:
     awtrix:
-      name: AWTRIX Device
-      description: Select your AWTRIX 3 device
+      name: AWTRIX Light(s)
+      description: Select one or more AWTRIX 3 devices
       selector:
         device:
           filter:
-            integration: mqtt
-            manufacturer: Blueforcer
-            model: AWTRIX 3
-          multiple: false
+            - integration: mqtt
+              manufacturer: Blueforcer
+          multiple: true
+
+    awtrix_app_name:
+      name: AWTRIX Application Name
+      description: Unique name for the custom app on AWTRIX
+      default: "self-stats"
+      selector:
+        text:
 
     show_wifi:
       name: Show WiFi Strength
@@ -49,53 +52,110 @@ blueprint:
       selector:
         boolean:
 
+    txt_color:
+      name: Text Color
+      description: Color of the text
+      selector:
+        color_rgb:
+      default: [160, 160, 0]
+
+    duration:
+      name: Duration (in seconds)
+      description: How long the app/notification should be displayed.
+      default: "10"
+
+    repeat:
+      name: Repeat
+      description: How many times the text should scroll before ending.
+      default: "4"
+
+    lifetime:
+      name: Lifetime (in seconds)
+      description: Removes the custom app if no update after this time. Keep >59s.
+      default: "70"
+
+variables:
+  device_ids: !input awtrix
+  app: !input awtrix_app_name
+  show_wifi: !input show_wifi
+  show_battery: !input show_battery
+  show_ram: !input show_ram
+  show_uptime: !input show_uptime
+  show_version: !input show_version
+  txt_color: !input txt_color
+  duration: !input duration
+  repeat_count: !input repeat
+  lifetime: !input lifetime
+
+  # Build AWTRIX devices list with MQTT topics
+  awtrix_devices: >-
+    {%- set ns = namespace(awtrix = []) -%}
+    {%- for device_id in device_ids -%}
+      {%- set device_name = iif(device_attr(device_id, 'name_by_user') != none,
+                                device_attr(device_id, 'name_by_user'),
+                                device_attr(device_id, 'name')) -%}
+      {%- set entity = expand(device_entities(device_id))
+            | select('search', 'device_topic')
+            | map(attribute='entity_id') | first -%}
+      {%- set topic = states(entity) -%}
+      {%- set ns.awtrix = ns.awtrix + [{"device": device_name, "entity": entity, "topic": topic}] -%}
+    {%- endfor -%}
+    {{ ns.awtrix }}
+
 trigger:
   - platform: time_pattern
     minutes: "/1"
 
-variables:
-  device_id: !input awtrix
-  device_name: "{{ device_attr(device_id, 'name') | lower | replace(' ', '_') }}"
-  topic: "awtrix_{{ device_name }}/custom/self-stats"
-
 action:
-  - service: mqtt.publish
-    data:
-      qos: 0
-      retain: false
-      topic: "{{ topic }}"
-      payload: >-
-        {
-          "text": "·
-          {% if show_wifi %} WIFI {{ states('sensor.' ~ device_name ~ '_wifi_strength') }} dB · {% endif %}
-          {% if show_battery %} BATTERY {{ states('sensor.' ~ device_name ~ '_battery') }} % · {% endif %}
-          {% if show_ram %} FREE RAM {{ states('sensor.' ~ device_name ~ '_free_ram') }} Byte · {% endif %}
-          {% if show_uptime %}
-            UPTIME
-            {% set s = states('sensor.' ~ device_name ~ '_uptime') | int(0) %}
-            {% set seconds = s % 60 %}
-            {% set minutes = ((s % 3600) / 60) | int %}
-            {% set hours = ((s % 86400) / 3600) | int %}
-            {% set days = (s / 86400) | int %}
-            {% if days > 0 %} · {{ days }} DAY{{ 'S' if days > 1 }} {% endif %}
-            {% if hours > 0 %} · {{ hours }} HOUR{{ 'S' if hours > 1 }} {% endif %}
-            {% if minutes > 0 %} · {{ minutes }} MINUTE{{ 'S' if minutes > 1 }} {% endif %}
-            {% if seconds > 0 %} · {{ seconds }} SECOND{{ 'S' if seconds > 1 }} {% endif %}
-          {% endif %}
-          {% if show_version %} · VERSION {{ states('sensor.' ~ device_name ~ '_version') }} {% endif %}
-          ",
-          "textOffset": 34,
-          "repeat": 1,
-          "color": [160,160,0],
-          "effect": "TwinklingStars",
-          "effectSettings": {
-            "speed": -4,
-            "palette": [
-              "220000","330000","550000","770000","990000","BB0000","DD0000",
-              "FF0000","FF0000","DD0000","BB0000","990000","770000","550000",
-              "330000","220000"
-            ],
-            "blend": true
-          }
-        }
-mode: single
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: >
+                    {{ states(repeat.item.entity) not in ['unavailable','unknown'] }}
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    qos: 0
+                    retain: false
+                    topic: "{{ repeat.item.topic ~ '/custom/' ~ app }}"
+                    payload: >-
+                      {
+                        "text": "·
+                          {% if show_wifi %} WIFI {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_wifi_strength') }} dB · {% endif %}
+                          {% if show_battery %} BATTERY {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_battery') }} % · {% endif %}
+                          {% if show_ram %} FREE RAM {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_free_ram') }} Byte · {% endif %}
+                          {% if show_uptime %}
+                            UPTIME
+                            {% set s = states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_uptime') | int(0) %}
+                            {% set seconds = s % 60 %}
+                            {% set minutes = ((s % 3600) / 60) | int %}
+                            {% set hours = ((s % 86400) / 3600) | int %}
+                            {% set days = (s / 86400) | int %}
+                            {% if days > 0 %} · {{ days }} DAY{{ 'S' if days > 1 }} {% endif %}
+                            {% if hours > 0 %} · {{ hours }} HOUR{{ 'S' if hours > 1 }} {% endif %}
+                            {% if minutes > 0 %} · {{ minutes }} MINUTE{{ 'S' if minutes > 1 }} {% endif %}
+                            {% if seconds > 0 %} · {{ seconds }} SECOND{{ 'S' if seconds > 1 }} {% endif %}
+                          {% endif %}
+                          {% if show_version %} · VERSION {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_version') }} {% endif %}
+                        ",
+                        "textOffset": 34,
+                        "repeat": {{ repeat_count }},
+                        "duration": {{ duration }},
+                        "lifetime": {{ lifetime }},
+                        "color": {{ txt_color }},
+                        "effect": "TwinklingStars",
+                        "effectSettings": {
+                          "speed": -4,
+                          "palette": [
+                            "220000","330000","550000","770000","990000","BB0000","DD0000",
+                            "FF0000","FF0000","DD0000","BB0000","990000","770000","550000",
+                            "330000","220000"
+                          ],
+                          "blend": true
+                        }
+                      }
+
+mode: restart
