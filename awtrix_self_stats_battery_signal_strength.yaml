@@ -1,161 +1,197 @@
 blueprint:
-  name: "AWTRIX - Self Stats App"
-  description: >
-    Sends AWTRIX device self-stats (WiFi strength, battery, free RAM, uptime, version) as a custom app message.
-    You can select which stats to include and customize app behavior.
+  name: AWTRIX Light - Device Self-Stats
+  description: >-
+    Displays internal device statistics on an AWTRIX Light display as a custom app.
+    Select which stats to show (WiFi, Battery, RAM, Uptime, Version) and customize the appearance.
+    
+    This blueprint requires your AWTRIX device to be integrated via MQTT and that the
+    device name in Home Assistant matches the one used in the MQTT topic and entity IDs
+    (e.g., a device named 'awtrix_abcdef' should have entities like 'sensor.awtrix_abcdef_wifi_strength').
   domain: automation
-  input:
-    awtrix:
-      name: AWTRIX Light(s)
-      description: Select one or more AWTRIX 3 devices
-      selector:
-        device:
-          filter:
-            - integration: mqtt
-              manufacturer: Blueforcer
-          multiple: true
+  source_url: https://gist.github.com/gemini-user/0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d # Placeholder URL
 
-    awtrix_app_name:
-      name: AWTRIX Application Name
-      description: Unique name for the custom app on AWTRIX
-      default: "self-stats"
-      selector:
-        text:
+input:
+  awtrix_device:
+    name: AWTRIX Device(s)
+    description: Select the Awtrix Light device(s) to display the stats on.
+    selector:
+      device:
+        filter:
+          - integration: mqtt
+            manufacturer: Blueforcer
+            model: AWTRIX 3
+        multiple: true
 
-    show_wifi:
-      name: Show WiFi Strength
-      default: true
-      selector:
-        boolean:
+  # --- Content Selection ---
+  show_wifi:
+    name: Show WiFi Strength
+    description: Display the current WiFi signal strength (dB).
+    selector:
+      boolean: {}
+    default: true
+  show_battery:
+    name: Show Battery Level
+    description: Display the current battery percentage.
+    selector:
+      boolean: {}
+    default: true
+  show_ram:
+    name: Show Free RAM
+    description: Display the available RAM (in Bytes).
+    selector:
+      boolean: {}
+    default: true
+  show_uptime:
+    name: Show Uptime
+    description: Display the device uptime.
+    selector:
+      boolean: {}
+    default: true
+  show_version:
+    name: Show Firmware Version
+    description: Display the current AWTRIX firmware version.
+    selector:
+      boolean: {}
+    default: true
 
-    show_battery:
-      name: Show Battery
-      default: true
-      selector:
-        boolean:
+  # --- Configuration ---
+  app_name:
+    name: Custom App Name
+    description: The name for the custom app topic (e.g., self-stats). This will be the last part of the MQTT topic.
+    selector:
+      text: {}
+    default: "self-stats"
+  update_frequency:
+    name: Update Frequency (minutes)
+    description: How often to send the stats to the device.
+    selector:
+      number:
+        min: 1
+        max: 60
+        step: 1
+        unit_of_measurement: "minutes"
+    default: 1
+  lifetime:
+    name: Lifetime of the app (in seconds)
+    description: Removes the custom app when there is no update after the given time in seconds. Keep this value higher than your update frequency in seconds.
+    selector:
+      number:
+        min: 60
+        max: 3600
+        step: 1
+        unit_of_measurement: "seconds"
+    default: 70
 
-    show_ram:
-      name: Show Free RAM
-      default: true
-      selector:
-        boolean:
+  # --- Visuals ---
+  text_color:
+    name: Text Color
+    description: The color of the scrolling text.
+    selector:
+      color_rgb: {}
+    default: [160, 160, 0]
+  effect:
+    name: Effect
+    description: The display effect to use for the background.
+    selector:
+      select:
+        options:
+          - "None"
+          - "Fade"
+          - "Scroll"
+          - "Matrix"
+          - "TwinklingStars"
+          - "Rainbow"
+    default: "TwinklingStars"
 
-    show_uptime:
-      name: Show Uptime
-      default: true
-      selector:
-        boolean:
+# This defines how the automation will run.
+# 'single' mode ensures that if the automation is triggered again while it's already running,
+# the previous run is cancelled and a new one starts.
+mode: single
+max_exceeded: silent
 
-    show_version:
-      name: Show Version
-      default: true
-      selector:
-        boolean:
-
-    txt_color:
-      name: Text Color
-      description: Color of the text
-      selector:
-        color_rgb:
-      default: [160, 160, 0]
-
-    duration:
-      name: Duration (in seconds)
-      description: How long the app/notification should be displayed.
-      default: "10"
-
-    repeat:
-      name: Repeat
-      description: How many times the text should scroll before ending.
-      default: "4"
-
-    lifetime:
-      name: Lifetime (in seconds)
-      description: Removes the custom app if no update after this time. Keep >59s.
-      default: "70"
-
+# These are variables created from the user inputs for easier use in the action.
 variables:
-  device_ids: !input awtrix
-  app: !input awtrix_app_name
+  devices: !input awtrix_device
   show_wifi: !input show_wifi
   show_battery: !input show_battery
   show_ram: !input show_ram
   show_uptime: !input show_uptime
   show_version: !input show_version
-  txt_color: !input txt_color
-  duration: !input duration
-  repeat_count: !input repeat
+  app_name: !input app_name
+  text_color: !input text_color
+  effect: !input effect
   lifetime: !input lifetime
+  update_frequency: !input update_frequency
 
-  # Build AWTRIX devices list with MQTT topics
-  awtrix_devices: >-
-    {%- set ns = namespace(awtrix = []) -%}
-    {%- for device_id in device_ids -%}
-      {%- set device_name = iif(device_attr(device_id, 'name_by_user') != none,
-                                device_attr(device_id, 'name_by_user'),
-                                device_attr(device_id, 'name')) -%}
-      {%- set entity = expand(device_entities(device_id))
-            | select('search', 'device_topic')
-            | map(attribute='entity_id') | first -%}
-      {%- set topic = states(entity) -%}
-      {%- set ns.awtrix = ns.awtrix + [{"device": device_name, "entity": entity, "topic": topic}] -%}
-    {%- endfor -%}
-    {{ ns.awtrix }}
-
+# The automation will be triggered based on a time pattern.
 trigger:
   - platform: time_pattern
-    minutes: "/1"
+    minutes: "/{{ update_frequency }}"
 
+condition: []
+
+# This is the sequence of actions that will be performed when the automation is triggered.
 action:
+  # This 'repeat' block will loop through each device selected in the input.
   - repeat:
-      for_each: "{{ awtrix_devices }}"
+      for_each: "{{ devices }}"
       sequence:
-        - choose:
-            - conditions:
-                - condition: template
-                  value_template: >
-                    {{ states(repeat.item.entity) not in ['unavailable','unknown'] }}
-              sequence:
-                - service: mqtt.publish
-                  data:
-                    qos: 0
-                    retain: false
-                    topic: "{{ repeat.item.topic ~ '/custom/' ~ app }}"
-                    payload: >-
-                      {
-                        "text": "·
-                          {% if show_wifi %} WIFI {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_wifi_strength') }} dB · {% endif %}
-                          {% if show_battery %} BATTERY {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_battery') }} % · {% endif %}
-                          {% if show_ram %} FREE RAM {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_free_ram') }} Byte · {% endif %}
-                          {% if show_uptime %}
-                            UPTIME
-                            {% set s = states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_uptime') | int(0) %}
-                            {% set seconds = s % 60 %}
-                            {% set minutes = ((s % 3600) / 60) | int %}
-                            {% set hours = ((s % 86400) / 3600) | int %}
-                            {% set days = (s / 86400) | int %}
-                            {% if days > 0 %} · {{ days }} DAY{{ 'S' if days > 1 }} {% endif %}
-                            {% if hours > 0 %} · {{ hours }} HOUR{{ 'S' if hours > 1 }} {% endif %}
-                            {% if minutes > 0 %} · {{ minutes }} MINUTE{{ 'S' if minutes > 1 }} {% endif %}
-                            {% if seconds > 0 %} · {{ seconds }} SECOND{{ 'S' if seconds > 1 }} {% endif %}
-                          {% endif %}
-                          {% if show_version %} · VERSION {{ states('sensor.' ~ repeat.item.device|lower|replace(' ', '_') ~ '_version') }} {% endif %}
-                        ",
-                        "textOffset": 34,
-                        "repeat": {{ repeat_count }},
-                        "duration": {{ duration }},
-                        "lifetime": {{ lifetime }},
-                        "color": {{ txt_color }},
-                        "effect": "TwinklingStars",
-                        "effectSettings": {
-                          "speed": -4,
-                          "palette": [
-                            "220000","330000","550000","770000","990000","BB0000","DD0000",
-                            "FF0000","FF0000","DD0000","BB0000","990000","770000","550000",
-                            "330000","220000"
-                          ],
-                          "blend": true
-                        }
-                      }
+        # Define variables specific to the current device in the loop.
+        - variables:
+            # Get the device name from Home Assistant (e.g., 'awtrix_abcdef').
+            # It's converted to lowercase and spaces are replaced with underscores to match entity/topic formats.
+            device_name: "{{ device_attr(repeat.item, 'name') | lower | replace(' ', '_') }}"
+            # Construct the full MQTT topic for the custom app on the current device.
+            topic: "{{ device_name }}/custom/{{ app_name }}"
+            # This block constructs the text payload by conditionally adding each selected stat.
+            text_payload: >
+              {% set parts = namespace(text = []) %}
+              {% if show_wifi %}
+                {% set wifi_state = states('sensor.' ~ device_name ~ '_wifi_strength') %}
+                {% set parts.text = parts.text + ['· WIFI ' ~ wifi_state ~ ' dB'] if wifi_state not in ['unavailable', 'unknown'] else parts.text %}
+              {% endif %}
+              {% if show_battery %}
+                {% set battery_state = states('sensor.' ~ device_name ~ '_battery') %}
+                {% set parts.text = parts.text + ['· BATTERY ' ~ battery_state ~ ' %'] if battery_state not in ['unavailable', 'unknown'] else parts.text %}
+              {% endif %}
+              {% if show_ram %}
+                {% set ram_state = states('sensor.' ~ device_name ~ '_free_ram') %}
+                {% set parts.text = parts.text + ['· RAM ' ~ ram_state ~ ' B'] if ram_state not in ['unavailable', 'unknown'] else parts.text %}
+              {% endif %}
+              {% if show_uptime %}
+                {% set s = states('sensor.' ~ device_name ~ '_uptime') | int(0) %}
+                {% if s > 0 %}
+                  {% set days = (s / 86400) | int %}
+                  {% set hours = ((s % 86400) / 3600) | int %}
+                  {% set minutes = ((s % 3600) / 60) | int %}
+                  {% set uptime_str = namespace(value='') %}
+                  {% if days > 0 %}{% set uptime_str.value = uptime_str.value ~ days ~ 'd ' %}{% endif %}
+                  {% if hours > 0 %}{% set uptime_str.value = uptime_str.value ~ hours ~ 'h ' %}{% endif %}
+                  {% if minutes > 0 %}{% set uptime_str.value = uptime_str.value ~ minutes ~ 'm' %}{% endif %}
+                  {% set parts.text = parts.text + ['· UPTIME ' ~ uptime_str.value | trim] %}
+                {% endif %}
+              {% endif %}
+              {% if show_version %}
+                {% set version_state = states('sensor.' ~ device_name ~ '_version') %}
+                {% set parts.text = parts.text + ['· VER ' ~ version_state] if version_state not in ['unavailable', 'unknown'] else parts.text %}
+              {% endif %}
+              {{ parts.text | join('     ') }}
 
-mode: restart
+        # Only publish to MQTT if the text_payload is not empty.
+        - if:
+            - "{{ text_payload | length > 0 }}"
+          then:
+            # The service call to publish the data to the MQTT broker.
+            - service: mqtt.publish
+              data:
+                qos: 0
+                retain: false
+                topic: "{{ topic }}"
+                payload: >
+                  {
+                    "text": "{{ text_payload }}",
+                    "color": {{ text_color | tojson }},
+                    "effect": "{{ effect }}",
+                    "duration": {{ (update_frequency * 60) - 5 }},
+                    "lifetime": {{ lifetime }}
+                  }
