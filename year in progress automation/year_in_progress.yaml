@@ -1,5 +1,5 @@
 blueprint:
-  name: Awtrix Light Year Progress
+  name: Awtrix Year Progress
   description: >-
     Displays the current year's progress as a percentage on an Awtrix Light device.
     The automation updates hourly.
@@ -28,7 +28,6 @@ blueprint:
       selector:
         text:
 
-# This defines the automation that will be created from the blueprint.
 trigger:
   - platform: time_pattern
     # Trigger every hour at the top of the hour.
@@ -36,18 +35,24 @@ trigger:
     minutes: 0
 
 variables:
-  # Get the device name from the selected device input.
-  device_name: !input awtrix_device
+  # Get the device ID from the user's selection.
+  awtrix_device_id: !input awtrix_device
   # Get the custom app name from the input.
   app_name: !input app_name
   # Get the icon ID from the input.
   icon: !input icon
+  # --- FIX STARTS HERE ---
+  # Dynamically find the correct MQTT base topic from the device's entities.
+  # This is much more reliable than using the device's friendly name.
+  base_topic: >-
+    {% set topic_sensor = device_entities(awtrix_device_id) | select('search', '_device_topic') | first %}
+    {{ states(topic_sensor) if topic_sensor else 'unknown_topic' }}
 
 action:
   - service: mqtt.publish
     data:
-      # Dynamically create the MQTT topic from the device and app names.
-      topic: "{{ device_attr(device_name, 'name') | lower }}/custom/{{ app_name }}"
+      # Use the dynamically discovered base_topic.
+      topic: "{{ base_topic }}/custom/{{ app_name }}"
       payload: >-
         {# Get the start of the current year #}
         {%- set start_of_year = now().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0) -%}
