@@ -123,9 +123,9 @@ variables:
 
 # The automation will be triggered based on a time pattern.
 trigger:
-  - platform: time_pattern
-    minutes: >
-      /{{ !input update_frequency }}
+  - platform: template
+    value_template: >
+      {{ (now().minute % (update_frequency | int)) == 0 and now().second == 0 }}
 
 condition: []
 
