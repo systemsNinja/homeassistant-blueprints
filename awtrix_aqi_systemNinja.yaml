@@ -80,7 +80,6 @@ variables:
 
   # Generate history stuff
   sensor_prefix: "iqair"
-  iqair_sensor: !input iqair_sensor
   airnow_sensor: !input airnow_sensor
 
   iq_air_aqi: "{{ states(accuweather_aqi_day0) | round(0) }}"
