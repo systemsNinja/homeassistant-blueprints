@@ -1,61 +1,12 @@
----
 blueprint:
-  name: AWTRIX AQI IQAir/AirNow.gov 🌬️
+  name: AWTRIX AQI (AirNow Value + AccuWeather Forecast)
   description: >
-    Blueprint to show Air Quality Forecast + Air Quality from AirNow.gov + IQAir
-
-    In my limited research IQAir offers a scrapable AQI forecast, but primarily focused on 2.5PPM air quality. AirNow.gov has a worse update rate but it offers an Ozone forecast - so it may be useful to have both sensors up
-
-    In order to use this blueprint you'll have to install a HACS component (see below) to scrape the IQAir webpage
-
-
-    ### Requirements
-
-    - [HACS Multiscraper](https://github.com/danieldotnl/ha-multiscrape)
-
-    - [AirNow - or equivalent](https://www.home-assistant.io/integrations/airnow/)
-
-    - IQAir Sensor: (example for chicago below)
-
-
-          multiscrape:
-            - name: IQAir Scraper
-              resource: https://www.iqair.com/usa/illinois/chicago
-              scan_interval: 600
-              log_response: true
-              sensor:
-                - unique_id: iq_air_aqi
-                  name: IQAir MultiScrape
-                  icon: >-
-                    {%- if value | int  < 50 %}
-                    mdi:gauge-empty
-                    {%- elif value | int < 100 %}
-                    mdi:gauge-low
-                    {%- elif value | int < 200 %}
-                    mdi:gauge
-                    {%- else %}
-                    mdi:gauge-full
-                    {%-endif%}
-                  select_list: ".pollutant-level-wrapper b"
-                  value_template: "{{value.split(',')[4] | int }}"
-                  select: "forecast"
-                  attributes:
-                    - name: Main Pollutant
-                      select: ".aqi-overview-detail__main-pollution-table td:last-child"
-                    - name: Raw Data
-                      select_list: ".pollutant-level-wrapper b"
-                    - name: History
-                      select_list: ".pollutant-level-wrapper b"
-                      value_template: "{{value.split(',')[0:4] | reverse | map('int') | list  }}"
-                    - name: Forecast
-                      select_list: ".pollutant-level-wrapper b"
-                      value_template: "{{value.split(',')[5:] | map('int') | list}}"
-
+    Displays a numerical AQI value from AirNow.gov and a 5-day forecast color-coded by AccuWeather's text descriptions (good, moderate, etc.).
   domain: automation
   input:
     awtrix:
-      name: AWTRIX Device
-      description: Select the Awtrix light
+      name: AWTRIX Device(s)
+      description: Select the Awtrix light(s) you want to send the notification to.
       selector:
         device:
           integration: mqtt
@@ -63,169 +14,163 @@ blueprint:
           model: AWTRIX 3
           multiple: true
     airnow_sensor:
-      name: Airnow.Gov AQI
-      description: IQAir and Airnow have different readings so we use both
+      name: Airnow.gov AQI Sensor (Numerical)
+      description: The Airnow.gov sensor that provides the current numerical AQI value.
       selector:
         entity:
-          filter:
-            domain:
-              - sensor
-    iqair_sensor:
-      name: IQAir Custom multi-scrape sensor
-      description: >-
-        You need to configure a custom sensor with the HACS Multiscrape plugin:
-
-        Replace `<<IQAIR_URL>>` with correct webpage you want to scrape
-
-
-        - name: IQAir Scraper
-            resource: <<IQAIR_URL>>
-            scan_interval: 600
-            log_response: true
-            sensor:
-              - unique_id: iq_air_aqi
-                name: IQAir Now
-                icon: >-
-                  {%- if value | int  < 50 %}
-                  mdi:gauge-empty
-                  {%- elif value | int < 100 %}
-                  mdi:gauge-low
-                  {%- elif value | int < 200 %}
-                  mdi:gauge
-                  {%- else %}
-                  mdi:gauge-full
-                  {%-endif%}
-                select_list: ".pollutant-level-wrapper b"
-                value_template: "{{value.split(',')[4] | int }}"
-                select: "forecast"
-                attributes:
-                  - name: Main Pollutant
-                    select: ".aqi-overview-detail__main-pollution-table td:last-child"
-                  - name: Raw Data
-                    select_list: ".pollutant-level-wrapper b"
-                  - name: History
-                    select_list: ".pollutant-level-wrapper b"
-                    value_template: "{{value.split(',')[0:4] | reverse | map('int') | list  }}"
-                  - name: Forecast
-                    select_list: ".pollutant-level-wrapper b"
-                    value_template: "{{value.split(',')[5:] | map('int') | list}}"
+          integration: airnow
+    accuweather_aqi_day0:
+      name: Accuweather Forecast Today (Text)
+      description: Accuweather sensor with a text state (e.g., "good", "moderate") for Today.
       selector:
         entity:
-          domain:
-            - sensor
-
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day1:
+      name: Accuweather Forecast Tomorrow (Text)
+      description: Accuweather sensor with a text state for Tomorrow.
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day2:
+      name: Accuweather Forecast Day 2 (Text)
+      description: Accuweather sensor with a text state for Day 2.
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day3:
+      name: Accuweather Forecast Day 3 (Text)
+      description: Accuweather sensor with a text state for Day 3.
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day4:
+      name: Accuweather Forecast Day 4 (Text)
+      description: Accuweather sensor with a text state for Day 4.
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
     app_name:
-      name: Awtrix Applicaiton name
-      description: This is the app name listed in the MQTT topic - it should be unique
-      selector:
-        text:
-      default: iq_air
+      name: Awtrix Application Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
+      default: aqi
 
 mode: restart
+
 variables:
-  device_ids: !input awtrix
-  app_topic: !input app_name
-  aqi_icon: >-
-    {"db": [0, 0, 8, 8, [5029628, 5029628, 0, 0, 0, 0, 0, 0, 5029628, 0, 5029628, 0, 16777215, 0, 0, 0, 5029628, 5029628, 5029628, 16777215, 0, 16777215, 0, 2425087, 5029628, 0, 5029628, 16777215, 0, 16777215, 0, 2425087, 5029628, 0, 5029628, 16777215, 0, 16777215, 0, 2425087, 0, 0, 0, 0, 16777215, 16777215, 16777215, 2425087, 0, 0, 0, 0, 0, 0, 0, 2425087, 327172, 16580100, 16557572, 16515588, 10224284, 7602692, 0, 0]]}
+  # Get the entity IDs from the blueprint inputs
+  accuweather_sensor_day0: !input accuweather_aqi_day0
+  accuweather_sensor_day1: !input accuweather_aqi_day1
+  accuweather_sensor_day2: !input accuweather_aqi_day2
+  accuweather_sensor_day3: !input accuweather_aqi_day3
+  accuweather_sensor_day4: !input accuweather_aqi_day4
+  airnow_entity: !input airnow_sensor
 
-  # Generate history stuff
-  sensor_prefix: "iqair"
-  iqair_sensor: !input iqair_sensor
-  airnow_sensor: !input airnow_sensor
+  # Get the states of the sensors. Accuweather are text, AirNow is a number.
+  accuweather_today: "{{ states(accuweather_sensor_day0) | lower }}"
+  accuweather_day1: "{{ states(accuweather_sensor_day1) | lower }}"
+  accuweather_day2: "{{ states(accuweather_sensor_day2) | lower }}"
+  accuweather_day3: "{{ states(accuweather_sensor_day3) | lower }}"
+  accuweather_day4: "{{ states(accuweather_sensor_day4) | lower }}"
+  airnow_current: "{{ states(airnow_entity) | int(0) }}"
 
-  iq_air_aqi: "{{ states('sensor.iq_air_aqi',-1) | int | round(0)}}"
-  iq_air_forecast_1: "{{(state_attr(iqair_sensor, 'forecast') | from_json)[0] | int}}"
-  iq_air_forecast_2: "{{(state_attr(iqair_sensor, 'forecast') | from_json)[1] | int}}"
-  iq_air_forecast_3: "{{(state_attr(iqair_sensor, 'forecast') | from_json)[2] | int}}"
-  iq_air_forecast_4: "{{(state_attr(iqair_sensor, 'forecast') | from_json)[3] | int}}"
-  iq_air_forecast_5: "{{(state_attr(iqair_sensor, 'forecast') | from_json)[4] | int}}"
-  airnow_aqi: "{{ states(airnow_sensor) | round(0) }}"
-
-  forecast: >-
-    {%- macro aqi_line(x, value) %}
-    {"dl":
-    {%- if value >= 301 -%}
-    [{{x}},7,{{x+1}},7,"#750000"]
-    {%- elif value >= 201 -%}
-    [{{x}},7,{{x+1}},7,"#9a009a"]
-      {%- elif value >= 151 -%}
-    [{{x}},7,{{x+1}},7,"#ff0000"]
-      {%- elif value >= 101 -%}
-    [{{x}},7,{{x+1}},7,"#ffa500"]
-      {%- elif value >= 51 -%}
-    [{{x}},7,{{x+1}},7,"#FFFF00"]
-      {%- else -%}
-    [{{x}},7,{{x+1}},7,"#00FF00"]
-      {%- endif -%}
-      }
-      {%- endmacro %}
-
-      {{aqi_line(10,iq_air_aqi)}},
-       {{aqi_line(13, iq_air_forecast_1) }},
-       {{aqi_line(16, iq_air_forecast_2) }},
-       {{aqi_line(19, iq_air_forecast_3) }},
-       {{aqi_line(22, iq_air_forecast_4) }},
-       {{aqi_line(25, iq_air_forecast_5) }}
-
-  payload: >-
-    {%- macro get_index_color(value) %}
-    {%- if value >= 301 %}
-        {{- "#750000" -}}
-    {%- elif value >= 201 %}
-        {{- "#9a009a" -}}
-    {%- elif value >= 151 %}
-        {{- "#ff0000" -}}
-    {%- elif value >= 101 %}
-        {{- "#ffa500" -}}
-    {%- elif value >= 51 %}
-        {{- "#FFFF00" -}}
-    {%- else %}
-        {{- "#00FF00" -}}
-    {%- endif %}
-    {%- endmacro %}
-
-    {%- set iqair = iq_air_aqi  %}
-    {%- set airnow = airnow_aqi  %}
-
-    {  
-    "lifetime": 600,
-    "lifetimeMode":1,
-    "draw": [
-      {{aqi_icon}},
-      {%- if iqair < 10 %}
-      {"dt": [12,1,"{{iqair}}","{{get_index_color(iqair)}}"]},
-      {%- elif iqair < 100 -%}
-      {"dt": [10,1,"{{iqair}}","{{get_index_color(iqair)}}"]},
-      {%- else %}
-      {"dt": [9,1,"{{iqair}}","{{get_index_color(iqair)}}"]},
-      {%- endif %}
-
-      {%- if airnow < 10 %}
-      {"dt": [21,1,"{{airnow}}","{{get_index_color(airnow)}}"]},
-      {%- elif airnow < 100 -%}
-      {"dt": [21,1,"{{airnow}}","{{get_index_color(airnow)}}"]},
-      {%- else %}
-      {"dt": [21,1,"{{airnow}}","{{get_index_color(airnow)}}"]},
-      {%- endif %}
-
-      {{forecast}}
-      ]}
-  message_topics: >-
-    {%- macro get_device_topic(device_id) %}
-    {{ states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}
-    {%- endmacro %}
-
-    {%- set ns = namespace(devices=[]) %}
-    {%- for device_id in device_ids %}
-      {%- set device=get_device_topic(device_id)|replace(' ','') %}
-      {% set ns.devices = ns.devices + [ device ~ '/custom/' ~ 'jeef_' ~ app_topic] %}
-    {%- endfor %}
-    {{ ns.devices | reject('match','unavailable') | list}}
 trigger:
+  - platform: state
+    entity_id:
+      - !input airnow_sensor
+      - !input accuweather_aqi_day0
+      - !input accuweather_aqi_day1
+      - !input accuweather_aqi_day2
+      - !input accuweather_aqi_day3
+      - !input accuweather_aqi_day4
   - platform: time_pattern
-    seconds: /5
+    minutes: "/15"
+
 condition: []
+
 action:
+  - variables:
+      device_ids: !input awtrix
+      app_topic: !input app_name
+      
+      payload_json: >
+        {# Macro to get color from numerical AQI value (for AirNow) #}
+        {%- macro get_aqi_color_from_value(value) -%}
+          {%- set v = value | int(0) -%}
+          {%- if v <= 49 -%}#00FF00        {# 0-49: Bright Green #}
+          {%- elif v <= 99 -%}#FFFF00     {# 50-99: Bright Yellow #}
+          {%- elif v <= 149 -%}#FFA500    {# 100-149: Pumping Orange #}
+          {%- elif v <= 249 -%}#FF1493    {# 150-249: Deep Pink #}
+          {%- else -%}#FF0000             {# 250+: Bright Red #}
+          {%- endif -%}
+        {%- endmacro -%}
+
+        {# Macro to get color from text state (for AccuWeather forecast) #}
+        {%- macro get_forecast_color_from_text(state) -%}
+          {%- if state == 'good' -%}#00FF00 {# Bright Green #}
+          {%- elif state == 'moderate' -%}#FFFF00 {# Bright Yellow #}
+          {%- elif state == 'unhealthy' -%}#FFA500 {# Pumping Orange #}
+          {%- elif state == 'very_unhealthy' -%}#FF1493 {# Deep Pink #}
+          {%- elif state == 'hazardous' -%}#FF0000 {# Bright Red #}
+          {%- else -%}#808080 {# Default Gray #}
+          {%- endif -%}
+        {%- endmacro -%}
+        
+        {% set forecast_values = [
+          accuweather_today,
+          accuweather_day1,
+          accuweather_day2,
+          accuweather_day3,
+          accuweather_day4
+        ] %}
+
+        {% set forecast_positions = [
+          [10, 7], [14, 7], [18, 7], [22, 7], [26, 7]
+        ] %}
+
+        {
+          "lifetime": 900,
+          "lifetimeMode": 1,
+          "draw": [
+            {"db": [0,0,8,8,[5029628,5029628,0,0,0,0,0,0,5029628,0,5029628,0,16777215,0,0,0,5029628,5029628,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,0,0,0,0,16777215,16777215,16777215,2425087,0,0,0,0,0,0,0,2425087,0,65280,16776960,16753920,16716947,16711680,0,0]]},
+            
+            {# ONLY display the AirNow AQI value, centered in the area to the right of the icon #}
+            {% if airnow_current < 10 %}
+              {# Centered for 1 digit #}
+              {"dt": [18, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {% elif airnow_current < 100 %}
+              {# Centered for 2 digits #}
+              {"dt": [16, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {% else %}
+              {# Centered for 3 digits #}
+              {"dt": [14, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {% endif %}
+
+            {# Draw forecast lines using the text-based color logic #}
+            {% for i in range(5) %}
+              {"dl": [{{ forecast_positions[i][0] }}, {{ forecast_positions[i][1] }}, {{ forecast_positions[i][0] + 2 }}, {{ forecast_positions[i][1] }}, "{{ get_forecast_color_from_text(forecast_values[i]) }}"]}{% if not loop.last %},{% endif %}
+            {% endfor %}
+          ]
+        }
+
+  - variables:
+      message_topics: >-
+        {%- macro get_device_topic(device_id) -%}
+          {{- states((device_entities(device_id) | select('search','device_topic') | list)[0]) -}}
+        {%- endmacro -%}
+        {%- set ns = namespace(devices=[]) -%}
+        {%- for device_id in device_ids -%}
+          {%- set device_topic = get_device_topic(device_id) | trim -%}
+          {%- if device_topic and device_topic not in ['unavailable', 'unknown'] -%}
+            {%- set ns.devices = ns.devices + [ device_topic ~ '/custom/' ~ app_topic] -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {{ ns.devices | list }}
+
   - repeat:
       for_each: "{{ message_topics }}"
       sequence:
@@ -234,5 +179,4 @@ action:
             qos: 0
             retain: false
             topic: "{{ repeat.item }}"
-            payload: >
-              {{payload}}
+            payload: "{{ payload_json }}"
