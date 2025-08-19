@@ -250,7 +250,7 @@ blueprint:
 mode: restart
 variables:
   device_ids: !input awtrix
-  app_topic: weather # FIXED: Renamed from jeef_weather
+  app_topic: weather 
   topics: >-
     {%- macro get_device_topic(device_id) %}
     {{ states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}

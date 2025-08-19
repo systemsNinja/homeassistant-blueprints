@@ -1,0 +1,186 @@
+---
+blueprint:
+  name: AWTRIX AQI IQAir/AirNow.gov 🌬️
+  description: >
+    Blueprint to show Air Quality Forecast from accuweather + Air Quality from AirNow.gov 
+
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device
+      description: Select the Awtrix light
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          model: AWTRIX 3
+          multiple: true
+    airnow_sensor:
+      name: Airnow.Gov AQI
+      description: Airnow AQI reading for Today
+      selector:
+        entity:
+          filter:
+            domain:
+              - sensor
+    accuweather_aqi_day0:
+      name: Accuweather AQI Today
+      description: Accuweather AQI reading for Today
+      selector:
+        entity:
+          filter:
+            domain:
+              - sensor
+    accuweather_aqi_day1:
+      name: Accuweather AQI Tomorrow
+      description: Accuweather AQI reading for Tomorrow
+      selector:
+        entity:
+          filter:
+            domain:
+              - sensor
+    accuweather_aqi_day2:
+      name: Accuweather AQI Day 2
+      description: Accuweather AQI reading for Day 2
+      selector:
+        entity:
+          filter:
+            domain:
+              - sensor
+    accuweather_aqi_day3:
+      name: Accuweather AQI Day 3
+      description: Accuweather AQI reading for Day 3
+      selector:
+        entity:
+          filter:
+            domain:
+              - sensor
+    accuweather_aqi_day4:
+      name: Accuweather AQI Day 4
+      description: Accuweather AQI reading for Day 4
+      selector:
+        entity:
+          filter:
+            domain:
+              - sensor
+
+    app_name:
+      name: Awtrix Applicaiton name
+      description: This is the app name listed in the MQTT topic - it should be unique
+      selector:
+        text:
+      default: aqi
+
+mode: restart
+variables:
+  device_ids: !input awtrix
+  app_topic: !input app_name
+  aqi_icon: >-
+    {"db": [0, 0, 8, 8, [5029628, 5029628, 0, 0, 0, 0, 0, 0, 5029628, 0, 5029628, 0, 16777215, 0, 0, 0, 5029628, 5029628, 5029628, 16777215, 0, 16777215, 0, 2425087, 5029628, 0, 5029628, 16777215, 0, 16777215, 0, 2425087, 5029628, 0, 5029628, 16777215, 0, 16777215, 0, 2425087, 0, 0, 0, 0, 16777215, 16777215, 16777215, 2425087, 0, 0, 0, 0, 0, 0, 0, 2425087, 327172, 16580100, 16557572, 16515588, 10224284, 7602692, 0, 0]]}
+
+  # Generate history stuff
+  sensor_prefix: "iqair"
+  iqair_sensor: !input iqair_sensor
+  airnow_sensor: !input airnow_sensor
+
+  iq_air_aqi: "{{ states(accuweather_aqi_day0) | round(0) }}"
+  iq_air_forecast_1: "{{ states(accuweather_aqi_day1) | round(0) }}"
+  iq_air_forecast_2: "{{ states(accuweather_aqi_day2) | round(0) }}"
+  iq_air_forecast_3: "{{ states(accuweather_aqi_day3) | round(0) }}"
+  iq_air_forecast_4: "{{ states(accuweather_aqi_day4) | round(0) }}"
+  airnow_aqi: "{{ states(airnow_sensor) | round(0) }}"
+
+  forecast: >-
+    {%- macro aqi_line(x, value) %}
+    {"dl":
+    {%- if value >= 301 -%}
+    [{{x}},7,{{x+1}},7,"#750000"]
+    {%- elif value >= 201 -%}
+    [{{x}},7,{{x+1}},7,"#9a009a"]
+      {%- elif value >= 151 -%}
+    [{{x}},7,{{x+1}},7,"#ff0000"]
+      {%- elif value >= 101 -%}
+    [{{x}},7,{{x+1}},7,"#ffa500"]
+      {%- elif value >= 51 -%}
+    [{{x}},7,{{x+1}},7,"#FFFF00"]
+      {%- else -%}
+    [{{x}},7,{{x+1}},7,"#00FF00"]
+      {%- endif -%}
+      }
+      {%- endmacro %}
+
+      {{aqi_line(10,iq_air_aqi)}},
+       {{aqi_line(13, iq_air_forecast_1) }},
+       {{aqi_line(16, iq_air_forecast_2) }},
+       {{aqi_line(19, iq_air_forecast_3) }},
+       {{aqi_line(22, iq_air_forecast_4) }}
+
+  payload: >-
+    {%- macro get_index_color(value) %}
+    {%- if value >= 301 %}
+        {{- "#750000" -}}
+    {%- elif value >= 201 %}
+        {{- "#9a009a" -}}
+    {%- elif value >= 151 %}
+        {{- "#ff0000" -}}
+    {%- elif value >= 101 %}
+        {{- "#ffa500" -}}
+    {%- elif value >= 51 %}
+        {{- "#FFFF00" -}}
+    {%- else %}
+        {{- "#00FF00" -}}
+    {%- endif %}
+    {%- endmacro %}
+
+    {%- set iqair = iq_air_aqi  %}
+    {%- set airnow = airnow_aqi  %}
+
+    {  
+    "lifetime": 600,
+    "lifetimeMode":1,
+    "draw": [
+      {{aqi_icon}},
+      {%- if iqair < 10 %}
+      {"dt": [12,1,"{{iqair}}","{{get_index_color(iqair)}}"]},
+      {%- elif iqair < 100 -%}
+      {"dt": [10,1,"{{iqair}}","{{get_index_color(iqair)}}"]},
+      {%- else %}
+      {"dt": [9,1,"{{iqair}}","{{get_index_color(iqair)}}"]},
+      {%- endif %}
+
+      {%- if airnow < 10 %}
+      {"dt": [21,1,"{{airnow}}","{{get_index_color(airnow)}}"]},
+      {%- elif airnow < 100 -%}
+      {"dt": [21,1,"{{airnow}}","{{get_index_color(airnow)}}"]},
+      {%- else %}
+      {"dt": [21,1,"{{airnow}}","{{get_index_color(airnow)}}"]},
+      {%- endif %}
+
+      {{forecast}}
+      ]}
+  message_topics: >-
+    {%- macro get_device_topic(device_id) %}
+    {{ states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}
+    {%- endmacro %}
+
+    {%- set ns = namespace(devices=[]) %}
+    {%- for device_id in device_ids %}
+      {%- set device=get_device_topic(device_id)|replace(' ','') %}
+      {% set ns.devices = ns.devices + [ device ~ '/custom/' ~ app_topic] %}
+    {%- endfor %}
+    {{ ns.devices | reject('match','unavailable') | list}}
+trigger:
+  - platform: time_pattern
+    seconds: /5
+condition: []
+action:
+  - repeat:
+      for_each: "{{ message_topics }}"
+      sequence:
+        - service: mqtt.publish
+          data:
+            qos: 0
+            retain: false
+            topic: "{{ repeat.item }}"
+            payload: >
+              {{payload}}
