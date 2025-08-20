@@ -96,25 +96,6 @@ blueprint:
           max: 10
           step: 1
           mode: slider
-    update_unit:
-      name: Update Unit
-      description: Choose whether the update interval is in seconds or minutes.
-      selector:
-        select:
-          options:
-            - "seconds"
-            - "minutes"
-      default: "minutes"
-    update_interval:
-      name: Update Interval
-      description: How often to send the stats to the device.
-      selector:
-        number:
-          min: 1
-          max: 59
-          step: 1
-          mode: slider
-      default: 1
     lifetime_grace:
       name: Lifetime of the app after no update from automation
       description: >-
@@ -164,8 +145,6 @@ variables:
   text_color: !input text_color
   rainbow_effect: !input rainbow_effect
   effect: !input effect
-  update_unit: !input update_unit
-  update_interval: !input update_interval
   lifetime_grace: !input lifetime_grace
   lifetime: >
     {{ interval + (lifetime_grace | int) }}
@@ -173,13 +152,7 @@ variables:
 
 trigger:
   - platform: time_pattern
-    seconds: "/1"   # fires every second
-
-condition:
-  - condition: template
-    value_template: >-
-      {% set interval = iif(update_unit == "minutes", update_interval * 60, update_interval) %}
-      {{ (as_timestamp(now()) | int) % interval == 0 }}
+    minutes: "/1"   # fires every minute
 
 
 
