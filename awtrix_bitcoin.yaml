@@ -60,10 +60,6 @@ blueprint:
       name: Duration (in seconds)
       description: Sets how long the app or notification should be displayed.
       default: "10"
-    repeat:
-      name: Repeat
-      description: Sets how many times the text should be scrolled through the matrix before the app/notification ends.
-      default: "4"
     lifetime:
       name: Lifetime of the app (in seconds)
       description: Removes the custom app when there is no update after the given time in seconds. Keep this value higher than 59 seconds to get the AWTRIX app automatically deleted when disabling the automation.
@@ -77,7 +73,6 @@ variables:
   sensor_bitcoin: !input bitcoin_sensor
   push_icon: !input push_icon
   duration: !input duration
-  repeat: !input repeat
   lifetime: !input lifetime
   awtrix_devices: >-
     {%- set ns = namespace(awtrix = []) -%}

@@ -1,7 +1,8 @@
 blueprint:
-  name: AWTRIX AQI (AirNow Value + AccuWeather Forecast)
+  name: AWTRIX AQI (AirNow Text + AccuWeather Forecast)
   description: >
-    Displays a numerical AQI value from AirNow.gov and a 5-day forecast color-coded by AccuWeather's text descriptions (good, moderate, etc.).
+    Displays a human-friendly AQI status from AirNow.gov and a 5-day forecast color-coded by AccuWeather's text descriptions.
+    The status text will change color depending on the air quality level.
   domain: automation
   input:
     awtrix:
@@ -13,6 +14,12 @@ blueprint:
           manufacturer: Blueforcer
           model: AWTRIX 3
           multiple: true
+    app_name:
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
+      selector:
+        text: {}
+      default: aqi
     airnow_sensor:
       name: Airnow.gov AQI Sensor (Numerical)
       description: The Airnow.gov sensor that provides the current numerical AQI value.
@@ -54,10 +61,66 @@ blueprint:
         entity:
           integration: accuweather
           device_class: enum
-    app_name:
-      name: Awtrix Application Name
-      description: This is the app name listed in the MQTT topic. It should be unique.
-      default: aqi
+    # --- Configuration ---
+    effect:
+      name: Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
+    duration:
+      name: Duration (in seconds)
+      description: Sets how long the app or notification should be displayed.
+      default: "10"
+    lifetime:
+      name: Lifetime of the app after no update from automation
+      description: >-
+        Defines how long the app should stay alive after there has been update from the automation.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "15 minutes"
+              value: "900"
+            - label: "30 minutes"
+              value: "1800"
+            - label: "45 minutes"
+              value: "2700"
+            - label: "1 hour"
+              value: "3600"
+      default: "1800"
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
 
 mode: restart
 
@@ -77,6 +140,11 @@ variables:
   accuweather_day3: "{{ states(accuweather_sensor_day3) | lower }}"
   accuweather_day4: "{{ states(accuweather_sensor_day4) | lower }}"
   airnow_current: "{{ states(airnow_entity) | int(0) }}"
+  #device configuration and look and feel
+  lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
+  effect: !input effect
+  duration: !input duration
 
 trigger:
   - platform: state
@@ -98,18 +166,29 @@ action:
       app_topic: !input app_name
       
       payload_json: >
-        {# Macro to get color from numerical AQI value (for AirNow) #}
+        {# Macro to get color from numerical AQI value #}
         {%- macro get_aqi_color_from_value(value) -%}
           {%- set v = value | int(0) -%}
-          {%- if v <= 49 -%}#00FF00        {# 0-49: Bright Green #}
-          {%- elif v <= 99 -%}#FFFF00     {# 50-99: Bright Yellow #}
-          {%- elif v <= 149 -%}#FFA500    {# 100-149: Pumping Orange #}
-          {%- elif v <= 249 -%}#FF1493    {# 150-249: Deep Pink #}
-          {%- else -%}#FF0000             {# 250+: Bright Red #}
+          {%- if v <= 49 -%}#00FF00        {# Good #}
+          {%- elif v <= 99 -%}#FFFF00     {# Moderate #}
+          {%- elif v <= 149 -%}#FFA500    {# Poor #}
+          {%- elif v <= 249 -%}#FF1493    {# Unhealthy #}
+          {%- else -%}#FF0000             {# Hazardous #}
           {%- endif -%}
         {%- endmacro -%}
 
-        {# Macro to get color from text state (for AccuWeather forecast) #}
+        {# NEW: Macro to get text from numerical AQI value #}
+        {%- macro get_aqi_text_from_value(value) -%}
+          {%- set v = value | int(0) -%}
+          {%- if v <= 49 -%}Good
+          {%- elif v <= 99 -%}Moderate
+          {%- elif v <= 149 -%}Poor
+          {%- elif v <= 249 -%}Unhealthy
+          {%- else -%}Hazardous
+          {%- endif -%}
+        {%- endmacro -%}
+
+        {# Macro to get color from AccuWeather's text forecast #}
         {%- macro get_forecast_color_from_text(state) -%}
           {%- if state == 'good' -%}#00FF00 {# Bright Green #}
           {%- elif state == 'moderate' -%}#FFFF00 {# Bright Yellow #}
@@ -133,22 +212,17 @@ action:
         ] %}
 
         {
-          "lifetime": 900,
-          "lifetimeMode": 1,
+          "lifetime": {{ lifetime | int }},
+          "lifetimeMode": {{ lifetimeMode | int }},
+          {% if effect != "None" %}
+          "effect": "{{ effect }}",
+          {% endif %}
+          "duration": {{ duration | int }},
           "draw": [
             {"db": [0,0,8,8,[5029628,5029628,0,0,0,0,0,0,5029628,0,5029628,0,16777215,0,0,0,5029628,5029628,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,0,0,0,0,16777215,16777215,16777215,2425087,0,0,0,0,0,0,0,2425087,0,65280,16776960,16753920,16716947,16711680,0,0]]},
             
-            {# ONLY display the AirNow AQI value, centered in the area to the right of the icon #}
-            {% if airnow_current < 10 %}
-              {# Centered for 1 digit #}
-              {"dt": [18, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
-            {% elif airnow_current < 100 %}
-              {# Centered for 2 digits #}
-              {"dt": [16, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
-            {% else %}
-              {# Centered for 3 digits #}
-              {"dt": [14, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
-            {% endif %}
+            {# CHANGED: Display descriptive word instead of number, with auto-centering #}
+            {"t": [8, 1, 1, "{{ get_aqi_color_from_value(airnow_current) }}", 0, "{{ get_aqi_text_from_value(airnow_current) }}", 1, 0]},
 
             {# Draw forecast lines using the text-based color logic #}
             {% for i in range(5) %}

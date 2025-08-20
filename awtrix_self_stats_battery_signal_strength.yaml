@@ -17,7 +17,12 @@ blueprint:
             - integration: mqtt
               manufacturer: Blueforcer
               model: AWTRIX 3
-
+    app_name:
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
+      selector:
+        text: {}
+      default: "self-stats"
     # --- Content Selection ---
     show_wifi:
       name: Show WiFi Strength
@@ -52,12 +57,7 @@ blueprint:
 
     # --- Configuration ---
 
-    app_name:
-      name: Custom App Name
-      description: The name for the custom app topic (e.g., self-stats). This will be the last part of the MQTT topic.
-      selector:
-        text: {}
-      default: "self-stats"
+
     icon_in:
       name: Icon ID
       description: Enter the Icon Name or ID (e.g., 50417 for Gear). Not used if "No Icon" is selected.
@@ -90,6 +90,69 @@ blueprint:
               value: "3"
           mode: dropdown
       default: "0"
+    text_color:
+      name: Text Color
+      description: The color of the scrolling text (ignored if Rainbow Text is enabled).
+      selector:
+        color_rgb: {}
+      default: [160, 160, 0]
+    text_case:
+      name: Text Case
+      description: Select how you would like your text to display.
+      selector:
+        select:
+          options:
+            - label: "Use global AWTRIX setting"
+              value: "0"
+            - label: "Force Uppercase"
+              value: "1"
+            - label: "Show as is (Default)"
+              value: "2"
+          mode: dropdown
+      default: "2"
+    rainbow_text:
+      name: Rainbow Text
+      description: Overrides the text color and makes the text a rainbow gradient.
+      selector:
+        boolean: {}
+      default: false
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
     update_unit:
       name: Update Unit
       description: Choose whether the update interval is in seconds or minutes.
@@ -161,71 +224,6 @@ blueprint:
               value: "1"
       default: "0"
 
-    # --- Visuals ---
-    text_color:
-      name: Text Color
-      description: The color of the scrolling text (ignored if Rainbow Text is enabled).
-      selector:
-        color_rgb: {}
-      default: [160, 160, 0]
-    text_case:
-      name: Text Case
-      description: Select how you would like your text to display.
-      selector:
-        select:
-          options:
-            - label: "Use global AWTRIX setting"
-              value: "0"
-            - label: "Force Uppercase"
-              value: "1"
-            - label: "Show as is (Default)"
-              value: "2"
-          mode: dropdown
-      default: "2"
-    rainbow_text:
-      name: Rainbow Text
-      description: Overrides the text color and makes the text a rainbow gradient.
-      selector:
-        boolean: {}
-      default: false
-    effect:
-      name: Effect
-      description: The display effect to use for the background.
-      selector:
-        select:
-          options:
-            - "None"
-            - "Fade"
-            - "MovingLine"
-            - "BrickBreaker"
-            - "PingPong"
-            - "Radar"
-            - "Checkerboard"
-            - "Fireworks"
-            - "PlasmaCloud"
-            - "Ripple"
-            - "Snake"
-            - "Pacifica"
-            - "TheaterChase"
-            - "Plasma"
-            - "Matrix"
-            - "SwirlIn"
-            - "SwirlOut"
-            - "LookingEyes"
-            - "TwinklingStars"
-            - "ColorWaves"
-      default: "TwinklingStars"
-    repeat_count:
-      name: Scroll Repeat Count
-      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
-      default: 1
-      selector:
-        number:
-          min: 0
-          max: 10
-          step: 1
-          mode: slider
-
 # This defines how the automation will run.
 mode: single
 max_exceeded: silent
@@ -233,8 +231,6 @@ max_exceeded: silent
 # These are variables created from the user inputs for easier use in the action.
 variables:
   device: !input awtrix_device
-  update_unit: !input update_unit
-  update_interval: !input update_interval
   show_wifi: !input show_wifi
   show_battery: !input show_battery
   show_ram: !input show_ram
@@ -248,6 +244,8 @@ variables:
   text_case: !input text_case
   rainbow_text: !input rainbow_text
   effect: !input effect
+  update_unit: !input update_unit
+  update_interval: !input update_interval
   lifetime_grace: !input lifetime_grace
   lifetime: >
     {% set interval = iif(update_unit == "minutes", update_interval|int * 60, update_interval|int) %}
