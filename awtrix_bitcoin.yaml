@@ -87,6 +87,16 @@ blueprint:
       name: Duration (in seconds)
       description: Sets how long the app or notification should be displayed.
       default: "10"
+    update_interval:
+      name: Update Interval
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 120
+          step: 1
+          mode: slider
+      default: 15
     lifetime:
       name: Lifetime of the app after no update from automation
       description: >-
@@ -124,6 +134,7 @@ variables:
   sensor_bitcoin: !input bitcoin_sensor
   push_icon: !input push_icon
   effect: !input effect
+  update_interval: !input update_interval  
   duration: !input duration
   lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
@@ -141,7 +152,7 @@ trigger:
     entity_id:
       - !input bitcoin_sensor
   - platform: time_pattern
-    seconds: /59
+    minutes: !input update_interval
 action:
   - repeat:
       for_each: "{{ awtrix_devices }}"

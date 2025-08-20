@@ -50,7 +50,8 @@ blueprint:
       name: Text Color (Optional)
       description: Set a color for the text. Overridden by Rainbow Effect.
       selector:
-        color_rgb:
+        color_rgb: {}
+      default: [160, 160, 0]
     rainbow_effect:
       name: Rainbow Effect
       description: Enable to make the text cycle through rainbow colors.
