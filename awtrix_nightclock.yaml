@@ -259,7 +259,7 @@ variables:
   sleep_time_format: !input sleep_time_format
   wakeup_settings_atrans: !input wakeup_settings_atrans
   wakeup_settings_color: !input wakeup_settings_color
-  wakeup_settings_rainbow_text: !input rainbow_text
+  wakeup_settings_rainbow_text: !input wakeup_settings_rainbow_text
   wakeup_settings_bri: !input wakeup_settings_bri
   wakeup_settings_abri: !input wakeup_settings_abri
   wakeup_calendar_style: !input wakeup_calendar_style
@@ -303,7 +303,7 @@ variables:
       "WD": {{ wakeup_weekday_bar | lower }},
       "WDCA": {{ wakeup_active_weekday_maker_color }},
       "WDCI": {{ wakeup_inactive_weekday_maker_color }}
-      {% if rainbow_text %}
+      {% if wakeup_settings_rainbow_text %}
         , "rainbow": true
       {% else %}
         , "TCOL": {{ wakeup_settings_color }}
