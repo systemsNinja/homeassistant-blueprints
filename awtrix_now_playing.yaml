@@ -163,12 +163,6 @@ blueprint:
         select:
           mode: dropdown
           options:
-            - label: "3 seconds"
-              value: "3"
-            - label: "5 seconds"
-              value: "5"
-            - label: "10 seconds"
-              value: "10"
             - label: "15 seconds"
               value: "15"
             - label: "20 seconds"
@@ -192,7 +186,17 @@ blueprint:
             - label: "30 minutes"
               value: "1800"
       default: "30"
-
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
 variables:
   # Define all inputs as variables first
   device_ids: !input awtrix_devices
@@ -208,6 +212,7 @@ variables:
   progress_bar_color: !input progress_bar_color
   effect: !input effect
   lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
 
   # Now, build the payload using the variables above
   payload_content: >-
@@ -223,7 +228,8 @@ variables:
       "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
       "repeat": {{ repeat_text }},
       "effect": "{{ effect }}",
-      "lifetime": {{ lifetime }}
+      "lifetime": {{ lifetime }},
+      "lifetimeMode": {{ lifetimeMode | int }}
       {%- if push_icon == "0" or push_icon == "3" %}
       , {% set duration = state_attr(media_player, 'media_duration') %}
         {% set position = state_attr(media_player, 'media_position') %}

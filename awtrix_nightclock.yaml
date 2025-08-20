@@ -14,9 +14,6 @@ blueprint:
 
     - This blueprint features a night clock mode, which displays a customized color, and you have the possibility to disable app transitions, automatic brightness, and the color of the night clock.
 
-    ### Prerequisites
-
-    AWTRIX v0.72+
 
   domain: automation
   input:
@@ -130,11 +127,18 @@ blueprint:
       default: false
 
     wakeup_settings_color:
-      name: Color setting for the day mode clock
+      name: Color setting for the day mode clock color
       description: This setting allows you to change the color of the day mode clock.
       selector:
         color_rgb:
       default: [255, 255, 255]
+
+    wakeup_settings_rainbow_text:
+      name: Rainbow Text
+      description: Overrides the text color and makes the text a rainbow gradient.
+      selector:
+        boolean: {}
+      default: false
 
     wakeup_settings_calendar_header_color:
       name: Color setting for the day mode calendar header
@@ -248,13 +252,15 @@ variables:
   sleep_time: !input sleep_time
   wakeup_weekday_bar: !input wakeup_weekday_bar
   sleep_weekday_bar: !input sleep_weekday_bar
-  wakeup_settings_atrans: !input wakeup_settings_atrans
-  wakeup_settings_color: !input wakeup_settings_color
+  rainbow_text: !input rainbow_text
   sleep_settings_atrans: !input sleep_settings_atrans
   sleep_settings_color: !input sleep_settings_color
   sleep_settings_abri: !input sleep_settings_abri
   sleep_settings_bri: !input sleep_settings_bri
   sleep_time_format: !input sleep_time_format
+  wakeup_settings_atrans: !input wakeup_settings_atrans
+  wakeup_settings_color: !input wakeup_settings_color
+  wakeup_settings_rainbow_text: !input rainbow_text
   wakeup_settings_bri: !input wakeup_settings_bri
   wakeup_settings_abri: !input wakeup_settings_abri
   wakeup_calendar_style: !input wakeup_calendar_style
@@ -296,9 +302,13 @@ variables:
       "TMODE": {{ wakeup_calendar_style }},
       "TFORMAT": "{{ wakeup_time_format }}",
       "WD": {{ wakeup_weekday_bar | lower }},
-      "TCOL": {{ wakeup_settings_color }},
       "WDCA": {{ wakeup_active_weekday_maker_color }},
       "WDCI": {{ wakeup_inactive_weekday_maker_color }}
+      {% if rainbow_text %}
+        , "rainbow": true
+      {% else %}
+        , "TCOL": {{ wakeup_settings_color }}
+      {% endif %}
     }
 trigger:
   - platform: time

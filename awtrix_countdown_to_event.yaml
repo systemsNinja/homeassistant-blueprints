@@ -14,38 +14,69 @@ blueprint:
           integration: mqtt
           manufacturer: Blueforcer
           multiple: true
+    app_name:
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
+      selector:
+        text: {}
+      default: "Countdown_timer"
+    update_interval:
+      name: Update Interval
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 1
+    lifetime_grace:
+      name: Lifetime of the app after no update from automation
+      description: >-
+        Defines how long the app should stay alive after the last update.
+        EX: If updating every 1 minute, and this is set to 30 seconds,
+        the app will be removed 90 seconds (60s update + 30s grace) after the last update.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "1 minute"
+              value: "60"
+            - label: "2 minutes"
+              value: "120"
+            - label: "3 minutes"
+              value: "180"
+            - label: "4 minutes"
+              value: "240"
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "30 minutes"
+              value: "1800"
+      default: "120"
+
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
     target_datetime:
       name: Target Date/Time
       description: Enter the target date and time for the countdown.
       selector:
         datetime:
-    app_name:
-      name: AWTRIX App Name
-      description: A unique name for the custom app on AWTRIX (e.g., countdown_vacation).
-      default: "countdown"
-      selector:
-        text:
     event_name:
       name: Event Name
       description: The name of the event you are counting down to (e.g., Vacation).
       selector:
         text:
-    icon:
-      name: Icon (Optional)
-      description: The AWTRIX icon ID to display with the countdown.
-      default: ""
-      selector:
-        text:
-    repeat_count:
-      name: Scroll Repeat Count
-      description: Set how many times the text scrolls. This determines the app's display duration.
-      default: 1
-      selector:
-        number:
-          min: 0
-          max: 10
-          step: 1
-          mode: slider
     event_duration:
       name: Event Message Duration (Minutes)
       description: How long the final event message should display after the event time is reached.
@@ -56,6 +87,12 @@ blueprint:
           max: 1440
           step: 1
           mode: slider
+    icon:
+      name: Icon (Optional)
+      description: The AWTRIX icon ID to display with the countdown.
+      default: ""
+      selector:
+        text:
     text_color:
       name: Text Color (Optional)
       description: Set a color for the text. Overridden by Rainbow Effect.
@@ -67,6 +104,33 @@ blueprint:
       default: false
       selector:
         boolean:
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
 
 variables:
   # --- Inputs ---
@@ -79,14 +143,25 @@ variables:
   event_duration: !input event_duration
   text_color: !input text_color
   rainbow_effect: !input rainbow_effect
+  effect: !input effect
+  update_unit: !input update_unit
+  update_interval: !input update_interval
+  lifetime_grace: !input lifetime_grace
+  lifetime: >
+    {{ interval + (lifetime_grace | int) }}
+  lifetimeMode: !input lifetimeMode
 
 trigger:
-  # Run every minute to update the countdown
   - platform: time_pattern
-    minutes: "/1"
-  # Run once on Home Assistant start to ensure the app is created
-  - platform: homeassistant
-    event: start
+    seconds: "/1"   # fires every second
+
+condition:
+  - condition: template
+    value_template: >-
+      {% set interval = iif(update_unit == "minutes", update_interval * 60, update_interval) %}
+      {{ (as_timestamp(now()) | int) % interval == 0 }}
+
+
 
 action:
   - variables:
@@ -122,7 +197,8 @@ action:
                       {
                         "text": "{{ countdown_text }}",
                         "icon": "{{ icon }}",
-                        "repeat": {{ repeat_count }}
+                        "repeat": {{ repeat_count }},
+                        "effect": "{{ effect }}"
                         {% if rainbow_effect %}
                           , "rainbow": true
                         {% elif text_color is defined and text_color != none %}
@@ -141,7 +217,8 @@ action:
                       {
                         "text": "Its time for {{ event_name }}!",
                         "icon": "{{ icon }}",
-                        "repeat": {{ repeat_count }}
+                        "repeat": {{ repeat_count }},
+                        "effect": "{{ effect }}"
                         {% if rainbow_effect %}
                           , "rainbow": true
                         {% elif text_color is defined and text_color != none %}

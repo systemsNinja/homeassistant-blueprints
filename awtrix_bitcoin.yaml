@@ -13,15 +13,15 @@ blueprint:
             - integration: mqtt
               manufacturer: Blueforcer
           multiple: true
-    awtrix_app_name:
-      name: AWTRIX Application name
-      description: This is the custom app name that will be added to AWTRIX, should be unique
+    app_name:
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
       selector:
         text: {}
-      default: bitcoin
+      default: "bitcoin"
     bitcoin_sensor:
-      name: Bitcoin sensor
-      description: Bitcoin sensor
+      name: Crypto sensor
+      description: Crypto sensor
       selector:
         entity:
           integration: cryptoinfo
@@ -56,24 +56,77 @@ blueprint:
       selector:
         color_rgb:
       default: [255, 255, 255]
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
     duration:
       name: Duration (in seconds)
       description: Sets how long the app or notification should be displayed.
       default: "10"
     lifetime:
-      name: Lifetime of the app (in seconds)
-      description: Removes the custom app when there is no update after the given time in seconds. Keep this value higher than 59 seconds to get the AWTRIX app automatically deleted when disabling the automation.
-      default: "70"
+      name: Lifetime of the app after no update from automation
+      description: >-
+        Defines how long the app should stay alive after there has been update from the automation.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "15 minutes"
+              value: "900"
+            - label: "30 minutes"
+              value: "1800"
+            - label: "45 minutes"
+              value: "2700"
+            - label: "1 hour"
+              value: "3600"
+      default: "1800"
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
 
 variables:
   device_ids: !input awtrix
-  app: !input awtrix_app_name
+  app: !input app_name
   icon: !input bitcoin_icon
   txt_color_bitcoin: !input txt_color_bitcoin
   sensor_bitcoin: !input bitcoin_sensor
   push_icon: !input push_icon
+  effect: !input effect
   duration: !input duration
   lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
   awtrix_devices: >-
     {%- set ns = namespace(awtrix = []) -%}
     {%- for device_id in device_ids -%}
@@ -113,6 +166,7 @@ action:
                         "color": {{ txt_color_bitcoin }},
                         "icon": "{{ icon }}",
                         "pushIcon": {{ push_icon }},
+                        "effect": "{{ effect }}",
                         "duration": {{ duration }},
                         "lifetime": {{ lifetime }}
                       }

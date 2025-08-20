@@ -174,7 +174,28 @@ blueprint:
           max: 300
           unit_of_measurement: "sec"
       default: 30
-
+    update_interval:
+      name: Update Interval
+      description: How often to send the stats to the device.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "1 minute"
+              value: "/60"
+            - label: "2 minutes"
+              value: "/120"
+            - label: "3 minutes"
+              value: "/180"
+            - label: "4 minutes"
+              value: "/240"
+            - label: "5 minutes"
+              value: "/300"
+            - label: "10 minutes"
+              value: "/600"
+            - label: "30 minutes"
+              value: "/1800"
+      default: "/300"
     #-----------------------------------------
     # Icon Mappings
     #-----------------------------------------
@@ -247,6 +268,48 @@ blueprint:
       default: "w-sunset"
       selector: { text: {} }
 
+    lifetime:
+      name: Lifetime of the app if automation is not running
+      description: >-
+        Defines how long the app should stay alive after the last update if nothing is updating it. Time is from the time of the last update.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "15 seconds"
+              value: "15"
+            - label: "20 seconds"
+              value: "20"
+            - label: "30 seconds"
+              value: "30"
+            - label: "45 seconds"
+              value: "45"
+            - label: "1 minute"
+              value: "60"
+            - label: "2 minutes"
+              value: "120"
+            - label: "3 minutes"
+              value: "180"
+            - label: "4 minutes"
+              value: "240"
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "30 minutes"
+              value: "1800"
+      default: "30"
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
 mode: restart
 variables:
   device_ids: !input awtrix
@@ -262,6 +325,9 @@ variables:
       {% set ns.devices = ns.devices + [ device ~ '/custom/' ~ app_topic] %}
     {%- endfor %}
     {{ ns.devices | reject('match','unavailable') | list}}
+  update_interval: !input update_interval
+  lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
 
   #---------------------------------
   # Weather Variables
@@ -372,7 +438,7 @@ variables:
     {% if sun_next_str is defined and sun_next_str.strip().startswith('[') %}
     {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}}
     {% else %}
-    {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}}}
+    {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}},"lifetime": {{ lifetime }},"lifetimeMode": {{ lifetimeMode | int }}}
     {% endif %}
   sun_payload: >-
     {%- if show_sun_rise_set %}
@@ -428,9 +494,21 @@ variables:
 
   icon: "{{ icon_dict[current_condition] }}"
 
+  overlay_dict: >-
+    {{ dict({'clear-night': clear,
+    'exceptional': clear,
+    'lightning': thunder,
+    'lightning-rainy': thunder,
+    'pouring': rain,
+    'rainy': drizzle,
+    'snowy': snow,
+    'snowy-rainy': snow})}}
+
+  overlay: "{{ overlay_dict[current_condition] }}"
+
 trigger:
   - platform: time_pattern
-    seconds: /5
+    seconds: !input update_interval
   - platform: state
     entity_id: !input forecast_var
     id: Changes
@@ -535,9 +613,10 @@ action:
                   "icon": "{{icon}}",
                   "duration": {{message_duration}},
                   "pushIcon": 2,
-                  "lifetime": 120,
-                  "lifetimeMode":1,
-                  "weather": "{{current_condition}}"
+                  "lifetime": {{ lifetime }},
+                  "lifetimeMode": {{ lifetimeMode | int }},
+                  "weather": "{{current_condition}}",
+                  "overlay": "{{overlay}}"
                   }
 
         - service: mqtt.publish

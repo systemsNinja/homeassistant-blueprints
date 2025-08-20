@@ -4,12 +4,21 @@ blueprint:
   domain: automation
   author: N1c093 (updated by systemsNinja)
   input:
-    awtrix_3:
-      name: Awtrix Display
-      description: Select the target Awtrix display.
+    awtrix:
+      name: AWTRIX Device
+      description: Select the Awtrix light device(s).
       selector:
         device:
-          model: "AWTRIX 3"
+          filter:
+            - integration: mqtt
+              manufacturer: Blueforcer
+          multiple: true
+    app_name:
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
+      selector:
+        text: {}
+      default: "effects"
     effect_list:
       name: Effects
       description: "Select the effects which should randomly be displayed. See: https://blueforcer.github.io/awtrix3/#/effects"
@@ -47,35 +56,128 @@ blueprint:
           max: 999
           mode: box
           unit_of_measurement: seconds
-    change_interval:
-      name: Effect change interval
-      description: 'Select how often (in minutes) the effect should change. Input must start with "/" Example: "/5"'
-      default: "/5"
+    update_unit:
+      name: Update Unit
+      description: Choose whether the update interval is in seconds or minutes.
       selector:
-        text:
-          suffix: minutes
+        select:
+          options:
+            - "seconds"
+            - "minutes"
+      default: "minutes"
+    update_interval:
+      name: Effect Change Interval
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 1
+    lifetime_grace:
+      name: Lifetime of the app after no update from automation
+      description: >-
+        Defines how long the app should stay alive after the last update.
+        EX: If updating every 1 minute, and this is set to 30 seconds,
+        the app will be removed 90 seconds (60s update + 30s grace) after the last update.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "3 seconds"
+              value: "3"
+            - label: "5 seconds"
+              value: "5"
+            - label: "10 seconds"
+              value: "10"
+            - label: "15 seconds"
+              value: "15"
+            - label: "20 seconds"
+              value: "20"
+            - label: "30 seconds"
+              value: "30"
+            - label: "45 seconds"
+              value: "45"
+            - label: "1 minute"
+              value: "60"
+            - label: "2 minutes"
+              value: "120"
+            - label: "3 minutes"
+              value: "180"
+            - label: "4 minutes"
+              value: "240"
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "30 minutes"
+              value: "1800"
+      default: "30"
+
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
+
 
 mode: queued
 
 variables:
-  device_id: !input awtrix_3
-  awtrix_3: "{{ iif( device_attr(device_id, 'name_by_user') != none, device_attr(device_id, 'name_by_user'), device_attr(device_id, 'name') ) }}"
+  device_ids: !input awtrix
+  app_name: !input app_name
+  topics: >-
+    {%- macro get_device_topic(device_id) %}
+    {{ states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}
+    {%- endmacro %}
+
+    {%- set ns = namespace(devices=[]) %}
+    {%- for device_id in device_ids %}
+      {%- set device=get_device_topic(device_id)|replace(' ','') %}
+      {% set ns.devices = ns.devices + [ device ~ '/custom/' ~ app_name] %}
+    {%- endfor %}
+    {{ ns.devices | reject('match','unavailable') | list}}
+
   effect_list: !input effect_list
   effect_random: "{{effect_list|random}}"
-  duration: !input duration
+  update_unit: !input update_unit
+  update_interval: !input update_interval
+  lifetime_grace: !input lifetime_grace
+  lifetime: >
+    {% set interval = iif(update_unit == "minutes", update_interval|int * 60, update_interval|int) %}
+    {{ interval + (lifetime_grace | int) }}
+  lifetimeMode: !input lifetimeMode  duration: !input duration
+
 
 trigger:
   - platform: time_pattern
-    minutes: !input change_interval
+    seconds: "/1"   # fires every second
+
+condition:
+  - condition: template
+    value_template: >-
+      {% set interval = iif(update_unit == "minutes", update_interval * 60, update_interval) %}
+      {{ (as_timestamp(now()) | int) % interval == 0 }}
+
 
 action:
-  - service: mqtt.publish
-    data:
-      qos: 0
-      retain: false
-      topic: "{{awtrix_3}}/custom/effect"
-      payload: |-
-        {   
-          "effect": "{{ effect_random }}",
-          "duration": "{{ duration }}"
-        }
+  - repeat:
+      for_each: "{{ topics }}"
+      sequence:
+        - service: mqtt.publish
+          data:
+            topic: "{{repeat.item}}"
+            payload: |-
+             {   
+               "effect": "{{ effect_random }}",
+               "duration": "{{ duration }}",
+               "lifetime": {{ lifetime }},
+               "lifetimeMode": {{ lifetimeMode | int }}
+             }

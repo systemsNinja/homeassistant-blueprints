@@ -74,7 +74,103 @@ blueprint:
             domain:
               - weather
           multiple: false
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
+    update_unit:
+      name: Update Unit
+      description: Choose whether the update interval is in seconds or minutes.
+      selector:
+        select:
+          options:
+            - "seconds"
+            - "minutes"
+      default: "minutes"
+    update_interval:
+      name: Update Interval
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 1
+    lifetime_grace:
+      name: Lifetime of the app after no update from automation
+      description: >-
+        Defines how long the app should stay alive after the last update.
+        EX: If updating every 1 minute, and this is set to 30 seconds,
+        the app will be removed 90 seconds (60s update + 30s grace) after the last update.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "3 seconds"
+              value: "3"
+            - label: "5 seconds"
+              value: "5"
+            - label: "10 seconds"
+              value: "10"
+            - label: "15 seconds"
+              value: "15"
+            - label: "20 seconds"
+              value: "20"
+            - label: "30 seconds"
+              value: "30"
+            - label: "45 seconds"
+              value: "45"
+            - label: "1 minute"
+              value: "60"
+            - label: "2 minutes"
+              value: "120"
+            - label: "3 minutes"
+              value: "180"
+            - label: "4 minutes"
+              value: "240"
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "30 minutes"
+              value: "1800"
+      default: "30"
 
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
 mode: restart
 variables:
   app_topic: uv_hum
@@ -99,10 +195,27 @@ variables:
   forecast_var: !input forecast
   forecast_field: "uv_index"
   show_forecast: !input show_forecast
+  effect: !input effect
+  update_unit: !input update_unit
+  update_interval: !input update_interval
+  lifetime_grace: !input lifetime_grace
+  lifetime: >
+    {% set interval = iif(update_unit == "minutes", update_interval|int * 60, update_interval|int) %}
+    {{ interval + (lifetime_grace | int) }}
+  lifetimeMode: !input lifetimeMode
 
+# The automation will be triggered based on a time pattern for either seconds or minutes.
 trigger:
-  - trigger: time_pattern
-    minutes: "/5"
+  - platform: time_pattern
+    seconds: "/1"   # fires every second
+
+condition:
+  - condition: template
+    value_template: >-
+      {% set interval = iif(update_unit == "minutes", update_interval * 60, update_interval) %}
+      {{ (as_timestamp(now()) | int) % interval == 0 }}
+
+
 
 condition: []
 action:
@@ -198,6 +311,7 @@ action:
                   {%- if show_forecast %}{{ draw_uv_forecast_h(22,7,8,0) }},{%- endif %}
                   {{draw_uv()}}
                 ],
-                "lifetime": 620,
-                "lifetimeMode":1
+                "effect": "{{ effect }}",
+                "lifetime": {{ lifetime }},
+                "lifetimeMode": {{ lifetimeMode | int }}
               }
