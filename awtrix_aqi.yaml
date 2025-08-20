@@ -233,7 +233,7 @@ action:
             {"db": [0,0,8,8,[5029628,5029628,0,0,0,0,0,0,5029628,0,5029628,0,16777215,0,0,0,5029628,5029628,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,0,0,0,0,16777215,16777215,16777215,2425087,0,0,0,0,0,0,0,2425087,0,65280,16776960,16753920,16716947,16711680,0,0]]},
             
             {# CHANGED: Display descriptive word instead of number, with auto-centering #}
-            {"t": [8, 1, 1, "{{ get_aqi_color_from_value(airnow_current) }}", 0, "{{ get_aqi_text_from_value(airnow_current) }}", 1, 0]},
+            {"text": [8, 1, 1, "{{ get_aqi_color_from_value(airnow_current) }}", 0, "{{ get_aqi_text_from_value(airnow_current) }}", 1, 0]},
 
             {# Draw forecast lines using the text-based color logic #}
             {% for i in range(5) %}
