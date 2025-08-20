@@ -153,7 +153,8 @@ variables:
   lifetime: >
     {% set interval = iif(update_unit == "minutes", update_interval|int * 60, update_interval|int) %}
     {{ interval + (lifetime_grace | int) }}
-  lifetimeMode: !input lifetimeMode  duration: !input duration
+  lifetimeMode: !input lifetimeMode  
+  duration: !input duration
 
 
 trigger:

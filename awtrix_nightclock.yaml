@@ -252,7 +252,6 @@ variables:
   sleep_time: !input sleep_time
   wakeup_weekday_bar: !input wakeup_weekday_bar
   sleep_weekday_bar: !input sleep_weekday_bar
-  rainbow_text: !input rainbow_text
   sleep_settings_atrans: !input sleep_settings_atrans
   sleep_settings_color: !input sleep_settings_color
   sleep_settings_abri: !input sleep_settings_abri
