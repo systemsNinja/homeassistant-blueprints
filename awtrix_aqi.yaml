@@ -222,7 +222,6 @@ action:
           [10, 7], [14, 7], [18, 7], [22, 7], [26, 7]
         ] %}
 
-
         {
           "lifetime": {{ lifetime | int }},
           "lifetimeMode": {{ lifetimeMode | int }},
@@ -233,8 +232,20 @@ action:
           "draw": [
             {"db": [0,0,8,8,[5029628,5029628,0,0,0,0,0,0,5029628,0,5029628,0,16777215,0,0,0,5029628,5029628,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,0,0,0,0,16777215,16777215,16777215,2425087,0,0,0,0,0,0,0,2425087,0,65280,16776960,16753920,16716947,16711680,0,0]]},
             
-            {# FIXED: Display descriptive word with auto-centering and correct hex color format #}
-            {"t": [8, 1, 1, "{{ '%06x' | format(get_aqi_color_from_value(airnow_current)) }}", "000000", "{{ get_aqi_text_from_value(airnow_current) }}", 1, 0]},
+            {# Get the AQI text into a variable for easier use #}
+            {% set aqi_text = get_aqi_text_from_value(airnow_current) %}
+        
+            {# Manually center the text based on its length #}
+            {% if aqi_text|length <= 4 %}
+              {# Centered for short words like "Good" #}
+              {"dt": [16, 1, "{{ aqi_text }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {% elif aqi_text|length <= 9 %}
+              {# Centered for medium words like "Moderate" or "Unhealthy" #}
+              {"dt": [10, 1, "{{ aqi_text }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {% else %}
+              {# Left-aligned for long words like "Hazardous" #}
+              {"dt": [8, 1, "{{ aqi_text }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {% endif %}
         
             {# Draw forecast lines using the text-based color logic #}
             {% for i in range(5) %}
