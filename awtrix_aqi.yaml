@@ -177,29 +177,18 @@ action:
       app_topic: !input app_name
       
       payload_json: >
-        {# Macro to get color from numerical AQI value #}
+        {# Macro to get color from numerical AQI value (for AirNow) #}
         {%- macro get_aqi_color_from_value(value) -%}
           {%- set v = value | int(0) -%}
-          {%- if v <= 49 -%}#00FF00        {# Good #}
-          {%- elif v <= 99 -%}#FFFF00     {# Moderate #}
-          {%- elif v <= 149 -%}#FFA500    {# Poor #}
-          {%- elif v <= 249 -%}#FF1493    {# Unhealthy #}
-          {%- else -%}#FF0000             {# Hazardous #}
+          {%- if v <= 49 -%}#00FF00        {# 0-49: Bright Green #}
+          {%- elif v <= 99 -%}#FFFF00     {# 50-99: Bright Yellow #}
+          {%- elif v <= 149 -%}#FFA500    {# 100-149: Pumping Orange #}
+          {%- elif v <= 249 -%}#FF1493    {# 150-249: Deep Pink #}
+          {%- else -%}#FF0000             {# 250+: Bright Red #}
           {%- endif -%}
         {%- endmacro -%}
 
-        {# NEW: Macro to get text from numerical AQI value #}
-        {%- macro get_aqi_text_from_value(value) -%}
-          {%- set v = value | int(0) -%}
-          {%- if v <= 49 -%}Good
-          {%- elif v <= 99 -%}Moderate
-          {%- elif v <= 149 -%}Poor
-          {%- elif v <= 249 -%}Unhealthy
-          {%- else -%}Hazardous
-          {%- endif -%}
-        {%- endmacro -%}
-
-        {# Macro to get color from AccuWeather's text forecast #}
+        {# Macro to get color from text state (for AccuWeather forecast) #}
         {%- macro get_forecast_color_from_text(state) -%}
           {%- if state == 'good' -%}#00FF00 {# Bright Green #}
           {%- elif state == 'moderate' -%}#FFFF00 {# Bright Yellow #}
@@ -223,7 +212,7 @@ action:
         ] %}
 
         {
-          "lifetime": {{ lifetime | int }},
+          "lifetime": {{ lifetime }},
           "lifetimeMode": {{ lifetimeMode | int }},
           {% if effect != "None" %}
           "effect": "{{ effect }}",
@@ -232,21 +221,18 @@ action:
           "draw": [
             {"db": [0,0,8,8,[5029628,5029628,0,0,0,0,0,0,5029628,0,5029628,0,16777215,0,0,0,5029628,5029628,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,5029628,0,5029628,16777215,0,16777215,0,2425087,0,0,0,0,16777215,16777215,16777215,2425087,0,0,0,0,0,0,0,2425087,0,65280,16776960,16753920,16716947,16711680,0,0]]},
             
-            {# Get the AQI text into a variable for easier use #}
-            {% set aqi_text = get_aqi_text_from_value(airnow_current) %}
-        
-            {# Manually center the text based on its length #}
-            {% if aqi_text|length <= 4 %}
-              {# Centered for short words like "Good" #}
-              {"dt": [16, 1, "{{ aqi_text }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
-            {% elif aqi_text|length <= 9 %}
-              {# Centered for medium words like "Moderate" or "Unhealthy" #}
-              {"dt": [10, 1, "{{ aqi_text }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {# ONLY display the AirNow AQI value, centered in the area to the right of the icon #}
+            {% if airnow_current < 10 %}
+              {# Centered for 1 digit #}
+              {"dt": [18, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+            {% elif airnow_current < 100 %}
+              {# Centered for 2 digits #}
+              {"dt": [16, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
             {% else %}
-              {# Left-aligned for long words like "Hazardous" #}
-              {"dt": [8, 1, "{{ aqi_text }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+              {# Centered for 3 digits #}
+              {"dt": [14, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
             {% endif %}
-        
+
             {# Draw forecast lines using the text-based color logic #}
             {% for i in range(5) %}
               {"dl": [{{ forecast_positions[i][0] }}, {{ forecast_positions[i][1] }}, {{ forecast_positions[i][0] + 2 }}, {{ forecast_positions[i][1] }}, "{{ get_forecast_color_from_text(forecast_values[i]) }}"]}{% if not loop.last %},{% endif %}

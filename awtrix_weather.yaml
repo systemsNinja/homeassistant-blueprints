@@ -182,20 +182,20 @@ blueprint:
           mode: dropdown
           options:
             - label: "1 minute"
-              value: "/60"
+              value: "/1"
             - label: "2 minutes"
-              value: "/120"
+              value: "/2"
             - label: "3 minutes"
-              value: "/180"
+              value: "/3"
             - label: "4 minutes"
-              value: "/240"
+              value: "/4"
             - label: "5 minutes"
-              value: "/300"
+              value: "/5"
             - label: "10 minutes"
-              value: "/600"
+              value: "/10"
             - label: "30 minutes"
-              value: "/1800"
-      default: "/300"
+              value: "/30"
+      default: "/5"
     #-----------------------------------------
     # Icon Mappings
     #-----------------------------------------
@@ -276,22 +276,6 @@ blueprint:
         select:
           mode: dropdown
           options:
-            - label: "15 seconds"
-              value: "15"
-            - label: "20 seconds"
-              value: "20"
-            - label: "30 seconds"
-              value: "30"
-            - label: "45 seconds"
-              value: "45"
-            - label: "1 minute"
-              value: "60"
-            - label: "2 minutes"
-              value: "120"
-            - label: "3 minutes"
-              value: "180"
-            - label: "4 minutes"
-              value: "240"
             - label: "5 minutes"
               value: "300"
             - label: "10 minutes"
@@ -508,7 +492,7 @@ variables:
 
 trigger:
   - platform: time_pattern
-    seconds: !input update_interval
+    minutes: !input update_interval
   - platform: state
     entity_id: !input forecast_var
     id: Changes
