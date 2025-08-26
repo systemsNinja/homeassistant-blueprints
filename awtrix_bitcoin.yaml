@@ -33,19 +33,20 @@ blueprint:
         text:
       default: "12460"
     push_icon:
-      name: Push Icon
-      description:
-        "Please select the pushIcon setting for the icon"
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
       selector:
         select:
           options:
-            - label: "Icon doesn't move."
+            - label: "Icon doesn't move"
               value: "0"
-            - label: "Icon moves with text and will not reappear."
+            - label: "Icon moves with text"
               value: "1"
-            - label: "Icon moves with text but appears again when the text starts."
+            - label: "Icon moves & reappears"
               value: "2"
-          mode: list
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
       default: "0"
     text_color:
       name: Text Color
@@ -54,8 +55,8 @@ blueprint:
         color_rgb:
       default: [255, 255, 255]
     rainbox_text:
-      name: Rainbow Colors
-      description: Should the text be shown in Rainbow colors? This Overrides the text color setting.
+      name: Rainbow Text
+      description: Overrides the text color and makes the text a rainbow gradient.
       selector:
         boolean:
       default: false
@@ -171,14 +172,17 @@ action:
                     payload: |
                       {   
                         "text": "{{ states(sensor_bitcoin) | round(0) }}",
-                        "color": {{ text_color }},
-                        "rainbow": {{ rainbox_text | lower }},
                         "icon": "{{ icon }}",
                         "pushIcon": {{ push_icon }},
                         "effect": "{{ effect }}",
                         "duration": {{ duration }},
                         "lifetime": {{ lifetime }},
                         "lifetimeMode": {{ lifetimeMode }}
+                        {% if rainbow_text %}
+                          , "rainbow": true
+                        {% else %}
+                          , "color": {{ text_color | tojson }}
+                        {% endif %}
                       }
 
 mode: restart

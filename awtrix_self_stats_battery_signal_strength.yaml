@@ -182,20 +182,6 @@ blueprint:
         select:
           mode: dropdown
           options:
-            - label: "3 seconds"
-              value: "3"
-            - label: "5 seconds"
-              value: "5"
-            - label: "10 seconds"
-              value: "10"
-            - label: "15 seconds"
-              value: "15"
-            - label: "20 seconds"
-              value: "20"
-            - label: "30 seconds"
-              value: "30"
-            - label: "45 seconds"
-              value: "45"
             - label: "1 minute"
               value: "60"
             - label: "2 minutes"
@@ -210,8 +196,15 @@ blueprint:
               value: "600"
             - label: "30 minutes"
               value: "1800"
+            - label: "45 minutes"
+              value: "2700"
+            - label: "1 hour"
+              value: "3600"
+            - label: "1.5 hours"
+              value: "5400"
+            - label: "2 hours"
+              value: "7200"
       default: "30"
-
     lifetimeMode:
       name: Lifetime Mode
       description: What happens after the app's lifetime expires.
