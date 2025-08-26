@@ -18,8 +18,6 @@ blueprint:
     - **Spotify Integration**: For the progress bar to function correctly, you **must use** a `media_player` entity from the Spotify integration. Other media players might work for displaying text, but they often lack the required attributes (`media_position`, `media_duration`) for the progress bar.
 
   domain: automation
-  author: N1c093 (Modified by SystemsNinja to add progress bar, effects, lifetime, etc)
-
   input:
     awtrix_devices:
       name: AWTRIX Device(s)
