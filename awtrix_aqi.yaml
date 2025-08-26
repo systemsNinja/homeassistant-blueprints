@@ -37,32 +37,36 @@ blueprint:
           device_class: enum
     accuweather_aqi_day1:
       name: Accuweather Forecast Tomorrow (Text)
-      description: Accuweather sensor with a text state for Tomorrow.. 
-                   EX: sensor.accuweather_guttenberg_air_quality_day_1
+      description: >
+         Accuweather sensor with a text state for Tomorrow.
+         EX: sensor.accuweather_guttenberg_air_quality_day_1
       selector:
         entity:
           integration: accuweather
           device_class: enum
     accuweather_aqi_day2:
       name: Accuweather Forecast Day 2 (Text)
-      description: Accuweather sensor with a text state for Day 2.
-                   EX: sensor.accuweather_guttenberg_air_quality_day_2
+      description: >
+         Accuweather sensor with a text state for Day 2.
+         EX: sensor.accuweather_guttenberg_air_quality_day_2
       selector:
         entity:
           integration: accuweather
           device_class: enum
     accuweather_aqi_day3:
       name: Accuweather Forecast Day 3 (Text)
-      description: Accuweather sensor with a text state for Day 3.
-                   EX: sensor.accuweather_guttenberg_air_quality_day_3
+      description: >
+         Accuweather sensor with a text state for Day 3.
+         EX: sensor.accuweather_guttenberg_air_quality_day_3
       selector:
         entity:
           integration: accuweather
           device_class: enum
     accuweather_aqi_day4:
       name: Accuweather Forecast Day 4 (Text)
-      description: Accuweather sensor with a text state for Day 4.
-                   EX: sensor.accuweather_guttenberg_air_quality_day_4
+      description: >
+         Accuweather sensor with a text state for Day 4.
+         EX: sensor.accuweather_guttenberg_air_quality_day_4
       selector:
         entity:
           integration: accuweather
