@@ -1,0 +1,637 @@
+blueprint:
+  name: AWTRIX Weather ⛈️ + Forecast (Service Calls)
+  description: >
+    This is a weather blueprint that provides a current weather summary and an hourly forecast graph. In addition it will also show sunrise and sunset times. It was initially designed by jeeftor.
+
+    ### Tested weather platforms: Openweathermap, Pirateweather and tomorrow.io ###
+
+    ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/thumbnails/weather.gif)
+
+    ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/thumbnails/sunset.gif)
+
+    This blueprint will publish to two separate topics. One for the main weather report and another if its near sunrise/set.
+
+    ## ⚠️ REQUIREMENTS ⚠️
+    1. You will need one of the mentioned weather integrations that support hourly forecast:
+     - Openweathermap 
+     - Pirateweather 
+     - tomorrow.io 
+
+    2. You need the sun integration in home assistant
+    
+    3. You need to upload all icons used here to your AWTRIX device.
+
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device
+      description: Select the Awtrix light device(s).
+      selector:
+        device:
+          filter:
+            - integration: mqtt
+              manufacturer: Blueforcer
+          multiple: true
+
+    forecast_var:
+      name: Hourly Forecast
+      description: >
+        Select a sensor that provides an Hourly forecast (not a daily one). This has been tested with Weatherflow and OpenWeather.
+      selector:
+        entity:
+          filter:
+            - domain:
+                - weather
+          multiple: false
+
+    hours_to_show:
+      name: Forecast Hours to Show
+      description: How many hours of forecast do you wish to show along the bottom of the display.
+      selector:
+        number:
+          max: 24
+          min: 0
+          unit_of_measurement: "hours"
+          mode: box
+      default: 12
+    temp_digits:
+      name: Temp Digits
+      description: >
+        By default, the temperature is rounded to a whole number. You can set this to 1 or 2 to show decimal places.
+      selector:
+        number:
+          min: 0
+          max: 2
+          step: 1
+          mode: box
+          unit_of_measurement: "Decimal places"
+      default: 0
+    temp_suffix:
+      name: Temperature suffix
+      description: How do you want to display the temperature unit (e.g., °, °F, °C).
+      selector:
+        select:
+          options:
+            - label: None
+              value: ""
+            - label: "°"
+              value: "°"
+            - label: °F
+              value: "°F"
+            - label: °C
+              value: "°C"
+            - label: F
+              value: "F"
+            - label: C
+              value: "C"
+      default: "°"
+
+    current_temp_var:
+      name: The current outside temperature (Optional)
+      description: >
+        (Optional) Select a specific sensor for the current temperature. If left blank, the temperature from the main weather entity will be used.
+      selector:
+        entity:
+          filter:
+            - domain:
+                - sensor
+      default: ""
+
+    color_matrix_json:
+      name: Color Matrix
+      description: >
+        This JSON object controls the colors that map to temperature ranges on the display.
+      selector:
+        text:
+          multiline: true
+      default: >
+        {
+          "0": "#FEC4FF",
+          "10": "#D977DF",
+          "20": "#9545BC",
+          "30": "#4B379C",
+          "40": "#31B8DB",
+          "50": "#31DB8B",
+          "60": "#6ED228",
+          "70": "#FFFF28",
+          "80": "#F87E27",
+          "90": "#CF3927",
+          "100": "#A12527"
+        }
+
+    #----------------------------------------
+    # Sunrise Sunset Times :)
+    #----------------------------------------
+    show_sun_rise_set:
+      name: ☀️ Show Sunrise/Sunset
+      description: >
+        Prior to both sunrise and sunset times, show a message about the upcoming event.
+      selector:
+        boolean:
+      default: True
+    sun_event_minute_threshold:
+      name: Sun Time Prior 🕰️
+      description: >-
+        How many minutes before sunrise/sunset should the notification appear.
+      selector:
+        number:
+          min: 5
+          max: 1440
+          unit_of_measurement: "min"
+      default: 30
+
+    sun_time_type:
+      name: Sun Time Type
+      description: >
+        When showing a notification about sun rise/set it can offer 2 different time formats: Relative (`12 min`) or Actual (`8:31 pm`).
+      selector:
+        select:
+          options:
+            - Relative
+            - Actual
+      default: "Actual"
+
+    sun_time_format:
+      name: Actual Time Format
+      description: >
+        Select the time format for the sun rise/set notifications
+      selector:
+        select:
+          options:
+            - label: "13:30:45 (will scroll)"
+              value: "%H:%M:%S"
+            - label: "1:30:45 (will scroll)"
+              value: "%I:%M:%S"
+            - label: "13:30"
+              value: "%H:%M"
+            - label: "1:30"
+              value: "%I:%M"
+            - label: "1:30 PM (will scroll)"
+              value: "%I:%M %p"
+      default: "%H:%M"
+    message_duration_forecast:
+      name: Forecast Duration ⏱️
+      description: >-
+        How long should the forecast message remain on the screen (in seconds). *If you select `0` it will use the Global App Time*
+      selector:
+        number:
+          min: 0
+          max: 300
+          unit_of_measurement: "sec"
+      default: 30
+
+    message_duration_riseset:
+      name: Sun Rise/Set Duration ⏱️
+      description: >-
+        How long should the sunrise/sunset message remain on the screen (in seconds). *If you select `0` it will use the Global App Time*
+      selector:
+        number:
+          min: 0
+          max: 300
+          unit_of_measurement: "sec"
+      default: 30
+    update_interval:
+      name: Update Interval
+      description: >
+        Updates will be sent as often as the forecast changes and whatever you set it here.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "1 minute"
+              value: "/1"
+            - label: "2 minutes"
+              value: "/2"
+            - label: "3 minutes"
+              value: "/3"
+            - label: "4 minutes"
+              value: "/4"
+            - label: "5 minutes"
+              value: "/5"
+            - label: "10 minutes"
+              value: "/10"
+            - label: "30 minutes"
+              value: "/30"
+      default: "/5"
+    #-----------------------------------------
+    # Icon Mappings
+    #-----------------------------------------
+    icon_clear_night:
+      name: Icon for clear-night
+      default: "w-clear-night"
+      selector: { text: {} }
+    icon_cloudy:
+      name: Icon for cloudy
+      default: "w-cloudy"
+      selector: { text: {} }
+    icon_exceptional:
+      name: Icon for exceptional
+      default: "w-exceptional"
+      selector: { text: {} }
+    icon_fog:
+      name: Icon for fog
+      default: "w-fog"
+      selector: { text: {} }
+    icon_hail:
+      name: Icon for hail
+      default: "w-hail"
+      selector: { text: {} }
+    icon_lightning:
+      name: Icon for lightning
+      default: "w-lightning"
+      selector: { text: {} }
+    icon_lightning_rainy:
+      name: Icon for lightning-rainy
+      default: "w-lightning-rainy"
+      selector: { text: {} }
+    icon_partlycloudy:
+      name: Icon for partlycloudy
+      default: "w-partlycloudy"
+      selector: { text: {} }
+    icon_pouring:
+      name: Icon for pouring
+      default: "w-pouring"
+      selector: { text: {} }
+    icon_rainy:
+      name: Icon for rainy
+      default: "w-rainy"
+      selector: { text: {} }
+    icon_snowy:
+      name: Icon for snowy
+      default: "w-snowy"
+      selector: { text: {} }
+    icon_snowy_rainy:
+      name: Icon for snowy-rainy
+      default: "w-snowy-rainy"
+      selector: { text: {} }
+    icon_sunny:
+      name: Icon for sunny
+      default: "w-sunny"
+      selector: { text: {} }
+    icon_windy:
+      name: Icon for windy
+      default: "w-windy"
+      selector: { text: {} }
+    icon_windy_variant:
+      name: Icon for windy-variant
+      default: "w-windy-variant"
+      selector: { text: {} }
+    icon_sunrise:
+      name: Icon for sunrise
+      default: "w-sunrise"
+      selector: { text: {} }
+    icon_sunset:
+      name: Icon for sunset
+      default: "w-sunset"
+      selector: { text: {} }
+
+    lifetime:
+      name: Lifetime of the app if automation is not running
+      description: >-
+        Defines how long the app should stay alive after the last update if nothing is updating it. Time is from the time of the last update.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "15 minutes"
+              value: "900"
+            - label: "30 minutes"
+              value: "1800"
+      default: "600"
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
+mode: restart
+variables:
+  device_ids: !input awtrix
+  app_topic: weather 
+  topics: >-
+    {%- macro get_device_topic(device_id) %}
+    {{ states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}
+    {%- endmacro %}
+
+    {%- set ns = namespace(devices=[]) %}
+    {%- for device_id in device_ids %}
+      {%- set device=get_device_topic(device_id)|replace(' ','') %}
+      {% set ns.devices = ns.devices + [ device ~ '/custom/' ~ app_topic] %}
+    {%- endfor %}
+    {{ ns.devices | reject('match','unavailable') | list}}
+  update_interval: !input update_interval
+  lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
+
+  #---------------------------------
+  # Weather Variables
+  #---------------------------------
+  forecast_var: !input forecast_var
+  current_condition: "{{states(forecast_var)}}"
+  current_temp: "{{state_attr(forecast_var,'temperature')}}"
+  hours_to_show: !input hours_to_show
+
+  #----------------
+  # Temp & Text
+  # --------------
+  message_duration: !input message_duration_forecast
+  message_duration_riseset: !input message_duration_riseset
+  current_temp_var: !input current_temp_var
+  temp_digits: !input temp_digits
+  temp_suffix: !input temp_suffix
+
+  temp_text: >-
+    {%- macro round_and_set_temp(temp_entity_id, temp_fallback, temp_suffix, digits=0) -%}
+      {%- if temp_entity_id != "" and states(temp_entity_id) not in ['unknown', 'unavailable'] -%}
+        {{ states(temp_entity_id) | round(digits) ~ temp_suffix}} 
+      {%- else -%}
+        {{ temp_fallback | round(digits) ~ temp_suffix}}
+      {%- endif -%}
+    {%- endmacro -%}
+    {{ round_and_set_temp(current_temp_var, current_temp, temp_suffix, temp_digits)}}
+
+  text_available_width: 24
+  text_len: >-
+    {%- macro get_text_len(string) %}
+    {%- set length = namespace(value=0) %}
+    {%- for char in string %}
+      {%- if char.isdigit() %}
+        {%- set length.value = length.value + 3 %}
+      {%- elif char == '°' %}
+        {%- set length.value = length.value + 2 %}
+      {%- elif char == '.' %}
+        {%- set length.value = length.value + 1 %}
+      {%- elif char in ['-','C','F'] %}
+        {%- set length.value = length.value + 3 %}
+      {%- else %}
+        {%- set length.value = length.value + 1 %}
+      {%- endif %}
+      {%- if not loop.last %}
+        {%- set length.value = length.value + 1 %}{%- endif -%}
+    {%- endfor -%}
+    {{ length.value }}
+    {%- endmacro %}
+
+    {{get_text_len(temp_text)}}
+  text_x: >-
+    {{8 + ((text_available_width - text_len)/2)}}
+
+  # ------------------------------
+  # SUN THINGS
+  # ------------------------------
+  sun_event_minute_threshold: !input sun_event_minute_threshold
+  sun_time_type: !input sun_time_type
+  sun_time_format: !input sun_time_format
+  icon_sunrise: !input icon_sunrise
+  icon_sunset: !input icon_sunset
+  show_sun_rise_set: !input show_sun_rise_set
+
+  sun_next_event: >-
+    {%- set rise = state_attr('sun.sun','next_rising') %}
+    {%- set set = state_attr('sun.sun','next_setting') %}
+    {%- set ts_rise = rise |as_timestamp %}
+    {%- set ts_set = set |as_timestamp %}
+    {{ iif(ts_set < ts_rise,'sunset','sunrise') }}
+
+  sun_min_until_next_event: >-
+    {%- set rise = state_attr('sun.sun','next_rising') %}
+    {%- set set = state_attr('sun.sun','next_setting') %}
+    {%- set ts_rise = rise |as_timestamp %}
+    {%- set ts_set = set |as_timestamp %}
+    {{ iif(sun_next_event == 'sunrise',(ts_rise - utcnow()|as_timestamp) / 60,(ts_set - utcnow()|as_timestamp) / 60) | round(0) }}
+
+  sun_next_str: >-
+    {%- set rise = state_attr('sun.sun','next_rising') %}
+    {%- set set = state_attr('sun.sun','next_setting') %}
+    {%- set ts_rise = rise |as_timestamp %}
+    {%- set ts_set = set |as_timestamp %}
+    {%- if sun_time_type == 'Actual' %}
+      {{ iif(sun_next_event == 'sunrise',(ts_rise | as_datetime | as_local).strftime(sun_time_format),  (ts_set | as_datetime | as_local).strftime(sun_time_format)) }}
+    {%- else %}
+    {#- relative time #}
+      {% set hours = sun_min_until_next_event // 60 %}
+      {% set remaining_minutes = sun_min_until_next_event % 60 %}
+
+      {% if hours == 0 %}
+        {{ remaining_minutes }} min
+      {% else %}
+        [
+          {"t":"{{hours}}", "c":"#ffffff"},
+          {"t":"h", "c":"#9c9d97"},
+          {"t":"{{remaining_minutes}}", "c":"#ffffff"},
+          {"t":"m", "c":"#9c9d97"}
+        ]
+      {% endif %}
+      
+    {%- endif %}
+  sun_event_icon: >-
+    {{ iif(sun_next_event == 'sunrise', icon_sunrise, icon_sunset) }}
+  # FIXED: This logic now checks if sun_next_str is a JSON array (for rich text)
+  # and constructs the payload accordingly to avoid a JSON error.
+  sun_event_payload: >-
+    {% if sun_next_str is defined and sun_next_str.strip().startswith('[') %}
+    {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}}
+    {% else %}
+    {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}},"lifetime": {{ lifetime }},"lifetimeMode": {{ lifetimeMode | int }}}
+    {% endif %}
+  sun_payload: >-
+    {%- if show_sun_rise_set %}
+    {{ iif(sun_event_minute_threshold >= sun_min_until_next_event, sun_event_payload, "{}") }}
+    {%- else %}
+    {}
+    {%- endif %}
+
+  # ------------------------------
+  # Icons&Stuff
+  # ------------------------------
+  icon_clear_night: !input icon_clear_night
+  icon_cloudy: !input icon_cloudy
+  icon_exceptional: !input icon_exceptional
+  icon_fog: !input icon_fog
+  icon_hail: !input icon_hail
+  icon_lightning: !input icon_lightning
+  icon_lightning_rainy: !input icon_lightning_rainy
+  icon_partlycloudy: !input icon_partlycloudy
+  icon_pouring: !input icon_pouring
+  icon_rainy: !input icon_rainy
+  icon_snowy: !input icon_snowy
+  icon_snowy_rainy: !input icon_snowy_rainy
+  icon_sunny: !input icon_sunny
+  icon_windy: !input icon_windy
+  icon_windy_variant: !input icon_windy_variant
+  color_matrix_json: !input color_matrix_json
+  color_dict: >-
+    {% set b = color_matrix_json | from_json %}    
+    {%- set ns = namespace(tuples=[]) %}
+    {%- for k,v in b | items -%}
+      {%- set key = k|float -%}
+      {%- set ns.tuples = ns.tuples + [(key,v)] %}      
+    {% endfor %}
+    {{ dict.from_keys(ns.tuples) }}
+
+  icon_dict: >-
+    {{ dict({'clear-night': icon_clear_night,
+    'cloudy': icon_cloudy,
+    'exceptional': icon_exceptional,
+    'fog': icon_fog,
+    'hail': icon_hail,
+    'lightning': icon_lightning,
+    'lightning-rainy': icon_lightning_rainy,
+    'partlycloudy': icon_partlycloudy,
+    'pouring': icon_pouring,
+    'rainy': icon_rainy,
+    'snowy': icon_snowy,
+    'snowy-rainy': icon_snowy_rainy,
+    'sunny': icon_sunny,
+    'windy': icon_windy, 
+    'windy-variant': icon_windy_variant})}}
+
+  icon: "{{ icon_dict[current_condition] }}"
+
+  overlay_dict: >-
+    {{ dict({'clear-night': clear,
+    'exceptional': clear,
+    'lightning': thunder,
+    'lightning-rainy': thunder,
+    'pouring': rain,
+    'rainy': drizzle,
+    'snowy': snow,
+    'snowy-rainy': snow})}}
+
+  overlay: "{{ overlay_dict[current_condition] }}"
+
+trigger:
+  - platform: time_pattern
+    minutes: !input update_interval
+  - platform: state
+    entity_id: !input forecast_var
+    id: Changes
+    enabled: true
+  - platform: state
+    entity_id: "sun.sun"
+
+condition: []
+action:
+  - service: weather.get_forecasts
+    target:
+      entity_id: "{{forecast_var}}"
+    data:
+      type: hourly
+    response_variable: forecast_response
+
+  - repeat:
+      for_each: "{{ topics }}"
+      sequence:
+        - service: mqtt.publish
+          data:
+            topic: "{{repeat.item}}"
+            payload: >-
+              {%- set forecast = forecast_response[forecast_var]['forecast'] -%}
+              {%- macro interpolate(dictionary, x) -%}
+              {%- set sorted_keys = dictionary|dictsort -%}
+              {%- set above = sorted_keys|selectattr('0', 'gt', x)|map(attribute='0')|list|first -%}
+              {%- set below = sorted_keys|selectattr('0', 'lt', x)|map(attribute='0')|list|last -%}
+
+              {#- Key matches x exactly -#}
+              {%- if above is defined and dictionary[above] == x -%}
+                {%- set value = dictionary[above] -%}
+                {{ value }}
+              {%- elif below is defined and dictionary[below] == x -%}
+                {%- set value = dictionary[below] -%}
+                {{ value }}
+              {#- Interpolation between two values -#}
+              {%- elif below is defined and above is defined -%}
+                {%- set lower_value = dictionary[below] -%}
+                {%- set upper_value = dictionary[above] -%}
+                {%- set lower_rgb = lower_value[1:] -%}
+                {%- set upper_rgb = upper_value[1:] -%}
+
+                {%- set lower_r = lower_rgb[0:2]|int(base=16) -%}
+                {%- set lower_g = lower_rgb[2:4]|int(base=16) -%}
+                {%- set lower_b = lower_rgb[4:6]|int(base=16) -%}
+
+                {%- set upper_r = upper_rgb[0:2]|int(base=16) -%}
+                {%- set upper_g = upper_rgb[2:4]|int(base=16) -%}
+                {%- set upper_b = upper_rgb[4:6]|int(base=16) -%}
+
+                {%- set interpolation_factor = (x - below) / (above - below) -%}
+                {%- set interpolated_r = ((1 - interpolation_factor) * lower_r + interpolation_factor * upper_r)|int -%}
+                {%- set interpolated_g = ((1 - interpolation_factor) * lower_g + interpolation_factor * upper_g)|int -%}
+                {%- set interpolated_b = ((1 - interpolation_factor) * lower_b + interpolation_factor * upper_b)|int -%}
+
+                {%- set interpolated_hex = '#' ~ '%02X' % interpolated_r ~ '%02X' % interpolated_g ~ '%02X' % interpolated_b -%}
+                {{ interpolated_hex }}
+              {#- Only below key available -#}
+              {%- elif below is defined -%}
+                {%- set value = dictionary[below] -%}
+                {{ value }}
+              {#- Only above key available -#}
+              {%- elif above is defined -%}
+                {%- set value = dictionary[above] -%}
+                {{ value }}
+              {#- No matching keys available -#}
+              {%- else -%}
+                No matching key found.
+              {%- endif -%}
+              {%- endmacro -%}
+
+              {#- Define macro to get length of the forecast -#}
+              {%- macro str_len(stringo) %}
+              {%- if '.' in stringo %}
+              {%- set char_count = (stringo | length) -1 %}{{char_count * 3 + 1 + char_count}}
+              {%- else %}
+              {%- set char_count = (stringo | length) %}{{char_count * 3 + (char_count - 1)}}
+              {%- endif %}
+              {%- endmacro %}
+
+              {#- Define a macro to draw out the forecast lines#}
+                {%- macro draw_forecast_lines(x,hours,height) %}
+                  {%- for hour in range(hours) %}
+                    {%- if height == 0 %}
+                      {"dp": [{{x+hour}},7,"{{interpolate(color_dict, forecast[hour]['temperature']) }}"]}
+                    {%- else %}
+                      {"dl": [{{x+hour}},7,{{x+hour}},{{7 - height}},"{{interpolate(color_dict, forecast[hour]['temperature']) }}"]}
+                    {%- endif %}
+                    {%- if hour+1 != hours %},{%endif%}
+                  {%- endfor %}
+                {%- endmacro %}
+
+                {
+                  "draw": [
+                    {%- if hours_to_show > 0 %}
+                    {{draw_forecast_lines(8,hours_to_show,0)}}
+                  {%- endif %}
+                  {%- if current_temp != 'unavailable' -%}
+                  ,{"dt":[{{text_x}},1,"{{temp_text}}","{{interpolate(color_dict, current_temp | float)}}"]}
+                  {%- else -%}
+                  ,{"dt":[10,1,"err","#ff0000"]}
+                  {%- endif -%}
+                  ],
+                  "icon": "{{icon}}",
+                  "duration": {{message_duration}},
+                  "pushIcon": 2,
+                  "lifetime": {{ lifetime }},
+                  "lifetimeMode": {{ lifetimeMode }},
+                  "weather": "{{current_condition}}",
+                  "overlay": "{{overlay}}"
+                  }
+
+        - service: mqtt.publish
+          data:
+            qos: 0
+            retain: false
+            # FIXED: This now correctly builds the topic for the 'sun' app
+            # by replacing the last part of the weather topic.
+            topic: "{{ repeat.item.rsplit('/', 1)[0] ~ '/sun' }}"
+            payload: >
+              {{sun_payload}}
+              

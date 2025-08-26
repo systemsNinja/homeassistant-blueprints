@@ -1,20 +1,21 @@
 blueprint:
   name: AWTRIX Weather ⛈️ + Forecast (Service Calls)
   description: >
-    This is a weather blueprint that provides a current weather summary and an hourly forecast graph. It was initially designed to use in partnership with a personal weather station however it seems to work fine with OpenWeather as well or any other provider that offers an hourly forecast.
+    This is a weather blueprint that provides a current weather summary and an hourly forecast graph. It was initially designed by jeeftor. Supported weather platforms: Openweathermap, Pirateweather and tomorrow.io 
 
-    ![](https://raw.githubusercontent.com/jeeftor/HomeAssistant/master/docs/weather.gif)
+    ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/thumbnails/weather.gif)
 
-    ![](https://raw.githubusercontent.com/jeeftor/HomeAssistant/master/docs/sunset.gif)
+    ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/thumbnails/sunset.gif)
 
     This blueprint will publish to two separate topics. One for the main weather report and another if its near sunrise/set.
 
     ## ⚠️ REQUIREMENTS ⚠️
-
-    ### Icons
-    You will need to upload the required weather icons to your AWTRIX device. You can use this script to do it automatically:
-      
-        bash -c "$(curl -fsSL https://raw.githubusercontent.com/jeeftor/HomeAssistant/master/icons/upload_icon.sh)"
+    You will need one of the mentioned weather integrations that support hourly forecast:
+     - Openweathermap 
+     - Pirateweather 
+     - tomorrow.io 
+    
+    to upload the required weather icons to your AWTRIX device.
 
   domain: automation
   input:
@@ -193,7 +194,8 @@ blueprint:
       default: 30
     update_interval:
       name: Update Interval
-      description: How often to send the stats to the device.
+      description: >
+        Updates will be sent as often as the forecast changes and whatever you set it here.
       selector:
         select:
           mode: dropdown

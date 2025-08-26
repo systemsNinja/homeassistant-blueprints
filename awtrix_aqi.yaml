@@ -28,8 +28,9 @@ blueprint:
           integration: airnow
     accuweather_aqi_day0:
       name: Accuweather Forecast Today (Text)
-      description: Accuweather sensor with a text state (e.g., "good", "moderate") for Today. 
-                   EX: sensor.accuweather_guttenberg_air_quality_today
+      description: >
+         Accuweather sensor with a text state (e.g., "good", "moderate") for Today. 
+         EX: sensor.accuweather_guttenberg_air_quality_today
       selector:
         entity:
           integration: accuweather
