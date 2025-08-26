@@ -216,8 +216,6 @@ condition:
       {{ (as_timestamp(now()) | int) % interval == 0 }}
 
 
-
-condition: []
 action:
   - action: weather.get_forecasts
     target:
