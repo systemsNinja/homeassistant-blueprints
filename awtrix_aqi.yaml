@@ -61,16 +61,6 @@ blueprint:
         entity:
           integration: accuweather
           device_class: enum
-    update_interval:
-      name: Update Interval
-      description: How often to send the stats to the device.
-      selector:
-        number:
-          min: 1
-          max: 120
-          step: 1
-          mode: slider
-      default: 15
     # --- Configuration ---
     effect:
       name: Effect
@@ -111,14 +101,14 @@ blueprint:
         select:
           mode: dropdown
           options:
-            - label: "15 minutes"
-              value: "900"
-            - label: "30 minutes"
-              value: "1800"
             - label: "45 minutes"
               value: "2700"
             - label: "1 hour"
               value: "3600"
+            - label: "1.5 hours"
+              value: "5400"
+            - label: "2 hours"
+              value: "7200"
       default: "1800"
     lifetimeMode:
       name: Lifetime Mode
@@ -153,7 +143,6 @@ variables:
   #device configuration and look and feel
   lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
-  update_interval: !input update_interval  
   effect: !input effect
   duration: !input duration
 
@@ -166,8 +155,6 @@ trigger:
       - !input accuweather_aqi_day2
       - !input accuweather_aqi_day3
       - !input accuweather_aqi_day4
-  - platform: time_pattern
-    minutes: !input update_interval
 
 condition: []
 
