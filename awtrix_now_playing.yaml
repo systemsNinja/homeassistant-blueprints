@@ -120,7 +120,7 @@ blueprint:
         color_rgb:
       default: [255, 255, 255]
 
-    show_rainbow:
+    rainbox_text:
       name: Rainbow Colors
       description: Should the text be shown in Rainbow colors?
       selector:
@@ -205,7 +205,7 @@ variables:
   icon_in: !input icon_in
   background_color: !input background_color
   text_color: !input text_color
-  show_rainbow: !input show_rainbow
+  rainbox_text: !input rainbox_text
   text_case: !input text_case
   push_icon: !input push_icon
   repeat_text: !input repeat_text
@@ -223,7 +223,7 @@ variables:
       {%- endif %},
       "background": {{ background_color }},
       "color": {{ text_color }},
-      "rainbow": {{ show_rainbow | lower }},
+      "rainbow": {{ rainbox_text | lower }},
       "textCase": {{ text_case }},
       "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
       "repeat": {{ repeat_text }},

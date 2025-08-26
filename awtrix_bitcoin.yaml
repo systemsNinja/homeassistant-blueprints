@@ -33,12 +33,9 @@ blueprint:
         text:
       default: "12460"
     push_icon:
-      name: pushIcon
+      name: Push Icon
       description:
-        "Please select the pushIcon setting for the icon\n\n  - `0`  Icon
-        doesn't move\n\n  - `1`  Icon moves with text and will not appear again\n\n
-        \ - `2` Icon moves with text but appears again when the text starts to scroll
-        again\n"
+        "Please select the pushIcon setting for the icon"
       selector:
         select:
           options:
@@ -50,12 +47,18 @@ blueprint:
               value: "2"
           mode: list
       default: "0"
-    txt_color_bitcoin:
-      name: Text Color for bitcoin
+    text_color:
+      name: Text Color
       description: Select the Text color
       selector:
         color_rgb:
       default: [255, 255, 255]
+    rainbox_text:
+      name: Rainbow Colors
+      description: Should the text be shown in Rainbow colors? This Overrides the text color setting.
+      selector:
+        boolean:
+      default: false
     effect:
       name: Background Effect
       description: The display effect to use for the background.
@@ -85,18 +88,14 @@ blueprint:
       default: "TwinklingStars"
     duration:
       name: Duration (in seconds)
-      description: Sets how long the app or notification should be displayed.
-      default: "10"
-    update_interval:
-      name: Update Interval
-      description: How often to send the stats to the device.
+      description: Sets how long the app should be displayed.
       selector:
         number:
           min: 1
-          max: 120
+          max: 60
           step: 1
           mode: slider
-      default: 15
+      default: "10"
     lifetime:
       name: Lifetime of the app after no update from automation
       description: >-
@@ -130,11 +129,11 @@ variables:
   device_ids: !input awtrix
   app: !input app_name
   icon: !input bitcoin_icon
-  txt_color_bitcoin: !input txt_color_bitcoin
+  text_color: !input text_color
+  rainbox_text: !input rainbox_text
   sensor_bitcoin: !input bitcoin_sensor
   push_icon: !input push_icon
   effect: !input effect
-  update_interval: !input update_interval  
   duration: !input duration
   lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
@@ -151,8 +150,6 @@ trigger:
   - platform: state
     entity_id:
       - !input bitcoin_sensor
-  - platform: time_pattern
-    minutes: !input update_interval
 action:
   - repeat:
       for_each: "{{ awtrix_devices }}"
@@ -174,12 +171,14 @@ action:
                     payload: |
                       {   
                         "text": "{{ states(sensor_bitcoin) | round(0) }}",
-                        "color": {{ txt_color_bitcoin }},
+                        "color": {{ text_color }},
+                        "rainbow": {{ rainbox_text | lower }},
                         "icon": "{{ icon }}",
                         "pushIcon": {{ push_icon }},
                         "effect": "{{ effect }}",
                         "duration": {{ duration }},
-                        "lifetime": {{ lifetime }}
+                        "lifetime": {{ lifetime }},
+                        "lifetimeMode": {{ lifetimeMode }}
                       }
 
 mode: restart
