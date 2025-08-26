@@ -213,7 +213,7 @@ action:
 
         {
           "lifetime": {{ lifetime }},
-          "lifetimeMode": {{ lifetimeMode | int }},
+          "lifetimeMode": {{ lifetimeMode }},
           {% if effect != "None" %}
           "effect": "{{ effect }}",
           {% endif %}
