@@ -315,10 +315,7 @@ action:
                   "repeat": {{ repeat_count }},
                   "scrollSpeed": {{ scroll_speed }},
                   "lifetime": {{ lifetime }},
-                  "lifetimeMode": {{ lifetimeMode | int }}
-                  {% if rainbow_text %}
-                    , "rainbow": true
-                  {% else %}
-                    , "color": {{ text_color | tojson }}
-                  {% endif %}
+                  "lifetimeMode": {{ lifetimeMode | int }},
+                  "color": {{ text_color | tojson }},
+                  "rainbow": {{ rainbox_text | lower }}
                 }

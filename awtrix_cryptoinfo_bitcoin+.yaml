@@ -180,12 +180,9 @@ action:
                         "effect": "{{ effect }}",
                         "duration": {{ duration }},
                         "lifetime": {{ lifetime }},
-                        "lifetimeMode": {{ lifetimeMode }}
-                        {% if rainbow_text %}
-                          , "rainbow": true
-                        {% else %}
-                          , "color": {{ text_color | tojson }}
-                        {% endif %}
+                        "lifetimeMode": {{ lifetimeMode }},
+                        "color": {{ text_color | tojson }},
+                        "rainbow": {{ rainbox_text | lower }}
                       }
 
 mode: restart

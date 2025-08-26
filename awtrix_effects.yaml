@@ -1,11 +1,11 @@
 blueprint:
-  name: Awtrix random effect
-  description: This blueprint allows you to select the effects, which should be randomly displayed on your Awtrix light
+  name: AWTRIX random effect
+  description: This blueprint allows you to select the effects, which should be randomly displayed on your AWTRIX Device
   domain: automation
   input:
     awtrix:
       name: AWTRIX Device
-      description: Select the Awtrix Device
+      description: Select the AWTRIX Device
       selector:
         device:
           integration: mqtt
