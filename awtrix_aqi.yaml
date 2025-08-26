@@ -29,8 +29,8 @@ blueprint:
     accuweather_aqi_day0:
       name: Accuweather Forecast Today (Text)
       description: >
-         Accuweather sensor with a text state (e.g., "good", "moderate") for Today. 
-         EX: sensor.accuweather_guttenberg_air_quality_today
+        Accuweather sensor with a text state (e.g., "good", "moderate") for Today. 
+        EX: sensor.accuweather_guttenberg_air_quality_today
       selector:
         entity:
           integration: accuweather
@@ -38,8 +38,8 @@ blueprint:
     accuweather_aqi_day1:
       name: Accuweather Forecast Tomorrow (Text)
       description: >
-         Accuweather sensor with a text state for Tomorrow.
-         EX: sensor.accuweather_guttenberg_air_quality_day_1
+        Accuweather sensor with a text state for Tomorrow.
+        EX: sensor.accuweather_guttenberg_air_quality_day_1
       selector:
         entity:
           integration: accuweather
@@ -47,8 +47,8 @@ blueprint:
     accuweather_aqi_day2:
       name: Accuweather Forecast Day 2 (Text)
       description: >
-         Accuweather sensor with a text state for Day 2.
-         EX: sensor.accuweather_guttenberg_air_quality_day_2
+        Accuweather sensor with a text state for Day 2.
+        EX: sensor.accuweather_guttenberg_air_quality_day_2
       selector:
         entity:
           integration: accuweather
@@ -56,8 +56,8 @@ blueprint:
     accuweather_aqi_day3:
       name: Accuweather Forecast Day 3 (Text)
       description: >
-         Accuweather sensor with a text state for Day 3.
-         EX: sensor.accuweather_guttenberg_air_quality_day_3
+        Accuweather sensor with a text state for Day 3.
+        EX: sensor.accuweather_guttenberg_air_quality_day_3
       selector:
         entity:
           integration: accuweather
@@ -65,8 +65,8 @@ blueprint:
     accuweather_aqi_day4:
       name: Accuweather Forecast Day 4 (Text)
       description: >
-         Accuweather sensor with a text state for Day 4.
-         EX: sensor.accuweather_guttenberg_air_quality_day_4
+        Accuweather sensor with a text state for Day 4.
+        EX: sensor.accuweather_guttenberg_air_quality_day_4
       selector:
         entity:
           integration: accuweather
