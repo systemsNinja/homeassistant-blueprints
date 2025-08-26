@@ -1,20 +1,7 @@
----
 blueprint:
   name: AWTRIX UV☀️ Humidity💧️
   description: >
     Display both a humidity value and the UV index on the awtrix.
-
-    ### Notes about UV
-
-    The Weatherflow UV readings seem to be instantaneous so it may be best to create an average sensor for the readings if you don't want to see wild fluctuations. You can do this by adding the following sensor to your `sensors:` block in `configuration.yaml`
-
-        - platform: statistics
-          name: "Weatherflow uv index 10 minute average"
-          entity_id: sensor.weatherflow_uv_index
-          state_characteristic: mean
-          max_age:
-            minutes: 10
-
   domain: automation
   input:
     awtrix:
