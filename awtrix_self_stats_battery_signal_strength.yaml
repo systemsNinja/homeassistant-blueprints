@@ -64,16 +64,6 @@ blueprint:
       selector:
         text:
       default: "50417"
-    scroll_speed:
-      name: Scrolling Speed
-      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
-      selector:
-        number:
-          min: 50
-          max: 250
-          step: 25
-          mode: slider
-      default: 100
     push_icon:
       name: Icon Behavior
       description: Select how the icon should be displayed.
@@ -90,26 +80,32 @@ blueprint:
               value: "3"
           mode: dropdown
       default: "0"
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
     text_color:
       name: Text Color
       description: The color of the scrolling text (ignored if Rainbow Text is enabled).
       selector:
         color_rgb: {}
       default: [160, 160, 0]
-    text_case:
-      name: Text Case
-      description: Select how you would like your text to display.
-      selector:
-        select:
-          options:
-            - label: "Use global AWTRIX setting"
-              value: "0"
-            - label: "Force Uppercase"
-              value: "1"
-            - label: "Show as is (Default)"
-              value: "2"
-          mode: dropdown
-      default: "2"
     rainbow_text:
       name: Rainbow Text
       description: Overrides the text color and makes the text a rainbow gradient.
@@ -143,16 +139,6 @@ blueprint:
             - "TwinklingStars"
             - "ColorWaves"
       default: "TwinklingStars"
-    repeat_count:
-      name: Scroll Repeat Count
-      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
-      default: 1
-      selector:
-        number:
-          min: 0
-          max: 10
-          step: 1
-          mode: slider
     update_unit:
       name: Update Unit
       description: Choose whether the update interval is in seconds or minutes.
@@ -234,7 +220,6 @@ variables:
   icon_in: !input icon_in
   scroll_speed: !input scroll_speed
   text_color: !input text_color
-  text_case: !input text_case
   rainbow_text: !input rainbow_text
   effect: !input effect
   update_unit: !input update_unit
@@ -326,7 +311,6 @@ action:
                   "icon": "{{ icon_in }}"
                   {%- endif %},
                   "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
-                  "textCase": {{ text_case }},
                   "effect": "{{ effect }}",
                   "repeat": {{ repeat_count }},
                   "scrollSpeed": {{ scroll_speed }},

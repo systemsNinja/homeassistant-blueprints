@@ -50,12 +50,6 @@ blueprint:
           mode: dropdown
       default: "custom"
 
-    progress_bar_color:
-      name: Progress Bar Color
-      description: Select the color for the progress bar (if enabled by the icon behavior).
-      selector:
-        color_rgb:
-      default: [24, 176, 76] # Spotify Green
 
     icon_in:
       name: Icon ID
@@ -80,7 +74,16 @@ blueprint:
               value: "3"
           mode: dropdown
       default: "0"
-
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
     repeat_text:
       name: Repeat Scroll
       description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
@@ -90,6 +93,13 @@ blueprint:
           min: 0
           max: 10
           mode: slider
+
+    progress_bar_color:
+      name: Progress Bar Color
+      description: Select the color for the progress bar (if enabled by the icon behavior).
+      selector:
+        color_rgb:
+      default: [24, 176, 76] # Spotify Green
 
     text_case:
       name: Text Case
@@ -186,23 +196,13 @@ blueprint:
             - label: "30 minutes"
               value: "1800"
       default: "30"
-    lifetimeMode:
-      name: Lifetime Mode
-      description: What happens after the app's lifetime expires.
-      selector:
-        select:
-          options:
-            - label: "Remove app from rotation"
-              value: "0"
-            - label: "Show a 'stale' indicator"
-              value: "1"
-      default: "0"
 variables:
   # Define all inputs as variables first
   device_ids: !input awtrix_devices
   media_player: !input media_player
   display_type: !input display_type
   icon_in: !input icon_in
+  scroll_speed: !input scroll_speed
   background_color: !input background_color
   text_color: !input text_color
   rainbox_text: !input rainbox_text
@@ -212,7 +212,6 @@ variables:
   progress_bar_color: !input progress_bar_color
   effect: !input effect
   lifetime: !input lifetime
-  lifetimeMode: !input lifetimeMode
 
   # Now, build the payload using the variables above
   payload_content: >-
@@ -226,10 +225,11 @@ variables:
       "rainbow": {{ rainbox_text | lower }},
       "textCase": {{ text_case }},
       "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
+      "scrollSpeed": {{ scroll_speed }},
       "repeat": {{ repeat_text }},
       "effect": "{{ effect }}",
       "lifetime": {{ lifetime }},
-      "lifetimeMode": {{ lifetimeMode | int }}
+      "lifetimeMode": "0"
       {%- if push_icon == "0" or push_icon == "3" %}
       , {% set duration = state_attr(media_player, 'media_duration') %}
         {% set position = state_attr(media_player, 'media_position') %}

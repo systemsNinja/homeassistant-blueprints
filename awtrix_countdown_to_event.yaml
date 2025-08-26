@@ -42,10 +42,46 @@ blueprint:
           mode: slider
     icon:
       name: Icon (Optional)
-      description: The AWTRIX icon ID to display with the countdown.
-      default: ""
+      description: The AWTRIX icon ID to display with the countdown. Not used if "No Icon" is selected in Icon Behavior.
       selector:
         text:
+      default: "50417"
+    push_icon:
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
+      selector:
+        select:
+          options:
+            - label: "Icon doesn't move"
+              value: "0"
+            - label: "Icon moves with text"
+              value: "1"
+            - label: "Icon moves & reappears"
+              value: "2"
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
+      default: "0"
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
     text_color:
       name: Text Color (Optional)
       description: Set a color for the text. Overridden by Rainbow Effect.
@@ -85,43 +121,27 @@ blueprint:
             - "TwinklingStars"
             - "ColorWaves"
       default: "TwinklingStars"
-
-    repeat_count:
-      name: Scroll Repeat Count
-      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
-      default: 1
-      selector:
-        number:
-          min: 0
-          max: 10
-          step: 1
-          mode: slider
-    lifetime_grace:
+    lifetime:
       name: Lifetime of the app after no update from automation
       description: >-
-        Defines how long the app should stay alive after the last update.
-        EX: If updating every 1 minute, and this is set to 30 seconds,
-        the app will be removed 90 seconds (60s update + 30s grace) after the last update.
+        Defines how long the app should stay alive after there has been update from the automation.
       selector:
         select:
           mode: dropdown
           options:
-            - label: "1 minute"
-              value: "60"
-            - label: "2 minutes"
-              value: "120"
-            - label: "3 minutes"
-              value: "180"
-            - label: "4 minutes"
-              value: "240"
             - label: "5 minutes"
               value: "300"
             - label: "10 minutes"
               value: "600"
+            - label: "15 minutes"
+              value: "900"
             - label: "30 minutes"
               value: "1800"
-      default: "120"
-
+            - label: "45 minutes"
+              value: "2700"
+            - label: "1 hour"
+              value: "3600"
+      default: "300"
     lifetimeMode:
       name: Lifetime Mode
       description: What happens after the app's lifetime expires.
@@ -140,14 +160,14 @@ variables:
   app_name: !input app_name
   event_name: !input event_name
   icon: !input icon
+  push_icon: !input push_icon
+  scroll_speed: !input scroll_speed
   repeat_count: !input repeat_count
   event_duration: !input event_duration
   text_color: !input text_color
   rainbow_effect: !input rainbow_effect
   effect: !input effect
-  lifetime_grace: !input lifetime_grace
-  lifetime: >
-    {{ interval + (lifetime_grace | int) }}
+  lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
 
 trigger:
@@ -188,8 +208,11 @@ action:
                     topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
                     payload: >-
                       {
-                        "text": "{{ countdown_text }}",
-                        "icon": "{{ icon }}",
+                        "text": "{{ countdown_text }}"
+                        {%- if push_icon != "3" %},
+                        "icon": "{{ icon }}"
+                        {%- endif %},
+                        "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
                         "repeat": {{ repeat_count }},
                         "effect": "{{ effect }}"
                         {% if rainbow_effect %}
@@ -198,6 +221,7 @@ action:
                           , "color": "#{{ '%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) }}"
                         {% endif %}
                       }
+
 
             # Case 2: Event message is active
             - conditions:
@@ -208,9 +232,13 @@ action:
                     topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
                     payload: >-
                       {
-                        "text": "Its time for {{ event_name }}!",
-                        "icon": "{{ icon }}",
+                        "text": "Its time for {{ event_name }}!"
+                        {%- if push_icon != "3" %},
+                        "icon": "{{ icon }}"
+                        {%- endif %},
+                        "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
                         "repeat": {{ repeat_count }},
+                        "scrollSpeed": {{ scroll_speed }},
                         "effect": "{{ effect }}"
                         {% if rainbow_effect %}
                           , "rainbow": true

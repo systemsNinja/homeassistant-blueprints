@@ -1,6 +1,5 @@
 blueprint:
   name: "AWTRIX Night Clock"
-  author: systemsNinja
   description: >
     ## AWTRIX Night Clock
 
@@ -18,8 +17,8 @@ blueprint:
   domain: automation
   input:
     awtrix:
-      name: AWTRIX Light
-      description: Select the Awtrix light
+      name: AWTRIX Device
+      description: Select the Awtrix Device
       selector:
         device:
           integration: mqtt

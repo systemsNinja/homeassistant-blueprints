@@ -145,14 +145,31 @@ blueprint:
             - Relative
             - Actual
       default: "Actual"
+
     sun_time_format:
       name: Actual Time Format
       description: >
-        If using actual time, enter a STRFTIME format string here. See https://strftime.org/ for options.
+        Select the time format for the sun rise/set notifications
       selector:
-        text:
-          type: text
-      default: "%-I:%M%p"
+        select:
+          options:
+            - label: "13:30:45"
+              value: "%H:%M:%S"
+            - label: "1:30:45"
+              value: "%l:%M:%S"
+            - label: "13:30"
+              value: "%H:%M"
+            - label: "13:30 with blinking colon"
+              value: "%H %M"
+            - label: "1:30"
+              value: "%l:%M"
+            - label: "1:30 with blinking colon"
+              value: "%l %M"
+            - label: "1:30 PM"
+              value: "%l:%M %p"
+            - label: "1:30 PM with blinking colon"
+              value: "%l %M %p"
+      default: "%H:%M"
     message_duration_forecast:
       name: Forecast Duration ⏱️
       description: >-

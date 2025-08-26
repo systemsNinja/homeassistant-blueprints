@@ -2,16 +2,14 @@ blueprint:
   name: Awtrix random effect
   description: This blueprint allows you to select the effects, which should be randomly displayed on your Awtrix light
   domain: automation
-  author: N1c093 (updated by systemsNinja)
   input:
     awtrix:
       name: AWTRIX Device
-      description: Select the Awtrix light device(s).
+      description: Select the Awtrix Device
       selector:
         device:
-          filter:
-            - integration: mqtt
-              manufacturer: Blueforcer
+          integration: mqtt
+          manufacturer: Blueforcer
           multiple: true
     app_name:
       name: Custom App Name
@@ -46,6 +44,26 @@ blueprint:
             - TwinklingStars
           mode: list
           multiple: true
+      default: 
+        - BrickBreaker
+        - Checkerboard
+        - ColorWaves
+        - Fade
+        - Fireworks
+        - LookingEyes
+        - Matrix
+        - MovingLine
+        - Pacifica
+        - PingPong
+        - Plasma
+        - PlasmaCloud
+        - Radar
+        - Ripple
+        - Snake
+        - SwirlIn
+        - SwirlOut
+        - TheaterChase
+        - TwinklingStars
     duration:
       name: Effect duration
       description: Select how long each effect should be displayed.
@@ -115,19 +133,6 @@ blueprint:
               value: "1800"
       default: "30"
 
-    lifetimeMode:
-      name: Lifetime Mode
-      description: What happens after the app's lifetime expires.
-      selector:
-        select:
-          options:
-            - label: "Remove app from rotation"
-              value: "0"
-            - label: "Show a 'stale' indicator"
-              value: "1"
-      default: "0"
-
-
 mode: queued
 
 variables:
@@ -153,7 +158,6 @@ variables:
   lifetime: >
     {% set interval = iif(update_unit == "minutes", update_interval|int * 60, update_interval|int) %}
     {{ interval + (lifetime_grace | int) }}
-  lifetimeMode: !input lifetimeMode  
   duration: !input duration
 
 
@@ -180,5 +184,5 @@ action:
                "effect": "{{ effect_random }}",
                "duration": "{{ duration }}",
                "lifetime": {{ lifetime }},
-               "lifetimeMode": {{ lifetimeMode | int }}
+               "lifetimeMode": "0"
              }

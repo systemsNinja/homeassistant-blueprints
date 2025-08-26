@@ -67,6 +67,10 @@ blueprint:
           integration: accuweather
           device_class: enum
     # --- Configuration ---
+    duration:
+      name: Duration (in seconds)
+      description: Sets how long the app or notification should be displayed.
+      default: "10"
     effect:
       name: Effect
       description: The display effect to use for the background.
@@ -94,10 +98,6 @@ blueprint:
             - "TwinklingStars"
             - "ColorWaves"
       default: "TwinklingStars"
-    duration:
-      name: Duration (in seconds)
-      description: Sets how long the app or notification should be displayed.
-      default: "10"
     lifetime:
       name: Lifetime of the app after no update from automation
       description: >-
