@@ -1,19 +1,19 @@
 blueprint:
   name: AWTRIX Now Playing with Progress Bar
   description: >
-    ## AWTRIX Now Playing 🎹
+    ## AWTRIX Now Playing 🎹 ##
 
     Shows the title and artist of your currently playing song on your AWTRIX device(s). 
     You can choose to display it as a temporary notification or as a persistent custom app that is removed when playback stops.
 
-    ### Features
+    ### Features ###
     - Shows scrolling artist and song title.
     - **Conditional song progress bar** based on icon behavior.
     - Can function as a one-time notification or a persistent custom app.
     - Highly customizable (colors, text case, icon behavior).
     - Works with multiple AWTRIX devices at the same time.
 
-    ### Prerequisites
+    ### Prerequisites ###
     - **AWTRIX Device**: An AWTRIX device running firmware v0.98.
     - **Spotify Integration**: For the progress bar to function correctly, you **must use** a `media_player` entity from the Spotify integration. Other media players might work for displaying text, but they often lack the required attributes (`media_position`, `media_duration`) for the progress bar.
 
