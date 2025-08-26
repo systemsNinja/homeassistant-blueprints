@@ -14,9 +14,9 @@ blueprint:
     ## ⚠️ REQUIREMENTS ⚠️
 
     1. You will need one of the mentioned weather integrations that support hourly forecast:
-     - Openweathermap 
-     - Pirateweather 
-     - tomorrow.io 
+       - Openweathermap 
+       - Pirateweather 
+       - tomorrow.io 
 
     2. You need the sun integration in home assistant
     
