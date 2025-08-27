@@ -1,7 +1,7 @@
 blueprint:
-  name: AWTRIX Weather ⛈️ + Forecast (Service Calls)
+  name: AWTRIX Weather ⛈️ + Forecast + Sunrise and Sunset(Optional)
   description: |
-    This is a weather blueprint that provides a current weather summary and an hourly forecast graph. In addition it will also show sunrise and sunset times. It was initially designed by jeeftor.
+    This is a weather blueprint that provides a current weather summary and an hourly forecast graph. In addition it can also optionally show sunrise and sunset times. It was initially designed by jeeftor with updates by systemsNinja.
 
     ### Tested weather platforms: Openweathermap, Pirateweather and tomorrow.io ###
 
