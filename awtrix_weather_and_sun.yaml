@@ -26,7 +26,7 @@ blueprint:
   input:
     awtrix:
       name: AWTRIX Device
-      description: Select the Awtrix light device(s).
+      description: Select the Awtrix device(s).
       selector:
         device:
           filter:
@@ -54,7 +54,7 @@ blueprint:
           min: 0
           unit_of_measurement: "hours"
           mode: box
-      default: 12
+      default: 24
     temp_digits:
       name: Temp Digits
       description: >

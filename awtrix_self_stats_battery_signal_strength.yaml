@@ -60,10 +60,10 @@ blueprint:
 
     icon_in:
       name: Icon ID
-      description: Enter the Icon Name or ID (e.g., 50417 for Gear). Not used if "No Icon" is selected.
+      description: Enter the Icon Name or ID (e.g., 50417 for white gear, 70097 for color gear). Not used if "No Icon" is selected.
       selector:
         text:
-      default: "50417"
+      default: "70097"
     push_icon:
       name: Icon Behavior
       description: Select how the icon should be displayed.
@@ -105,7 +105,7 @@ blueprint:
       description: The color of the scrolling text (ignored if Rainbow Text is enabled).
       selector:
         color_rgb: {}
-      default: [160, 160, 0]
+      default: [255, 0, 220] 
     rainbow_text:
       name: Rainbow Text
       description: Overrides the text color and makes the text a rainbow gradient.
