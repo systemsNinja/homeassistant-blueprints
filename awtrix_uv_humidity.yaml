@@ -1,7 +1,18 @@
 blueprint:
   name: AWTRIX UV☀️ Humidity💧️
-  description: >
-    Display both a humidity value and the UV index on the awtrix.
+  description: |
+    Display both a humidity value and the UV index on the AWTRIX device.
+
+    Supports readings from various integrations. 
+
+    Humidity sensor reading is supported with Pirateweather and OpenWeather.
+    UV index sensor reading is supported with AccuWeather and OpenWeather.
+    Hourly UV reading is supported with Pirateweather and OpenWeather.
+
+      - [Pirate Weather](https://docs.pirateweather.net/en/latest/ha/)  
+      - [Openweather](https://www.home-assistant.io/integrations/openweathermap/) 
+      - [AccuWeather](https://www.home-assistant.io/integrations/accuweather/)
+
   domain: automation
   input:
     awtrix:
@@ -26,8 +37,7 @@ blueprint:
 
         A sensor that provides a humidity value
 
-          - `sensor.weatherflow_relative_humidity`
-
+          - `sensor.pirateweather_humidity`
           - `sensor.openweathermap_humidity`
 
       selector:
@@ -38,8 +48,7 @@ blueprint:
 
         A sesnor that provides a uv index like:
 
-          - `sensor.weatherflow_uv_index`
-
+          - `sensor.accuweather_uv_index`
           - `sensor.openweathermap_uv_index`
 
       selector:
@@ -58,9 +67,8 @@ blueprint:
 
         This integration has been tested with:
 
-          - HACS [Weatherflow](https://github.com/briis/hass-weatherflow) integration 
-          
-          - NOTE: [Openweather](https://www.home-assistant.io/integrations/openweathermap/) DOES NOT HAVE AN HOURLY UV FORECAST
+          - [Pirate Weather](https://docs.pirateweather.net/en/latest/ha/)            
+          - [Openweather](https://www.home-assistant.io/integrations/openweathermap/) 
       selector:
         entity:
           filter:

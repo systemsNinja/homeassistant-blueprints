@@ -1,6 +1,13 @@
 blueprint:
   name: "AWTRIX Cryptoinfo Bitcoin+"
-  description: "This blueprint will show the price of bitcoin, or any other cryptoinfo sensor you have created"
+  description: |
+    This blueprint will show the price of bitcoin, or any other cryptoinfo sensor you have created. If you want more than 1 crypto price, just change the name of the app, sensors used, icon and save as a seperate integration .
+
+    ## ⚠️ REQUIREMENTS ⚠️
+
+    1. [Cryptoinfo](https://github.com/heyajohnny/cryptoinfo)  
+    
+    2. You need to upload any icons used here to your AWTRIX device.
   domain: automation
   input:
     awtrix:

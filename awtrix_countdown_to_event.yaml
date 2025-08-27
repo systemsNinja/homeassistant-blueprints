@@ -7,8 +7,8 @@ blueprint:
   domain: automation
   input:
     awtrix:
-      name: AWTRIX Light Device(s)
-      description: Select the Awtrix Light device(s) to display the countdown.
+      name: AWTRIX Device(s)
+      description: Select the Awtrix device(s) to display the countdown.
       selector:
         device:
           integration: mqtt
@@ -75,7 +75,7 @@ blueprint:
     repeat_count:
       name: Scroll Repeat Count
       description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
-      default: 1
+      default: 2
       selector:
         number:
           min: 0
