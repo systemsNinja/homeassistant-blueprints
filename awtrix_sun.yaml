@@ -1,7 +1,7 @@
 blueprint:
   name: Sunrise and Sunset ☀️
   description: |
-    This is sunrise and sunset app for the AWTRIX Device
+    This is a sunrise and sunset app for the AWTRIX Device
 
     ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/thumbnails/sunset.gif)
 
@@ -33,7 +33,6 @@ blueprint:
     #----------------------------------------
     # Sunrise Sunset Times :)
     #----------------------------------------
-
     sun_event_minute_threshold:
       name: Sun Time Prior 🕰️
       description: >-
@@ -135,7 +134,7 @@ blueprint:
               value: "600"
             - label: "30 minutes"
               value: "1800"
-      default: "30"
+      default: "300"
     lifetimeMode:
       name: Lifetime Mode
       description: What happens after the app's lifetime expires.
@@ -150,7 +149,7 @@ blueprint:
 mode: restart
 variables:
   device_ids: !input awtrix
-  app_topic: weather 
+  app_topic: !input app_name
   topics: >-
     {%- macro get_device_topic(device_id) %}
     {{ states((device_entities(device_id) | select('search','device_topic') | list)[0]) }}
@@ -173,8 +172,8 @@ variables:
   sun_time_format: !input sun_time_format
   icon_sunrise: !input icon_sunrise
   icon_sunset: !input icon_sunset
-  show_sun_rise_set: !input show_sun_rise_set
   update_interval: !input update_interval
+  message_duration_riseset: !input message_duration_riseset
 
   sun_next_event: >-
     {%- set rise = state_attr('sun.sun','next_rising') %}
@@ -196,11 +195,12 @@ variables:
     {%- set ts_rise = rise |as_timestamp %}
     {%- set ts_set = set |as_timestamp %}
     {%- if sun_time_type == 'Actual' %}
-      {{ iif(sun_next_event == 'sunrise',(ts_rise | as_datetime | as_local).strftime(sun_time_format),  (ts_set | as_datetime | as_local).strftime(sun_time_format)) }}
+      {{ iif(sun_next_event == 'sunrise',(ts_rise | as_datetime | as_local).strftime(sun_time_format), (ts_set | as_datetime | as_local).strftime(sun_time_format)) }}
     {%- else %}
-    {#- relative time #}
-      {% set hours = sun_min_until_next_event // 60 %}
-      {% set remaining_minutes = sun_min_until_next_event % 60 %}
+    {#- relative time -#}
+      {% set minutes_total = sun_min_until_next_event | int %}
+      {% set hours = minutes_total // 60 %}
+      {% set remaining_minutes = minutes_total % 60 %}
 
       {% if hours == 0 %}
         {{ remaining_minutes }} min
@@ -212,24 +212,19 @@ variables:
           {"t":"m", "c":"#9c9d97"}
         ]
       {% endif %}
-      
     {%- endif %}
   sun_event_icon: >-
     {{ iif(sun_next_event == 'sunrise', icon_sunrise, icon_sunset) }}
-  # FIXED: This logic now checks if sun_next_str is a JSON array (for rich text)
-  # and constructs the payload accordingly to avoid a JSON error.
   sun_event_payload: >-
     {% if sun_next_str is defined and sun_next_str.strip().startswith('[') %}
-    {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}}
+    {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
     {% else %}
-    {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}},"lifetime": {{ lifetime }},"lifetimeMode": {{ lifetimeMode  }}}
+    {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
     {% endif %}
+  # FIXED: Removed the enable/disable boolean logic. The automation will now always
+  # check the time and send a notification if the threshold is met.
   sun_payload: >-
-    {%- if show_sun_rise_set %}
     {{ iif(sun_event_minute_threshold >= sun_min_until_next_event, sun_event_payload, "{}") }}
-    {%- else %}
-    {}
-    {%- endif %}
 
 
 trigger:
@@ -244,7 +239,6 @@ action:
           data:
             qos: 0
             retain: false
-            topic: "{{ repeat.item.rsplit('/', 1)[0] ~ '/' ~ app_topic }}"
+            topic: "{{ repeat.item }}"
             payload: >
               {{sun_payload}}
-              
