@@ -22,13 +22,11 @@ blueprint:
               manufacturer: Blueforcer
           multiple: true
     app_name:
-      name: App Name
-      description: >
-        The name of the app to be displayed on the AWTRIX device.
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
       selector:
-        text:
-          max_length: 20
-      default: "sun"
+        text: {}
+      default: sun
 
     #----------------------------------------
     # Sunrise Sunset Times :)
