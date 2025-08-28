@@ -132,7 +132,7 @@ blueprint:
               value: "600"
             - label: "30 minutes"
               value: "1800"
-      default: "300"
+      default: "600"
     lifetimeMode:
       name: Lifetime Mode
       description: What happens after the app's lifetime expires.
