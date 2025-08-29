@@ -317,5 +317,5 @@ action:
                   "lifetime": {{ lifetime }},
                   "lifetimeMode": {{ lifetimeMode | int }},
                   "color": {{ text_color | tojson }},
-                  "rainbow": {{ rainbow_text  }}
+                  "rainbow": {{ rainbow_text | lower }}
                 }
