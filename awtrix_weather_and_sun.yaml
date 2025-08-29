@@ -440,9 +440,9 @@ variables:
   # and constructs the payload accordingly to avoid a JSON error.
   sun_event_payload: >-
     {% if sun_next_str is defined and sun_next_str.strip().startswith('[') %}
-    {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}}
+    {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
     {% else %}
-    {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}},"lifetime": {{ lifetime }},"lifetimeMode": {{ lifetimeMode | int }}}
+    {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
     {% endif %}
   sun_payload: >-
     {%- if show_sun_rise_set %}
