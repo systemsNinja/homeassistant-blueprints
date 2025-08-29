@@ -416,11 +416,12 @@ variables:
     {%- set ts_rise = rise |as_timestamp %}
     {%- set ts_set = set |as_timestamp %}
     {%- if sun_time_type == 'Actual' %}
-      {{ iif(sun_next_event == 'sunrise',(ts_rise | as_datetime | as_local).strftime(sun_time_format),  (ts_set | as_datetime | as_local).strftime(sun_time_format)) }}
+      {{ iif(sun_next_event == 'sunrise',(ts_rise | as_datetime | as_local).strftime(sun_time_format), (ts_set | as_datetime | as_local).strftime(sun_time_format)) }}
     {%- else %}
-    {#- relative time #}
-      {% set hours = sun_min_until_next_event // 60 %}
-      {% set remaining_minutes = sun_min_until_next_event % 60 %}
+    {#- relative time -#}
+      {% set minutes_total = sun_min_until_next_event | int %}
+      {% set hours = minutes_total // 60 %}
+      {% set remaining_minutes = minutes_total % 60 %}
 
       {% if hours == 0 %}
         {{ remaining_minutes }} min
@@ -432,7 +433,6 @@ variables:
           {"t":"m", "c":"#9c9d97"}
         ]
       {% endif %}
-      
     {%- endif %}
   sun_event_icon: >-
     {{ iif(sun_next_event == 'sunrise', icon_sunrise, icon_sunset) }}
