@@ -19,7 +19,7 @@ blueprint:
       description: This is the app name listed in the MQTT topic. It should be unique.
       selector:
         text: {}
-      default: "Countdown_timer"
+      default: "countdown_timer"
     target_datetime:
       name: Target Date/Time
       description: Enter the target date and time for the countdown.
