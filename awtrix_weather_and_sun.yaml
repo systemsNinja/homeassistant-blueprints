@@ -507,7 +507,7 @@ variables:
     'snowy': snow,
     'snowy-rainy': snow})}}
 
-  overlay: "{{ overlay_dict[current_condition] }}"
+  overlay: "{{ overlay_dict.get(current_condition, '') }}"
 
 trigger:
   - platform: time_pattern
