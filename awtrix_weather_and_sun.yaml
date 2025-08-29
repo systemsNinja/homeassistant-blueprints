@@ -440,7 +440,7 @@ variables:
   # FIXED: This logic now checks if sun_next_str is a JSON array (for rich text)
   # and constructs the payload accordingly to avoid a JSON error.
   sun_event_payload: >-
-    {% if sun_next_str is defined and sun_next_str.strip().startswith('[') %}
+    {% if sun_next_str is defined and (sun_next_str | string).strip().startswith('[') %}
     {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
     {% else %}
     {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
