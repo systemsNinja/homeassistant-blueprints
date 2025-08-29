@@ -196,25 +196,26 @@ variables:
       {{ iif(sun_next_event == 'sunrise',(ts_rise | as_datetime | as_local).strftime(sun_time_format), (ts_set | as_datetime | as_local).strftime(sun_time_format)) }}
     {%- else %}
     {#- relative time -#}
-      {% set minutes_total = sun_min_until_next_event | int %}
+      {% set minutes_total = sun_min_until_next_event | int(0) %}
       {% set hours = minutes_total // 60 %}
       {% set remaining_minutes = minutes_total % 60 %}
 
       {% if hours == 0 %}
         {{ remaining_minutes }} min
       {% else %}
-        [
-          {"t":"{{hours}}", "c":"#ffffff"},
-          {"t":"h", "c":"#9c9d97"},
-          {"t":"{{remaining_minutes}}", "c":"#ffffff"},
-          {"t":"m", "c":"#9c9d97"}
-        ]
+        {% set rich_text = [
+          {"t": hours | string, "c":"#ffffff"},
+          {"t": "h", "c":"#9c9d97"},
+          {"t": remaining_minutes | string, "c":"#ffffff"},
+          {"t": "m", "c":"#9c9d97"}
+        ] %}
+        {{ rich_text | to_json }}
       {% endif %}
     {%- endif %}
   sun_event_icon: >-
     {{ iif(sun_next_event == 'sunrise', icon_sunrise, icon_sunset) }}
   sun_event_payload: >-
-    {% if sun_next_str is defined and sun_next_str.strip().startswith('[') %}
+    {% if sun_next_str is defined and (sun_next_str | string).strip().startswith('[') %}
     {"icon":"{{sun_event_icon}}", "text":{{sun_next_str}}, "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
     {% else %}
     {"icon":"{{sun_event_icon}}", "text":"{{sun_next_str}}", "duration": {{message_duration_riseset}}, "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}}
