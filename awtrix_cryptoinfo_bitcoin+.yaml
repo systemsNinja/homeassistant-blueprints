@@ -38,22 +38,22 @@ blueprint:
       selector:
         text:
       default: "12460"
-    push_icon:
-      name: Icon Behavior
-      description: Select how the icon should be displayed.
-      selector:
-        select:
-          options:
-            - label: "Icon doesn't move"
-              value: "0"
-            - label: "Icon moves with text"
-              value: "1"
-            - label: "Icon moves & reappears"
-              value: "2"
-            - label: "No Icon"
-              value: "3"
-          mode: dropdown
-      default: "0"
+#    push_icon:
+#      name: Icon Behavior
+#      description: Select how the icon should be displayed.
+#      selector:
+#        select:
+#          options:
+#            - label: "Icon doesn't move"
+#              value: "0"
+#            - label: "Icon moves with text"
+#              value: "1"
+#            - label: "Icon moves & reappears"
+#              value: "2"
+#            - label: "No Icon"
+#              value: "3"
+#          mode: dropdown
+#      default: "0"
     duration:
       name: Duration (in seconds)
       description: Sets how long the app should be displayed.
@@ -143,7 +143,7 @@ variables:
   text_color: !input text_color
   rainbox_text: !input rainbox_text
   sensor_bitcoin: !input bitcoin_sensor
-  push_icon: !input push_icon
+#  push_icon: !input push_icon
   effect: !input effect
   duration: !input duration
   lifetime: !input lifetime
@@ -183,7 +183,6 @@ action:
                       {   
                         "text": "{{ states(sensor_bitcoin) | round(0) }}",
                         "icon": "{{ icon }}",
-                        "pushIcon": {{ push_icon }},
                         "effect": "{{ effect }}",
                         "duration": {{ duration }},
                         "lifetime": {{ lifetime }},
@@ -191,5 +190,5 @@ action:
                         "color": {{ text_color | tojson }},
                         "rainbow": {{ rainbox_text | lower }}
                       }
-
+#                        "pushIcon": {{ push_icon }},
 mode: restart
