@@ -497,15 +497,26 @@ variables:
 
   icon: "{{ icon_dict[current_condition] }}"
 
-  overlay_dict: >-
-    {{ dict({'clear-night': clear,
-    'exceptional': clear,
-    'lightning': thunder,
-    'lightning-rainy': thunder,
-    'pouring': rain,
-    'rainy': drizzle,
-    'snowy': snow,
-    'snowy-rainy': snow})}}
+  overlay_dict:
+    # Conditions that have a special overlay effect
+    lightning: "thunder"
+    lightning-rainy: "thunder"
+    pouring: "rain"
+    rainy: "drizzle"
+    hail: "rain"
+    snowy: "snow"
+    snowy-rainy: "snow"
+
+    # All other conditions defined in icon_dict that have no overlay.
+    # This prevents template warnings by ensuring every key exists.
+    sunny: ""
+    cloudy: ""
+    partlycloudy: ""
+    "clear-night": ""
+    exceptional: ""
+    fog: ""
+    windy: ""
+    "windy-variant": ""
 
   overlay: "{{ overlay_dict.get(current_condition, '') }}"
 
