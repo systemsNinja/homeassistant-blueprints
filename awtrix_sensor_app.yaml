@@ -152,7 +152,7 @@ blueprint:
 variables:
   device_ids: !input awtrix
   app: !input app_name
-  icon: !input icon:
+  icon: !input icon
   text_color: !input text_color
   rainbox_text: !input rainbox_text
   sensor: !input sensor
