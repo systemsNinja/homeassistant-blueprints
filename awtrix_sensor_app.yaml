@@ -196,7 +196,7 @@ action:
                     topic: "{{ repeat.item.topic ~ '/custom/' ~ app }}"
                     payload: |
                       {   
-                        "text": "{{ states(sensor) | round(0) }}",
+                        "text": "{{ states(sensor) }}",
                         "icon": "{{ icon }}",
                         "effect": "{{ effect }}",
                         "duration": {{ duration }},
