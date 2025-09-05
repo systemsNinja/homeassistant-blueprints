@@ -1,5 +1,5 @@
 blueprint:
-  name: "AWTRIX 3D Print Status - Octoprint"
+  name: "AWTRIX Octoprint - 3D Print Status"
   description: "This blueprint will show the status of your 3d print, with help of the Octoprint intergration"
   domain: automation
   input:
@@ -18,7 +18,7 @@ blueprint:
       selector:
         text: {}
       default: "octoprint"
-    3dprint_progress_sensor:
+    progress_sensor:
       name: Current 3D Print Progress Percent Sensor
       description: Current 3D Print progress percent
       selector:
@@ -26,15 +26,15 @@ blueprint:
           multiple: false
           filter:
             - integration: octoprint
-    3dprint_current_state_sensor:
+    current_state_sensor:
       name: Current 3D Print State sensor
-      description: Current 3D Print State 
+      description: Current 3D Print State
       selector:
         entity:
           multiple: false
           filter:
             - integration: octoprint
-    3dprint_current_file_sensor:
+    current_file_sensor:
       name: Current 3D Print File Sensor
       description: Current 3D File Being Printed
       selector:
@@ -42,7 +42,15 @@ blueprint:
           multiple: false
           filter:
             - integration: octoprint
-    3dprint_icon:
+    estimated_finish_sensor:
+      name: Current 3D Print Estimated Finish Sensor
+      description: Current 3D Print Estimated Finish Time
+      selector:
+        entity:
+          multiple: false
+          filter:
+            - integration: octoprint
+    icon:
       name: Icon
       description: Enter the Icon Name or ID of the icon that you like to show.
       selector:
@@ -120,15 +128,14 @@ blueprint:
       default: 10
 
 variables:
-  device_id: !input awtrix
-  awtrix: "{{ iif( device_attr(device_id, 'name_by_user') != none, device_attr(device_id,'name_by_user'), device_attr(device_id, 'name') ) }}"
+  # Standard inputs
   app_name: !input app_name
-  message_topic: "{{awtrix ~ '/custom/' ~ app_name }}"
-  icon: !input 3dprint_icon
-  notify_topic: "{{awtrix ~ '/notify'}}"
-  sensor_progress: !input 3dprint_progress_sensor
-  3dprint_current_file_sensor: !input 3dprint_current_file_sensor
-  sensor_current_state: !input 3dprint_current_state_sensor
+  icon: !input icon
+  sensor_progress: !input progress_sensor
+  sensor_current_state: !input current_state_sensor
+  sensor_estimated_finish: !input estimated_finish_sensor
+  current_file_entity: !input current_file_sensor
+  sensor_current_file: "{{ states(current_file_entity).split('_')[0] }}"
   txt_color_printing: !input txt_color_printing
   txt_color_paused: !input txt_color_paused
   txt_color_complete: !input txt_color_complete
@@ -137,87 +144,111 @@ variables:
   duration: !input duration
   scroll_speed: !input scroll_speed
   repeat_count: !input repeat_count
+  # Process the list of selected AWTRIX devices to get their topics
+  awtrix_device_ids: !input awtrix
+  awtrix_devices: >-
+    {%- set ns = namespace(awtrix = []) -%}
+    {%- for device_id in awtrix_device_ids -%}
+      {%- set device_name = iif(device_attr(device_id, 'name_by_user') != none, device_attr(device_id, 'name_by_user'), device_attr(device_id, 'name')) -%}
+      {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
+      {%- if entity -%}
+        {%- set topic = states(entity) -%}
+        {% if topic not in ['unavailable', 'unknown'] %}
+          {% set ns.awtrix = ns.awtrix + [{"device": device_name, "entity": entity, "topic": topic}] -%}
+        {% endif %}
+      {%- endif -%}
+    {%- endfor -%}
+    {{ ns.awtrix }}
 
 trigger:
   - platform: state
-    entity_id:
-      - !input 3dprint_progress_sensor
+    entity_id: !input progress_sensor
   - platform: state
-    entity_id:
-      - !input 3dprint_current_state_sensor
+    entity_id: !input current_state_sensor
+
 condition:
   - condition: not
     conditions:
       - condition: state
-        entity_id: !input 3dprint_current_state_sensor
+        entity_id: !input current_state_sensor
         state: unavailable
       - condition: state
-        entity_id: !input 3dprint_current_state_sensor
+        entity_id: !input current_state_sensor
         state: unknown
       - condition: state
-        entity_id: !input 3dprint_current_state_sensor
-        state: operational
-action:
-  - if:
-      - condition: state
-        entity_id: !input 3dprint_current_state_sensor
-        state: printing
-    then:
-      - service: mqtt.publish
-        data:
-          topic: "{{ message_topic }}"
-          payload: |-
-            {   
-              "text": "{{ states(sensor_progress) }}%",
-              "icon": "{{ icon }}",
-              "progress": "{{ states(sensor_progress) }}",
-              "pushIcon": {{ push_icon }},
-              "color": {{ txt_color_printing }},
-              "duration": {{ duration }},
-              "repeat": {{ repeat_count }},
-              "scrollSpeed": {{ scroll_speed }}
-            }
-    else:
-      - service: mqtt.publish
-        data:
-          topic: "{{ message_topic }}"
-  - if:
-      - condition: state
-        entity_id: !input 3dprint_current_state_sensor
-        state: paused
-    then:
-      - service: mqtt.publish
-        data:
-          topic: "{{ notify_topic }}"
-          payload: |-
-            {   
-              "text": "{{ states(sensor_current_state) }}",
-              "icon": "{{ icon }}",
-              "stack": {{ iif(stack_notification, "true", "false") }},
-              "color": {{ txt_color_paused }},
-              "pushIcon": {{ push_icon }},
-              "duration": {{ duration }},
-              "repeat": {{ repeat_count }},
-              "scrollSpeed": {{ scroll_speed }}
-            }
+        entity_id: !input current_state_sensor
+        state: Operational
 
-  - if:
-      - condition: state
-        entity_id: !input 3dprint_current_state_sensor
-        state: complete
-    then:
-      - service: mqtt.publish
-        data:
-          topic: "{{ notify_topic }}"
-          payload: |-
-            {   
-              "text": "{{ states(sensor_current_state) }}",
-              "icon": "{{ icon }}",
-              "stack": {{ iif(stack_notification, "true", "false") }},
-              "color": {{ txt_color_complete }},
-              "pushIcon": {{ push_icon }},
-              "duration": {{ duration }},   
-              "repeat": {{ repeat_count }},
-              "scrollSpeed": {{ scroll_speed }}
-            }
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - variables:
+            message_topic: "{{ repeat.item.topic ~ '/custom/' ~ app_name }}"
+            notify_topic: "{{ repeat.item.topic ~ '/notify' }}"
+        - choose:
+            - conditions:
+                - condition: state
+                  entity_id: !input current_state_sensor
+                  state: Printing
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ message_topic }}"
+                    payload: |-
+                      {
+                        "text": "{{ sensor_current_file }} {{ states(sensor_progress) | round(0) }}%",
+                        "icon": "{{ icon }}",
+                        "progress": "{{ states(sensor_progress) | round(0) }}",
+                        "pushIcon": {{ push_icon }},
+                        "color": {{ txt_color_printing }},
+                        "duration": {{ duration }},
+                        "repeat": {{ repeat_count }},
+                        "scrollSpeed": {{ scroll_speed }}
+                      }
+            - conditions:
+                - condition: state
+                  entity_id: !input current_state_sensor
+                  state: Paused
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ notify_topic }}"
+                    payload: |-
+                      {
+                        "text": "{{ states(sensor_current_state) }}",
+                        "icon": "{{ icon }}",
+                        "stack": {{ iif(stack_notification, "true", "false") }},
+                        "color": {{ txt_color_paused }},
+                        "pushIcon": {{ push_icon }},
+                        "duration": {{ duration }},
+                        "repeat": {{ repeat_count }},
+                        "scrollSpeed": {{ scroll_speed }}
+                      }
+            - conditions:
+                - condition: state
+                  entity_id: !input current_state_sensor
+                  state: complete
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ notify_topic }}"
+                    payload: |-
+                      {
+                        "text": "{{ states(sensor_current_state) }}",
+                        "icon": "{{ icon }}",
+                        "stack": {{ iif(stack_notification, "true", "false") }},
+                        "color": {{ txt_color_complete }},
+                        "pushIcon": {{ push_icon }},
+                        "duration": {{ duration }},
+                        "repeat": {{ repeat_count }},
+                        "scrollSpeed": {{ scroll_speed }}
+                      }
+          default:
+            # This action clears the custom app screen if the state is not printing, paused, or complete
+            - service: mqtt.publish
+              data:
+                topic: "{{ message_topic }}"
+                payload: ""
 mode: restart
+
