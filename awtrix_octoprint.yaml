@@ -1,36 +1,47 @@
 blueprint:
-  name: "AWTRIX 3D Print Status - Moonraker"
-  description: "This blueprint will show the status of your 3d print, with help of the Moonraker HA intergration"
-  source_url: https://github.com/RDG88/Homeassistant_Blueprints/blob/main/moonraker_awtrix_app.yaml
+  name: "AWTRIX 3D Print Status - Octoprint"
+  description: "This blueprint will show the status of your 3d print, with help of the Octoprint intergration"
   domain: automation
   input:
     awtrix:
-      name: AWTRIX Light
-      description: Select the Awtrix light
+      name: AWTRIX Device
+      description: Select the Awtrix Device(s).
       selector:
         device:
-          integration: mqtt
-          manufacturer: Blueforcer
-          model: AWTRIX Light
-          multiple: false
-    awtrix_app_name:
-      name: AWTRIX Application name
-      description: This is the custom app name that will be added to AWTRIX, should be unique
+          filter:
+            - integration: mqtt
+              manufacturer: Blueforcer
+          multiple: true
+    app_name:
+      name: Custom App Name
+      description: This is the app name used in the MQTT topic. It must be unique for each app you create.
       selector:
         text: {}
-      default: 3d_print
+      default: "octoprint"
     3dprint_progress_sensor:
-      name: 3D Print Progress Sensor
-      description: 3D Print progress sensor
+      name: Current 3D Print Progress Percent Sensor
+      description: Current 3D Print progress percent
       selector:
         entity:
           multiple: false
+          filter:
+            - integration: octoprint
     3dprint_current_state_sensor:
-      name: 3D Print Current Print State Sensor
-      description: 3D Print Current Print State sensor
+      name: Current 3D Print State sensor
+      description: Current 3D Print State 
       selector:
         entity:
           multiple: false
+          filter:
+            - integration: octoprint
+    3dprint_current_file_sensor:
+      name: Current 3D Print File Sensor
+      description: Current 3D File Being Printed
+      selector:
+        entity:
+          multiple: false
+          filter:
+            - integration: octoprint
     3dprint_icon:
       name: Icon
       description: Enter the Icon Name or ID of the icon that you like to show.
@@ -38,49 +49,33 @@ blueprint:
         text:
       default: "51841"
     push_icon:
-      name: Icon Mode
-      description:
-        "Please select the pushIcon setting for the icon\n\n  - `0`  Icon
-        doesn't move\n\n  - `1`  Icon moves with text and will not appear again\n\n
-        \ - `2` Icon moves with text but appears again when the text starts to scroll
-        again\n"
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
       selector:
         select:
           options:
-            - label: Icon doesn't move (default)
+            - label: "Icon doesn't move"
               value: "0"
-            - label: Icon moves with text and will not appear again
+            - label: "Icon moves with text"
               value: "1"
-            - label:
-                Icon moves with text but appears again when the text starts to
-                scroll again
+            - label: "Icon moves & reappears"
               value: "2"
-          multiple: false
-          custom_value: false
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
+      default: "0"
     txt_color_printing:
       name: Text Color Printing State
       description: Select the Text color
       selector:
         color_rgb:
       default: [255, 255, 255]
-    txt_color_error:
-      name: Text Color Error State
-      description: Select the Text color
-      selector:
-        color_rgb:
-      default: [255, 0, 0]
     txt_color_paused:
       name: Text Color Paused State
       description: Select the Text color
       selector:
         color_rgb:
       default: [255, 255, 0]
-    txt_color_canceled:
-      name: Text Color Canceled State
-      description: Select the Text color
-      selector:
-        color_rgb:
-      default: [255, 165, 0]
     txt_color_complete:
       name: Text Color Complete State
       description: Select the Text color
@@ -93,33 +88,55 @@ blueprint:
       selector:
         boolean:
       default: false
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 scrolls until the app's duration ends.
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
     duration:
       name: Duration (in seconds)
-      description: Sets how long the app or notification should be displayed.
-      default: "10"
-    repeat:
-      name: Repeat
-      description: Sets how many times the text should be scrolled through the matrix before the app/notifcation ends.
-      default: "4"
+      description: Sets how long the app should be displayed in the rotation.
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
+      default: 10
 
 variables:
   device_id: !input awtrix
   awtrix: "{{ iif( device_attr(device_id, 'name_by_user') != none, device_attr(device_id,'name_by_user'), device_attr(device_id, 'name') ) }}"
-  app: !input awtrix_app_name
-  message_topic: "{{awtrix ~ '/custom/' ~ app }}"
+  app_name: !input awtrix_app_name
+  message_topic: "{{awtrix ~ '/custom/' ~ app_name }}"
   icon: !input 3dprint_icon
   notify_topic: "{{awtrix ~ '/notify'}}"
   sensor_progress: !input 3dprint_progress_sensor
+  3dprint_current_file_sensor: !input 3dprint_current_file_sensor
   sensor_current_state: !input 3dprint_current_state_sensor
   txt_color_printing: !input txt_color_printing
-  txt_color_error: !input txt_color_error
   txt_color_paused: !input txt_color_paused
-  txt_color_canceled: !input txt_color_canceled
   txt_color_complete: !input txt_color_complete
   stack_notification: !input stack_notification
   push_icon: !input push_icon
   duration: !input duration
-  repeat: !input repeat
+  scroll_speed: !input scroll_speed
+  repeat_count: !input repeat_count
 
 trigger:
   - platform: state
@@ -137,6 +154,9 @@ condition:
       - condition: state
         entity_id: !input 3dprint_current_state_sensor
         state: unknown
+      - condition: state
+        entity_id: !input 3dprint_current_state_sensor
+        state: operational
 action:
   - if:
       - condition: state
@@ -154,48 +174,13 @@ action:
               "pushIcon": {{ push_icon }},
               "color": {{ txt_color_printing }},
               "duration": {{ duration }},
-              "repeat": {{ repeat }}
+              "repeat": {{ repeat_count }},
+              "scrollSpeed": {{ scroll_speed }}
             }
     else:
       - service: mqtt.publish
         data:
           topic: "{{ message_topic }}"
-  - if:
-      - condition: state
-        entity_id: !input 3dprint_current_state_sensor
-        state: error
-    then:
-      - service: mqtt.publish
-        data:
-          topic: "{{ notify_topic }}"
-          payload: |-
-            {   
-              "text": "{{ states(sensor_current_state) }}",
-              "icon": "{{ icon }}",
-              "color": {{ txt_color_error }},
-              "stack": {{ iif(stack_notification, "true", "false") }},
-              "pushIcon": {{ push_icon }},
-              "duration": {{ duration }},
-              "repeat": {{ repeat }}
-            }
-  - if:
-      - condition: state
-        entity_id: !input 3dprint_current_state_sensor
-        state: cancelled
-    then:
-      - service: mqtt.publish
-        data:
-          topic: "{{ notify_topic }}"
-          payload: |-
-            {   
-              "text": "{{ states(sensor_current_state) }}",
-              "icon": "{{ icon }}",
-              "stack": {{ iif(stack_notification, "true", "false") }},
-              "color": {{ txt_color_canceled }},
-              "pushIcon": {{ push_icon }},
-              "duration": {{ duration }},
-              "repeat": {{ repeat }}
-            }
   - if:
       - condition: state
         entity_id: !input 3dprint_current_state_sensor
@@ -212,7 +197,8 @@ action:
               "color": {{ txt_color_paused }},
               "pushIcon": {{ push_icon }},
               "duration": {{ duration }},
-              "repeat": {{ repeat }}
+              "repeat": {{ repeat_count }},
+              "scrollSpeed": {{ scroll_speed }}
             }
 
   - if:
@@ -230,7 +216,8 @@ action:
               "stack": {{ iif(stack_notification, "true", "false") }},
               "color": {{ txt_color_complete }},
               "pushIcon": {{ push_icon }},
-              "duration": {{ duration }},              
-              "repeat": {{ repeat }}
+              "duration": {{ duration }},   
+              "repeat": {{ repeat_count }},
+              "scrollSpeed": {{ scroll_speed }}
             }
 mode: restart

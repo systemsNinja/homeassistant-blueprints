@@ -1,12 +1,13 @@
 blueprint:
   name: "AWTRIX Sensor or Sensor Attribute App"
   description: |
-    This blueprint will show the value of a sensor or a specific attribute from a sensor you have created. If you want more than 1 sensor value, just change the name of the app, sensors used, icon and save as a separate integration.
+    This blueprint will show the value of a sensor or a specific attribute from that sensor on your AWTRIX Light device. You can optionally add static prefix and suffix text.
+    If you want more than one sensor value displayed, simply create another automation from this blueprint with a unique App Name.
   domain: automation
   input:
     awtrix:
       name: AWTRIX Device
-      description: Select the Awtrix Device
+      description: Select the Awtrix Device(s).
       selector:
         device:
           filter:
@@ -15,22 +16,40 @@ blueprint:
           multiple: true
     app_name:
       name: Custom App Name
-      description: This is the app name listed in the MQTT topic. It should be unique.
+      description: This is the app name used in the MQTT topic. It must be unique for each app you create.
       selector:
         text: {}
       default: "SensorApp"
     sensor:
       name: Sensor for the App
-      description: Which sensor should be used for the App?
+      description: Which sensor's state or attribute should be displayed?
       selector:
         entity:
           domain: sensor
+    sensor_attribute:
+      name: Attribute of the sensor (Optional)
+      description: "Which attribute of the sensor should be used? Leave blank to use the sensor's main state. Find attribute names in Developer Tools > States."
+      selector:
+        text: {}
+      default: ""
+    prefix_text:
+      name: Prefix Text (Optional)
+      description: Text to display before the sensor value (e.g., "Temp:"). A space is added automatically.
+      selector:
+        text: {}
+      default: ""
+    suffix_text:
+      name: Suffix Text (Optional)
+      description: Text to display after the sensor value (e.g., "°F"). A space is added automatically.
+      selector:
+        text: {}
+      default: ""
     icon:
       name: Icon
-      description: Enter the Icon Name or ID of the icon that you like to show.
+      description: Enter the Icon Name or ID to show.
       selector:
         text:
-      default: "12460"
+      default: ""
     push_icon:
       name: Icon Behavior
       description: Select how the icon should be displayed.
@@ -59,7 +78,7 @@ blueprint:
       default: 100
     repeat_count:
       name: Scroll Repeat Count
-      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      description: How many times the text should scroll. 0 scrolls until the app's duration ends.
       default: 2
       selector:
         number:
@@ -69,17 +88,17 @@ blueprint:
           mode: slider
     duration:
       name: Duration (in seconds)
-      description: Sets how long the app should be displayed.
+      description: Sets how long the app should be displayed in the rotation.
       selector:
         number:
           min: 1
           max: 60
           step: 1
           mode: slider
-      default: "10"
+      default: 10
     text_color:
       name: Text Color
-      description: Select the Text color
+      description: Select the Text color.
       selector:
         color_rgb:
       default: [255, 255, 255]
@@ -115,11 +134,11 @@ blueprint:
             - "LookingEyes"
             - "TwinklingStars"
             - "ColorWaves"
-      default: "TwinklingStars"
+          mode: dropdown
+      default: "None"
     lifetime:
-      name: Lifetime of the app after no update from automation
-      description: >-
-        Defines how long the app should stay alive after there has been update from the automation.
+      name: App Lifetime
+      description: Defines how long the app stays alive after the last update. After this time, it will be removed or marked as stale.
       selector:
         select:
           mode: dropdown
@@ -138,7 +157,7 @@ blueprint:
               value: "3600"
       default: "300"
     lifetimeMode:
-      name: Lifetime Mode
+      name: Lifetime Expiration Mode
       description: What happens after the app's lifetime expires.
       selector:
         select:
@@ -147,6 +166,7 @@ blueprint:
               value: "0"
             - label: "Show a 'stale' indicator"
               value: "1"
+          mode: dropdown
       default: "0"
 
 variables:
@@ -156,6 +176,9 @@ variables:
   text_color: !input text_color
   rainbox_text: !input rainbox_text
   sensor: !input sensor
+  sensor_attribute: !input sensor_attribute
+  prefix_text: !input prefix_text
+  suffix_text: !input suffix_text
   scroll_speed: !input scroll_speed
   repeat_count: !input repeat_count
   push_icon: !input push_icon
@@ -172,31 +195,46 @@ variables:
       {% set ns.awtrix = ns.awtrix + [{"device": device_name, "entity": entity, "topic": topic}] -%}
     {%- endfor -%}
     {{ ns.awtrix }}
+
 trigger:
   - platform: state
-    entity_id:
-      - !input sensor
+    entity_id: !input sensor
+    
 action:
   - repeat:
       for_each: "{{ awtrix_devices }}"
       sequence:
+        - variables:
+            # First, get the raw sensor or attribute value.
+            core_value: >-
+              {% if sensor_attribute %}
+                {{ state_attr(sensor, sensor_attribute) }}
+              {% else %}
+                {{ states(sensor) }}
+              {% endif %}
         - choose:
             - conditions:
+                # Proceed only if the device topic is available.
                 - condition: template
-                  value_template: >
-                      {{ states(repeat.item.entity) not in ['unavailable', 'unknown'] }}
+                  value_template: "{{ states(repeat.item.entity) not in ['unavailable', 'unknown'] }}"
+                # And if the CORE value is valid (not none, unavailable, or unknown).
                 - condition: template
-                  value_template: >
-                      {{ states(sensor) not in ['unavailable', 'unknown'] }}
+                  value_template: "{{ core_value is not none and core_value not in ['unavailable', 'unknown'] }}"
               sequence:
+                - variables:
+                    # If the core value is valid, construct the final display text.
+                    text_to_display: >-
+                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
+                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {{- prefix ~ core_value ~ suffix -}}
                 - service: mqtt.publish
                   data:
                     qos: 0
                     retain: false
                     topic: "{{ repeat.item.topic ~ '/custom/' ~ app }}"
                     payload: |
-                      {   
-                        "text": "{{ states(sensor) }}",
+                      {
+                        "text": "{{ text_to_display }}",
                         "icon": "{{ icon }}",
                         "effect": "{{ effect }}",
                         "duration": {{ duration }},
@@ -207,5 +245,5 @@ action:
                         "repeat": {{ repeat_count }},
                         "scrollSpeed": {{ scroll_speed }},
                         "rainbow": {{ rainbox_text | lower }}
-                      }               
+                      }
 mode: restart
