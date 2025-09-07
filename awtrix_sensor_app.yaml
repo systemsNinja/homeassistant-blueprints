@@ -136,6 +136,16 @@ blueprint:
             - "ColorWaves"
           mode: dropdown
       default: "None"
+    update_interval:
+      name: Update Interval (in minutes)
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 5
     lifetime:
       name: App Lifetime
       description: Defines how long the app stays alive after the last update. After this time, it will be removed or marked as stale.
@@ -183,6 +193,7 @@ variables:
   repeat_count: !input repeat_count
   push_icon: !input push_icon
   effect: !input effect
+  update_interval: !input update_interval
   duration: !input duration
   lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
@@ -199,6 +210,8 @@ variables:
 trigger:
   - platform: state
     entity_id: !input sensor
+  - platform: time_pattern
+    minutes: !input update_interval
     
 action:
   - repeat:
