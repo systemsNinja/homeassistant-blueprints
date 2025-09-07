@@ -102,7 +102,7 @@ blueprint:
       selector:
         color_rgb:
       default: [255, 255, 255]
-    rainbox_text:
+    rainbow_text:
       name: Rainbow Text
       description: Overrides the text color and makes the text a rainbow gradient.
       selector:
@@ -174,7 +174,7 @@ variables:
   app: !input app_name
   icon: !input icon
   text_color: !input text_color
-  rainbox_text: !input rainbox_text
+  rainbow_text: !input rainbow_text
   sensor: !input sensor
   sensor_attribute: !input sensor_attribute
   prefix_text: !input prefix_text
@@ -244,6 +244,6 @@ action:
                         "pushIcon": {{ push_icon }},
                         "repeat": {{ repeat_count }},
                         "scrollSpeed": {{ scroll_speed }},
-                        "rainbow": {{ rainbox_text | lower }}
+                        "rainbow": {{ rainbow_text | lower }}
                       }
 mode: restart
