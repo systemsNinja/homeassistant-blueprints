@@ -221,7 +221,7 @@ trigger:
   - platform: state
     entity_id: sensor.allergy_index_today
   - platform: time_pattern
-    minutes: /!input update_interval
+    minutes: !input update_interval
 
 action:
   - repeat:
