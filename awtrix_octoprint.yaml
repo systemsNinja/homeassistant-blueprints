@@ -43,13 +43,45 @@ blueprint:
           filter:
             - integration: octoprint
     estimated_finish_sensor:
-      name: Current 3D Print Estimated Finish Sensor
-      description: Current 3D Print Estimated Finish Time
+      name: Current 3D Print Estimated Finish Sensor (UTC)
+      description: "Sensor that provides the print's estimated finish time in UTC format"
       selector:
         entity:
           multiple: false
           filter:
             - integration: octoprint
+    show_filename:
+      name: Show Filename
+      description: Toggle to show the name of the file being printed.
+      selector:
+        boolean: {}
+      default: true
+    show_progress_percentage:
+      name: Show Progress Percentage
+      description: Toggle to show the print progress percentage.
+      selector:
+        boolean: {}
+      default: true
+    show_time_left:
+      name: Show Time Left
+      description: Toggle to calculate and show the estimated time remaining from the finish time sensor.
+      selector:
+        boolean: {}
+      default: true
+    text_case:
+      name: Text Case
+      description: Select how you would like your text to display.
+      selector:
+        select:
+          options:
+            - label: "Use global AWTRIX setting"
+              value: "0"
+            - label: "Force Uppercase"
+              value: "1"
+            - label: "Show as is (Default)"
+              value: "2"
+          mode: dropdown
+      default: "2"
     icon:
       name: Icon
       description: Enter the Icon Name or ID of the icon that you like to show.
@@ -57,18 +89,18 @@ blueprint:
         text:
       default: "51841"
     push_icon:
-      name: Icon Behavior
-      description: Select how the icon should be displayed.
+      name: Icon & Progress Bar Behavior
+      description: Select how the icon and progress bar should be displayed.
       selector:
         select:
           options:
-            - label: "Icon doesn't move"
+            - label: "Icon doesn't move (with Progress Bar)"
               value: "0"
-            - label: "Icon moves with text"
+            - label: "Icon moves with text (No Progress Bar)"
               value: "1"
-            - label: "Icon moves & reappears"
+            - label: "Icon moves & reappears (No Progress Bar)"
               value: "2"
-            - label: "No Icon"
+            - label: "No Icon (Progress Bar Only)"
               value: "3"
           mode: dropdown
       default: "0"
@@ -77,25 +109,31 @@ blueprint:
       description: Select the Text color
       selector:
         color_rgb:
-      default: [255, 255, 255]
+      default: [255, 255, 255] # White
+    rainbow_text_printing:
+      name: Rainbow Text for Printing State
+      description: Overrides the Printing state text color and makes the text a rainbow gradient.
+      selector:
+        boolean:
+      default: false
+    progress_bar_color:
+      name: Progress Bar Color
+      description: Select the color for the progress bar (if enabled by the icon behavior).
+      selector:
+        color_rgb:
+      default: [0, 255, 00] # Green
     txt_color_paused:
       name: Text Color Paused State
       description: Select the Text color
       selector:
         color_rgb:
-      default: [255, 255, 0]
+      default: [255, 165, 0] # Orange
     txt_color_complete:
       name: Text Color Complete State
       description: Select the Text color
       selector:
         color_rgb:
-      default: [66, 245, 75]
-    stack_notification:
-      name: Stack notification
-      description: Should the notifications be stacked?
-      selector:
-        boolean:
-      default: false
+      default: [0, 255, 0]
     scroll_speed:
       name: Scrolling Speed
       description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
@@ -105,7 +143,7 @@ blueprint:
           max: 250
           step: 25
           mode: slider
-      default: 100
+      default: 150
     repeat_count:
       name: Scroll Repeat Count
       description: How many times the text should scroll. 0 scrolls until the app's duration ends.
@@ -126,7 +164,38 @@ blueprint:
           step: 1
           mode: slider
       default: 10
-
+    lifetime:
+      name: Lifetime of the app after no update from automation
+      description: >-
+        Defines how long the app should stay alive after there has been update from the automation. Completed prints auto removes after 5 minutes.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "15 minutes"
+              value: "900"
+            - label: "30 minutes"
+              value: "1800"
+            - label: "45 minutes"
+              value: "2700"
+            - label: "1 hour"
+              value: "3600"
+      default: "300"
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
 variables:
   # Standard inputs
   app_name: !input app_name
@@ -137,13 +206,21 @@ variables:
   current_file_entity: !input current_file_sensor
   sensor_current_file: "{{ states(current_file_entity).split('_')[0] }}"
   txt_color_printing: !input txt_color_printing
+  rainbow_text_printing: !input rainbow_text_printing
+  progress_bar_color: !input progress_bar_color
   txt_color_paused: !input txt_color_paused
   txt_color_complete: !input txt_color_complete
-  stack_notification: !input stack_notification
+  text_case: !input text_case
   push_icon: !input push_icon
   duration: !input duration
   scroll_speed: !input scroll_speed
   repeat_count: !input repeat_count
+  lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
+  # Added toggler variables
+  show_filename: !input show_filename
+  show_progress_percentage: !input show_progress_percentage
+  show_time_left: !input show_time_left
   # Process the list of selected AWTRIX devices to get their topics
   awtrix_device_ids: !input awtrix
   awtrix_devices: >-
@@ -175,9 +252,6 @@ condition:
       - condition: state
         entity_id: !input current_state_sensor
         state: unknown
-      - condition: state
-        entity_id: !input current_state_sensor
-        state: Operational
 
 action:
   - repeat:
@@ -185,7 +259,6 @@ action:
       sequence:
         - variables:
             message_topic: "{{ repeat.item.topic ~ '/custom/' ~ app_name }}"
-            notify_topic: "{{ repeat.item.topic ~ '/notify' }}"
         - choose:
             - conditions:
                 - condition: state
@@ -197,14 +270,47 @@ action:
                     topic: "{{ message_topic }}"
                     payload: |-
                       {
-                        "text": "{{ sensor_current_file }} {{ states(sensor_progress) | round(0) }}%",
-                        "icon": "{{ icon }}",
-                        "progress": "{{ states(sensor_progress) | round(0) }}",
-                        "pushIcon": {{ push_icon }},
+                        "text": "{%- set parts = namespace(text=[]) -%}
+                                  {%- if show_filename and sensor_current_file != 'unknown' -%}
+                                    {%- set parts.text = parts.text + [sensor_current_file] -%}
+                                  {%- endif -%}
+                                  {%- if show_progress_percentage -%}
+                                    {%- set parts.text = parts.text + [states(sensor_progress) | round(0) ~ '% done'] -%}
+                                  {%- endif -%}
+                                  {%- if show_time_left -%}
+                                    {%- set finish_utc = states(sensor_estimated_finish) -%}
+                                    {%- if finish_utc not in ['unknown', 'unavailable'] -%}
+                                      {%- set remaining_seconds = as_timestamp(finish_utc) - as_timestamp(now()) -%}
+                                      {%- if remaining_seconds > 0 -%}
+                                        {%- if remaining_seconds < 3600 -%}
+                                          {%- set minutes = (remaining_seconds / 60) | round(0, 'ceil') | int -%}
+                                          {%- set time_str = minutes ~ 'm' -%}
+                                        {%- else -%}
+                                          {%- set hours = (remaining_seconds // 3600) | int -%}
+                                          {%- set minutes = ((remaining_seconds % 3600) // 60) | int -%}
+                                          {%- set time_str = hours ~ 'h ' ~ minutes ~ 'm' -%}
+                                        {%- endif -%}
+                                        {%- set parts.text = parts.text + [time_str ~ ' left'] -%}
+                                      {%- endif -%}
+                                    {%- endif -%}
+                                  {%- endif -%}
+                                  {{- parts.text | join(' - ') -}}",
+                        "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
                         "color": {{ txt_color_printing }},
+                        "rainbow": {{ rainbow_text_printing | lower }},
                         "duration": {{ duration }},
                         "repeat": {{ repeat_count }},
-                        "scrollSpeed": {{ scroll_speed }}
+                        "scrollSpeed": {{ scroll_speed }},
+                        "textCase": {{ text_case }},
+                        "lifetime": {{ lifetime }},
+                        "lifetimeMode": {{ lifetimeMode }}
+                        {%- if push_icon != "3" %}
+                        ,"icon": "{{ icon }}"
+                        {%- endif %}
+                        {%- if push_icon == "0" or push_icon == "3" %}
+                        ,"progress": {{ states(sensor_progress) | round(0) }},
+                         "progressC": "{{ '%02x%02x%02x' | format(progress_bar_color[0], progress_bar_color[1], progress_bar_color[2]) }}"
+                        {%- endif %}
                       }
             - conditions:
                 - condition: state
@@ -213,42 +319,44 @@ action:
               sequence:
                 - service: mqtt.publish
                   data:
-                    topic: "{{ notify_topic }}"
+                    topic: "{{ message_topic }}"
                     payload: |-
                       {
                         "text": "{{ states(sensor_current_state) }}",
                         "icon": "{{ icon }}",
-                        "stack": {{ iif(stack_notification, "true", "false") }},
                         "color": {{ txt_color_paused }},
                         "pushIcon": {{ push_icon }},
                         "duration": {{ duration }},
                         "repeat": {{ repeat_count }},
-                        "scrollSpeed": {{ scroll_speed }}
+                        "scrollSpeed": {{ scroll_speed }},
+                        "textCase": {{ text_case }},
+                        "lifetime": {{ lifetime }},
+                        "lifetimeMode": {{ lifetimeMode }}
                       }
             - conditions:
-                - condition: state
-                  entity_id: !input current_state_sensor
-                  state: complete
+                - condition: template
+                  value_template: "{{ states(sensor_progress) | float(0) == 100 }}"
               sequence:
                 - service: mqtt.publish
                   data:
-                    topic: "{{ notify_topic }}"
+                    topic: "{{ message_topic }}"
                     payload: |-
                       {
-                        "text": "{{ states(sensor_current_state) }}",
+                        "text": "{{ sensor_current_file }} Complete",
                         "icon": "{{ icon }}",
-                        "stack": {{ iif(stack_notification, "true", "false") }},
                         "color": {{ txt_color_complete }},
                         "pushIcon": {{ push_icon }},
                         "duration": {{ duration }},
                         "repeat": {{ repeat_count }},
-                        "scrollSpeed": {{ scroll_speed }}
+                        "scrollSpeed": {{ scroll_speed }},
+                        "textCase": {{ text_case }},
+                        "lifetime": "300",
+                        "lifetimeMode": "0"
                       }
           default:
-            # This action clears the custom app screen if the state is not printing, paused, or complete
+            # This action clears the custom app screen if the state is not printing, paused, or 100% progress.
             - service: mqtt.publish
               data:
                 topic: "{{ message_topic }}"
                 payload: ""
 mode: restart
-

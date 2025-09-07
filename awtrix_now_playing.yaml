@@ -49,7 +49,7 @@ blueprint:
       default: "custom"
 
 
-    icon_in:
+    icon:
       name: Icon ID
       description: Enter the Icon Name or ID (e.g., 18207 for Spotify). Not used if "No Icon" is selected.
       selector:
@@ -199,7 +199,7 @@ variables:
   device_ids: !input awtrix_devices
   media_player: !input media_player
   display_type: !input display_type
-  icon_in: !input icon_in
+  icon: !input icon
   scroll_speed: !input scroll_speed
   background_color: !input background_color
   text_color: !input text_color
@@ -216,7 +216,7 @@ variables:
     {
       "text": "{{ state_attr(media_player, 'media_artist') }} - {{ state_attr(media_player, 'media_title') }}"
       {%- if push_icon != "3" %},
-      "icon": "{{ icon_in }}"
+      "icon": "{{ icon }}"
       {%- endif %},
       "background": {{ background_color }},
       "color": {{ text_color }},
