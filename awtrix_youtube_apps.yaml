@@ -1,0 +1,396 @@
+blueprint:
+  name: "AWTRIX YouTube App"
+  description: |
+    Choose what YouTube stats to show on your AWTRIX device. 
+    
+    This blueprint allows you to display subscriber count, view count, and video count as separate, customizable apps. 
+    
+    Each app can have its own icon and a custom text prefix or suffix. The automation updates the device(s) on a regular interval that you define.
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device(s)
+      description: Select the Awtrix device(s) to send the data to.
+      selector:
+        device:
+          filter:
+            - integration: mqtt
+              manufacturer: Blueforcer
+          multiple: true
+    app_name:
+      name: YouTube App Name Prefix
+      description: This is the base name used in the MQTT topic. It must be unique. (e.g., 'youtube_channel_1')
+      selector:
+        text: {}
+      default: "youtube"
+
+    # --- SUBSCRIBER SETTINGS ---
+    yt_subscriber_app:
+      name: Subscriber App - Show Subscriber Count
+      description: ✅ Enable to show the subscriber count app. You must select a sensor below.
+      selector:
+        boolean: {}
+      default: true
+    yt_subscriber_sensor:
+      name: Subscriber App - Sensor
+      description: The sensor that provides the subscriber count.
+      selector:
+        entity:
+          domain: sensor
+    subscriber_icon:
+      name: Subscriber App - Icon
+      description: Icon ID to show for the subscriber count (e.g., YouTube icon is 7998).
+      selector:
+        text: {}
+      default: "7998"
+    subscriber_prefix:
+      name: Subscriber App - Text Prefix
+      description: (Optional) Text to display before the subscriber count.
+      selector:
+        text: {}
+      default: ""
+    subscriber_suffix:
+      name: Subscriber App - Text Suffix
+      description: (Optional) Text to display after the subscriber count.
+      selector:
+        text: {}
+      default: " subs"
+
+    # --- VIEW SETTINGS ---
+    yt_view_app:
+      name: Views App - Show View Count
+      description: ✅ Enable to show the total views count app. You must select a sensor below.
+      selector:
+        boolean: {}
+      default: true
+    yt_view_sensor:
+      name: Views App - Sensor
+      description: The sensor that provides the total view count.
+      selector:
+        entity:
+          domain: sensor
+    view_icon:
+      name: Views App - Icon
+      description: Icon ID to show for the view count (e.g., Eye icon is 10372).
+      selector:
+        text: {}
+      default: "10372"
+    view_prefix:
+      name: Views App - Text Prefix
+      description: (Optional) Text to display before the view count.
+      selector:
+        text: {}
+      default: ""
+    view_suffix:
+      name: Views App - Text Suffix
+      description: (Optional) Text to display after the view count.
+      selector:
+        text: {}
+      default: " views"
+
+    # --- VIDEO SETTINGS ---
+    yt_video_app:
+      name: Video App - Show Video Count
+      description: ✅ Enable to show the total video count app. You must select a sensor below.
+      selector:
+        boolean: {}
+      default: true
+    yt_video_sensor:
+      name: Video App - Sensor
+      description: The sensor that provides the total video count.
+      selector:
+        entity:
+          domain: sensor
+    video_icon:
+      name: Video App - Icon
+      description: Icon ID to show for the video count (e.g., Film icon is 49911).
+      selector:
+        text: {}
+      default: "49911"
+    video_prefix:
+      name: Video App - Text Prefix
+      description: (Optional) Text to display before the video count.
+      selector:
+        text: {}
+      default: ""
+    video_suffix:
+      name: Video App - Text Suffix
+      description: (Optional) Text to display after the video count.
+      selector:
+        text: {}
+      default: " videos"
+
+    # --- GLOBAL DISPLAY SETTINGS ---
+    push_icon:
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
+      selector:
+        select:
+          options:
+            - label: "Icon doesn't move"
+              value: "0"
+            - label: "Icon moves with text"
+              value: "1"
+            - label: "Icon moves & reappears"
+              value: "2"
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
+      default: "0"
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 scrolls until the app's duration ends.
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
+    duration:
+      name: Duration (in seconds)
+      description: Sets how long the app should be displayed in the rotation.
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
+      default: 10
+    text_color:
+      name: Text Color
+      description: Select the Text color.
+      selector:
+        color_rgb: {}
+      default: [255, 0, 0]
+    rainbow_text:
+      name: Rainbow Text
+      description: Overrides the text color and makes the text a rainbow gradient.
+      selector:
+        boolean: {}
+      default: false
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+          mode: dropdown
+      default: "None"
+    
+    # --- UPDATE & LIFETIME SETTINGS ---
+    update_interval:
+      name: Update Interval (in minutes)
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 5
+    lifetime:
+      name: App Lifetime
+      description: How long the app stays alive after the last update. After this time, it will be removed or marked as stale. (Should be longer than the Update Interval).
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "15 minutes"
+              value: "900"
+            - label: "30 minutes"
+              value: "1800"
+            - label: "1 hour"
+              value: "3600"
+      default: "600"
+    lifetimeMode:
+      name: Lifetime Expiration Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+          mode: dropdown
+      default: "0"
+
+variables:
+  # App Names
+  sub_app_name: !input app_name ~ "_subscribers"
+  view_app_name: !input app_name ~ "_views"
+  video_app_name: !input app_name ~ "_videos"
+  
+  # Sensor Toggles
+  yt_subscriber_app: !input yt_subscriber_app
+  yt_view_app: !input yt_view_app
+  yt_video_app: !input yt_video_app
+
+  # Sensor Entities
+  yt_subscriber_sensor: !input yt_subscriber_sensor
+  yt_view_sensor: !input yt_view_sensor
+  yt_video_sensor: !input yt_video_sensor
+
+  # Subscriber App Content
+  subscriber_icon: !input subscriber_icon
+  subscriber_prefix: !input subscriber_prefix
+  subscriber_suffix: !input subscriber_suffix
+
+  # View App Content
+  view_icon: !input view_icon
+  view_prefix: !input view_prefix
+  view_suffix: !input view_suffix
+
+  # Video App Content
+  video_icon: !input video_icon
+  video_prefix: !input video_prefix
+  video_suffix: !input video_suffix
+
+  # Global Settings
+  device_ids: !input awtrix
+  text_color: !input text_color
+  rainbow_text: !input rainbow_text
+  scroll_speed: !input scroll_speed
+  repeat_count: !input repeat_count
+  push_icon: !input push_icon
+  effect: !input effect
+  duration: !input duration
+  update_interval: !input update_interval
+  lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
+
+  # Device Topic Finder
+  awtrix_devices: >-
+    {%- set ns = namespace(awtrix = []) -%}
+    {%- for device_id in device_ids -%}
+      {%- set device_name = iif(device_attr(device_id, 'name_by_user') != none, device_attr(device_id, 'name_by_user'), device_attr(device_id, 'name')) -%}
+      {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
+      {%- set topic = states(entity) -%}
+      {% set ns.awtrix = ns.awtrix + [{"device": device_name, "entity": entity, "topic": topic}] -%}
+    {%- endfor -%}
+    {{ ns.awtrix }}
+
+trigger:
+  - platform: time_pattern
+    minutes: "/{{ update_interval }}"
+
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        # --- PUBLISH SUBSCRIBER COUNT ---
+        - if:
+            - condition: template
+              value_template: "{{ yt_subscriber_app }}"
+            - condition: template
+              value_template: "{{ yt_subscriber_sensor is not none }}"
+          then:
+            - service: mqtt.publish
+              data:
+                qos: 0
+                retain: false
+                topic: "{{ repeat.item.topic ~ '/custom/' ~ sub_app_name }}"
+                payload: |
+                  {
+                    "text": "{{ subscriber_prefix ~ states(yt_subscriber_sensor) ~ subscriber_suffix }}",
+                    "icon": "{{ subscriber_icon }}",
+                    "effect": "{{ effect }}",
+                    "duration": {{ duration }},
+                    "lifetime": {{ lifetime }},
+                    "lifetimeMode": {{ lifetimeMode }},
+                    "color": {{ text_color | tojson }},
+                    "pushIcon": {{ push_icon }},
+                    "repeat": {{ repeat_count }},
+                    "scrollSpeed": {{ scroll_speed }},
+                    "rainbow": {{ rainbow_text | lower }}
+                  }
+
+        # --- PUBLISH VIEW COUNT ---
+        - if:
+            - condition: template
+              value_template: "{{ yt_view_app }}"
+            - condition: template
+              value_template: "{{ yt_view_sensor is not none }}"
+          then:
+            - service: mqtt.publish
+              data:
+                qos: 0
+                retain: false
+                topic: "{{ repeat.item.topic ~ '/custom/' ~ view_app_name }}"
+                payload: |
+                  {
+                    "text": "{{ view_prefix ~ states(yt_view_sensor) ~ view_suffix }}",
+                    "icon": "{{ view_icon }}",
+                    "effect": "{{ effect }}",
+                    "duration": {{ duration }},
+                    "lifetime": {{ lifetime }},
+                    "lifetimeMode": {{ lifetimeMode }},
+                    "color": {{ text_color | tojson }},
+                    "pushIcon": {{ push_icon }},
+                    "repeat": {{ repeat_count }},
+                    "scrollSpeed": {{ scroll_speed }},
+                    "rainbow": {{ rainbow_text | lower }}
+                  }
+
+        # --- PUBLISH VIDEO COUNT ---
+        - if:
+            - condition: template
+              value_template: "{{ yt_video_app }}"
+            - condition: template
+              value_template: "{{ yt_video_sensor is not none }}"
+          then:
+            - service: mqtt.publish
+              data:
+                qos: 0
+                retain: false
+                topic: "{{ repeat.item.topic ~ '/custom/' ~ video_app_name }}"
+                payload: |
+                  {
+                    "text": "{{ video_prefix ~ states(yt_video_sensor) ~ video_suffix }}",
+                    "icon": "{{ video_icon }}",
+                    "effect": "{{ effect }}",
+                    "duration": {{ duration }},
+                    "lifetime": {{ lifetime }},
+                    "lifetimeMode": {{ lifetimeMode }},
+                    "color": {{ text_color | tojson }},
+                    "pushIcon": {{ push_icon }},
+                    "repeat": {{ repeat_count }},
+                    "scrollSpeed": {{ scroll_speed }},
+                    "rainbow": {{ rainbow_text | lower }}
+                  }
+mode: restart
