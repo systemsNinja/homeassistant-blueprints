@@ -105,7 +105,7 @@ blueprint:
       default: "TwinklingStars"
     update_interval:
       name: Update Interval (in minutes)
-      description: How often to send the stats to the device.
+      description: How often to send the stats to the device, also updates each time the sensor updates.
       selector:
         number:
           min: 1
