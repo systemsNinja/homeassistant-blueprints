@@ -45,7 +45,7 @@ blueprint:
       default: "7998"
     subscriber_prefix:
       name: Subscriber App - Text Prefix
-      description: (Optional) Text to display before the subscriber count.
+      description: (Optional) Text to display before the subscriber count. Adding a couple spaces gives it a nice look for the scrolling effect.
       selector:
         text: {}
       default: ""
@@ -54,7 +54,7 @@ blueprint:
       description: (Optional) Text to display after the subscriber count.
       selector:
         text: {}
-      default: " subs"
+      default: ""
 
     # --- VIEW SETTINGS ---
     yt_view_app:
@@ -71,22 +71,22 @@ blueprint:
           domain: sensor
     view_icon:
       name: Views App - Icon
-      description: Icon ID to show for the view count (e.g., Eye icon is 10372).
+      description: Icon ID to show for the view count.
       selector:
         text: {}
-      default: "10372"
+      default: "10519"
     view_prefix:
       name: Views App - Text Prefix
-      description: (Optional) Text to display before the view count.
+      description: (Optional) Text to display before the view count. Adding a couple spaces gives it a nice look for the scrolling effect.
       selector:
         text: {}
       default: ""
     view_suffix:
       name: Views App - Text Suffix
-      description: (Optional) Text to display after the view count.
+      description: (Optional) Text to display after the view count. EX. "views"
       selector:
         text: {}
-      default: " views"
+      default: ""
 
     # --- VIDEO SETTINGS ---
     yt_video_app:
@@ -103,22 +103,22 @@ blueprint:
           domain: sensor
     video_icon:
       name: Video App - Icon
-      description: Icon ID to show for the video count (e.g., Film icon is 49911).
+      description: Icon ID to show for the video count.
       selector:
         text: {}
-      default: "49911"
+      default: "9452"
     video_prefix:
       name: Video App - Text Prefix
-      description: (Optional) Text to display before the video count.
+      description: (Optional) Text to display before the video count. Adding a couple spaces gives it a nice look for the scrolling effect.
       selector:
         text: {}
       default: ""
     video_suffix:
       name: Video App - Text Suffix
-      description: (Optional) Text to display after the video count.
+      description: (Optional) Text to display after the video count. EX. "videos"
       selector:
         text: {}
-      default: " videos"
+      default: ""
 
     # --- GLOBAL DISPLAY SETTINGS ---
     push_icon:
@@ -159,7 +159,7 @@ blueprint:
           mode: slider
     duration:
       name: Duration (in seconds)
-      description: Sets how long the app should be displayed in the rotation.
+      description: Sets how long the app should be displayed in the rotation, if the message is NOT scrolling.
       selector:
         number:
           min: 1
@@ -313,7 +313,7 @@ variables:
 
 trigger:
   - platform: time_pattern
-    minutes: "/{{ update_interval }}"
+    minutes: !input update_interval
 
 action:
   - repeat:
