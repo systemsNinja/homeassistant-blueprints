@@ -1,0 +1,278 @@
+blueprint:
+  name: "AWTRIX IQVIA Allergy App"
+  description: |
+    This blueprint displays the IQVIA allergy 'rating' on your AWTRIX Light device.
+
+    It automatically uses the 'rating' attribute from 'sensor.allergy_index_today'.
+    The text color and icon change dynamically based on the allergy level (Low, Medium, High, etc.).
+    You can still add optional prefix/suffix text.
+
+    ## ⚠️ REQUIREMENTS ⚠️
+
+    1. You need the IQVIA integration in home assistant
+
+    2. You need to upload all icons used here to your AWTRIX device.
+
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device
+      description: Select the Awtrix Light Device(s).
+      selector:
+        device:
+          filter:
+            - integration: mqtt
+              manufacturer: Blueforcer
+          multiple: true
+    app_name:
+      name: Custom App Name
+      description: This is the app name used in the MQTT topic. It must be unique.
+      selector:
+        text: {}
+      default: "allergy"
+    prefix_text:
+      name: Prefix Text (Optional)
+      description: Text to display before the rating (e.g., "Allergies:"). A space is added automatically.
+      selector:
+        text: {}
+      default: ""
+    suffix_text:
+      name: Suffix Text (Optional)
+      description: Text to display after the rating (e.g., "today!"). A space is added automatically.
+      selector:
+        text: {}
+      default: ""
+    icon_low:
+      name: Icon for 'Low'
+      description: Icon ID to show when the rating is 'Low'.
+      selector:
+        text: {}
+      default: "69675"
+    icon_low_medium:
+      name: Icon for 'Low/Medium'
+      description: Icon ID to show when the rating is 'Low/Medium'.
+      selector:
+        text: {}
+      default: "69675"
+    icon_medium:
+      name: Icon for 'Medium'
+      description: Icon ID to show when the rating is 'Medium'.
+      selector:
+        text: {}
+      default: "69675"
+    icon_medium_high:
+      name: Icon for 'Medium/High'
+      description: Icon ID to show when the rating is 'Medium/High'.
+      selector:
+        text: {}
+      default: "69675"
+    icon_high:
+      name: Icon for 'High'
+      description: Icon ID to show when the rating is 'High'.
+      selector:
+        text: {}
+      default: "69675"
+    push_icon:
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
+      selector:
+        select:
+          options:
+            - label: "Icon doesn't move"
+              value: "0"
+            - label: "Icon moves with text"
+              value: "1"
+            - label: "Icon moves & reappears"
+              value: "2"
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
+      default: "0"
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 scrolls until the app's duration ends.
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
+    duration:
+      name: Duration (in seconds)
+      description: Sets how long the app should be displayed in the rotation ONLY if text is scrolling.
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
+      default: 10
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+          mode: dropdown
+      default: "None"
+    update_interval:
+      name: Update Interval (in minutes)
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 5
+    lifetime:
+      name: App Lifetime
+      description: Defines how long the app stays alive after the last update. After this time, it will be removed or marked as stale.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "15 minutes"
+              value: "900"
+            - label: "30 minutes"
+              value: "1800"
+            - label: "45 minutes"
+              value: "2700"
+            - label: "1 hour"
+              value: "3600"
+      default: "300"
+    lifetimeMode:
+      name: Lifetime Expiration Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+          mode: dropdown
+      default: "0"
+
+variables:
+  device_ids: !input awtrix
+  app: !input app_name
+  prefix_text: !input prefix_text
+  suffix_text: !input suffix_text
+  scroll_speed: !input scroll_speed
+  repeat_count: !input repeat_count
+  push_icon: !input push_icon
+  effect: !input effect
+  update_interval: !input update_interval
+  duration: !input duration
+  lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
+  icon_low: !input icon_low
+  icon_low_medium: !input icon_low_medium
+  icon_medium: !input icon_medium
+  icon_medium_high: !input icon_medium_high
+  icon_high: !input icon_high
+  awtrix_devices: >-
+    {%- set ns = namespace(awtrix = []) -%}
+    {%- for device_id in device_ids -%}
+      {%- set device_name = iif(device_attr(device_id, 'name_by_user') != none, device_attr(device_id, 'name_by_user'), device_attr(device_id, 'name')) -%}
+      {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
+      {%- set topic = states(entity) -%}
+      {% set ns.awtrix = ns.awtrix + [{"device": device_name, "entity": entity, "topic": topic}] -%}
+    {%- endfor -%}
+    {{ ns.awtrix }}
+
+trigger:
+  - platform: state
+    entity_id: sensor.allergy_index_today
+  - platform: time_pattern
+    minutes: /!input update_interval
+
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - variables:
+            rating: "{{ state_attr('sensor.allergy_index_today', 'rating') }}"
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ states(repeat.item.entity) not in ['unavailable', 'unknown'] }}"
+                - condition: template
+                  value_template: "{{ rating is not none and rating not in ['unavailable', 'unknown'] }}"
+              sequence:
+                - variables:
+                    text_color: >-
+                      {% if rating == 'Low' %} "#70AD47"
+                      {% elif rating == 'Low/Medium' %} "#FFC000"
+                      {% elif rating == 'Medium' %} "#ED7D31"
+                      {% elif rating == 'Medium/High' %} "#FF0000"
+                      {% elif rating == 'High' %} "#C00000"
+                      {% else %} "#FFFFFF"
+                      {% endif %}
+                    icon_to_use: >-
+                      {% if rating == 'Low' %} {{ icon_low }}
+                      {% elif rating == 'Low/Medium' %} {{ icon_low_medium }}
+                      {% elif rating == 'Medium' %} {{ icon_medium }}
+                      {% elif rating == 'Medium/High' %} {{ icon_medium_high }}
+                      {% elif rating == 'High' %} {{ icon_high }}
+                      {% else %} {{ icon_low }}
+                      {% endif %}
+                    text_to_display: >-
+                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
+                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {{- prefix ~ rating ~ suffix -}}
+                - service: mqtt.publish
+                  data:
+                    qos: 0
+                    retain: false
+                    topic: "{{ repeat.item.topic ~ '/custom/' ~ app }}"
+                    payload: |
+                      {
+                        "text": "{{ text_to_display }}",
+                        "icon": "{{ icon_to_use }}",
+                        "effect": "{{ effect }}",
+                        "duration": {{ duration }},
+                        "lifetime": {{ lifetime }},
+                        "lifetimeMode": {{ lifetimeMode }},
+                        "color": {{ text_color }},
+                        "pushIcon": {{ push_icon }},
+                        "repeat": {{ repeat_count }},
+                        "scrollSpeed": {{ scroll_speed }}
+                      }
+mode: restart
