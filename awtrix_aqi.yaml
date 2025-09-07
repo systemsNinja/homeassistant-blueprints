@@ -103,6 +103,16 @@ blueprint:
             - "TwinklingStars"
             - "ColorWaves"
       default: "TwinklingStars"
+    update_interval:
+      name: Update Interval (in minutes)
+      description: How often to send the stats to the device.
+      selector:
+        number:
+          min: 1
+          max: 59
+          step: 1
+          mode: slider
+      default: 30
     lifetime:
       name: Lifetime of the app after no update from automation
       description: >-
@@ -151,6 +161,7 @@ variables:
   accuweather_day4: "{{ states(accuweather_sensor_day4) | lower }}"
   airnow_current: "{{ states(airnow_entity) | int(0) }}"
   #device configuration and look and feel
+  update_interval: !input update_interval
   lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
   effect: !input effect
@@ -165,6 +176,8 @@ trigger:
       - !input accuweather_aqi_day2
       - !input accuweather_aqi_day3
       - !input accuweather_aqi_day4
+  - platform: time_pattern
+    minutes: !input update_interval
 
 condition: []
 
