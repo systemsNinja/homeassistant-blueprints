@@ -250,11 +250,17 @@ blueprint:
           mode: dropdown
       default: "0"
 
+# ------------------------------------------------------------------
+# CORRECTED SECTION:
+# The app names are now constructed using Jinja2 templates,
+# which is the correct way to process and combine inputs.
+# ------------------------------------------------------------------
 variables:
   # App Names
-  sub_app_name: !input app_name ~ "_subscribers"
-  view_app_name: !input app_name ~ "_views"
-  video_app_name: !input app_name ~ "_videos"
+  app_name: !input app_name
+  sub_app_name: "{{ app_name ~ '_subscribers' }}"
+  view_app_name: "{{ app_name ~ '_views' }}"
+  video_app_name: "{{ app_name ~ '_videos' }}"
   
   # Sensor Toggles
   yt_subscriber_app: !input yt_subscriber_app
