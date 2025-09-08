@@ -323,6 +323,12 @@ action:
                 - condition: template
                   value_template: "{{ yt_subscriber_sensor is not none and states(yt_subscriber_sensor) not in ['unknown', 'unavailable'] }}"
               sequence:
+                - variables:
+                    # construct the final display text.
+                    text_to_display: >-
+                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
+                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {{- prefix ~ states(yt_subscriber_sensor) ~ suffix -}}
                 - service: mqtt.publish
                   data:
                     qos: 0
@@ -330,7 +336,7 @@ action:
                     topic: "{{ repeat.item.topic ~ '/custom/' ~ sub_app_name }}"
                     payload: |
                       {
-                        "text": "{{ subscriber_prefix ~ states(yt_subscriber_sensor) ~ subscriber_suffix }}",
+                        "text": "{{ text_to_display }}",
                         "icon": "{{ subscriber_icon }}", "effect": "{{ effect }}", "duration": {{ duration }},
                         "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}, "color": {{ text_color | tojson }},
                         "pushIcon": {{ push_icon }}, "repeat": {{ repeat_count }}, "scrollSpeed": {{ scroll_speed }},
@@ -356,6 +362,12 @@ action:
                 - condition: template
                   value_template: "{{ yt_view_sensor is not none and states(yt_view_sensor) not in ['unknown', 'unavailable'] }}"
               sequence:
+                - variables:
+                    #construct the final display text.
+                    text_to_display: >-
+                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
+                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {{- prefix ~ states(yt_view_sensor) ~ suffix -}}
                 - service: mqtt.publish
                   data:
                     qos: 0
@@ -363,7 +375,7 @@ action:
                     topic: "{{ repeat.item.topic ~ '/custom/' ~ view_app_name }}"
                     payload: |
                       {
-                        "text": "{{ view_prefix ~ states(yt_view_sensor) ~ view_suffix }}",
+                        "text": "{{ text_to_display }}",
                         "icon": "{{ view_icon }}", "effect": "{{ effect }}", "duration": {{ duration }},
                         "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}, "color": {{ text_color | tojson }},
                         "pushIcon": {{ push_icon }}, "repeat": {{ repeat_count }}, "scrollSpeed": {{ scroll_speed }},
@@ -388,6 +400,12 @@ action:
                 - condition: template
                   value_template: "{{ yt_video_sensor is not none and states(yt_video_sensor) not in ['unknown', 'unavailable'] }}"
               sequence:
+                - variables:
+                    #construct the final display text.
+                    text_to_display: >-
+                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
+                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {{- prefix ~ states(yt_video_sensor) ~ suffix -}}
                 - service: mqtt.publish
                   data:
                     qos: 0
@@ -395,7 +413,7 @@ action:
                     topic: "{{ repeat.item.topic ~ '/custom/' ~ video_app_name }}"
                     payload: |
                       {
-                        "text": "{{ video_prefix ~ states(yt_video_sensor) ~ video_suffix }}",
+                        "text": "{{ text_to_display }}",
                         "icon": "{{ video_icon }}", "effect": "{{ effect }}", "duration": {{ duration }},
                         "lifetime": {{ lifetime }}, "lifetimeMode": {{ lifetimeMode }}, "color": {{ text_color | tojson }},
                         "pushIcon": {{ push_icon }}, "repeat": {{ repeat_count }}, "scrollSpeed": {{ scroll_speed }},
