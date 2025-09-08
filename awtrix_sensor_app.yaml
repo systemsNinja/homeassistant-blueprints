@@ -19,7 +19,7 @@ blueprint:
       description: This is the app name used in the MQTT topic. It must be unique for each app you create.
       selector:
         text: {}
-      default: "SensorApp"
+      default: "sensorApp"
     sensor:
       name: Sensor for the App
       description: Which sensor's state or attribute should be displayed?
