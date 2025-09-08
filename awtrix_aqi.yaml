@@ -105,7 +105,7 @@ blueprint:
       default: "TwinklingStars"
     update_interval:
       name: Update Interval
-      description: 'Updates will be sent as often as you set here.'
+      description: 'Updates will be sent as often as the AQI values change and whatever you set it here.'
       selector:
         select:
           mode: dropdown

@@ -1,7 +1,7 @@
 blueprint:
   name: "AWTRIX Sensor or Sensor Attribute App"
   description: |
-    This blueprint will show the value of a sensor or a specific attribute from that sensor on your AWTRIX Light device. You can optionally add static prefix and suffix text.
+    This blueprint will show the value of a sensor or a specific attribute from that sensor on your AWTRIX device. You can optionally add static prefix and suffix text.
     If you want more than one sensor value displayed, simply create another automation from this blueprint with a unique App Name.
   domain: automation
   input:
@@ -138,7 +138,7 @@ blueprint:
       default: "None"
     update_interval:
       name: Update Interval
-      description: 'Updates will be sent as often as you set here.'
+      description: 'Updates will be sent as often as the selected sensor values change and whatever you set it here.'
       selector:
         select:
           mode: dropdown
