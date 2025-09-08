@@ -4,20 +4,20 @@ blueprint:
     This blueprint displays the IQVIA allergy 'rating' on your AWTRIX Light device.
 
     It automatically uses the 'rating' attribute from 'sensor.allergy_index_today'.
-    The text color and icon change dynamically based on the allergy level (Low, Medium, High, etc.).
-    You can still add optional prefix/suffix text.
+    The text color and icon change dynamically based on the allergy level.
+    Includes an optional toggle to show colored forecast bars for today and tomorrow.
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1. You need the IQVIA integration in home assistant
-
-    2. You need to upload all icons used here to your AWTRIX device.
+    1.  **IQVIA Integration:** You must have the official IQVIA integration installed.
+    2.  **Sensors:** Requires `sensor.allergy_index_today`. If using the forecast feature, `sensor.allergy_index_tomorrow` is also required.
+    3.  **Custom Icons:** You must upload any custom icons used in the options to your AWTRIX Light device.
 
   domain: automation
   input:
     awtrix:
       name: AWTRIX Device
-      description: Select the Awtrix Light Device(s).
+      description: Select the AWTRIX Light Device(s).
       selector:
         device:
           filter:
@@ -30,6 +30,12 @@ blueprint:
       selector:
         text: {}
       default: "allergy"
+    show_forecast:
+      name: Show Forecast Indicator
+      description: If enabled, shows two colored bars for today's and tomorrow's allergy forecast. Requires 'sensor.allergy_index_tomorrow'.
+      selector:
+        boolean: {}
+      default: false
     prefix_text:
       name: Prefix Text (Optional)
       description: Text to display before the rating (e.g., "Allergies:"). A space is added automatically.
@@ -147,15 +153,30 @@ blueprint:
           mode: dropdown
       default: "None"
     update_interval:
-      name: Update Interval (in minutes)
-      description: How often to send the stats to the device.
+      name: Update Interval
+      description: 'Updates will be sent as often as the IQVIA values change and whatever you set it here.'
       selector:
-        number:
-          min: 1
-          max: 59
-          step: 1
-          mode: slider
-      default: 5
+        select:
+          mode: dropdown
+          options:
+          - label: 1 minute
+            value: /1
+          - label: 2 minutes
+            value: /2
+          - label: 3 minutes
+            value: /3
+          - label: 4 minutes
+            value: /4
+          - label: 5 minutes
+            value: /5
+          - label: 10 minutes
+            value: /10
+          - label: 30 minutes
+            value: /30
+          multiple: false
+          custom_value: false
+          sort: false
+      default: /5
     lifetime:
       name: App Lifetime
       description: Defines how long the app stays alive after the last update. After this time, it will be removed or marked as stale.
@@ -192,6 +213,7 @@ blueprint:
 variables:
   device_ids: !input awtrix
   app: !input app_name
+  show_forecast: !input show_forecast
   prefix_text: !input prefix_text
   suffix_text: !input suffix_text
   scroll_speed: !input scroll_speed
@@ -220,6 +242,8 @@ variables:
 trigger:
   - platform: state
     entity_id: sensor.allergy_index_today
+  - platform: state
+    entity_id: sensor.allergy_index_tomorrow
   - platform: time_pattern
     minutes: !input update_interval
 
@@ -229,6 +253,12 @@ action:
       sequence:
         - variables:
             rating: "{{ state_attr('sensor.allergy_index_today', 'rating') }}"
+            tomorrow_rating: >-
+              {% if show_forecast %}
+                {{ state_attr('sensor.allergy_index_tomorrow', 'rating') }}
+              {% else %}
+                {{ None }}
+              {% endif %}
         - choose:
             - conditions:
                 - condition: template
@@ -237,14 +267,6 @@ action:
                   value_template: "{{ rating is not none and rating not in ['unavailable', 'unknown'] }}"
               sequence:
                 - variables:
-                    text_color: >-
-                      {% if rating == 'Low' %} "#70AD47"
-                      {% elif rating == 'Low/Medium' %} "#FFC000"
-                      {% elif rating == 'Medium' %} "#ED7D31"
-                      {% elif rating == 'Medium/High' %} "#FF0000"
-                      {% elif rating == 'High' %} "#C00000"
-                      {% else %} "#FFFFFF"
-                      {% endif %}
                     icon_to_use: >-
                       {% if rating == 'Low' %} {{ icon_low }}
                       {% elif rating == 'Low/Medium' %} {{ icon_low_medium }}
@@ -263,6 +285,15 @@ action:
                     retain: false
                     topic: "{{ repeat.item.topic ~ '/custom/' ~ app }}"
                     payload: |
+                      {%- macro get_rating_color(rating_value) -%}
+                        {% if rating_value == 'Low' %}"#70AD47"
+                        {% elif rating_value == 'Low/Medium' %}"#FFC000"
+                        {% elif rating_value == 'Medium' %}"#ED7D31"
+                        {% elif rating_value == 'Medium/High' %}"#FF0000"
+                        {% elif rating_value == 'High' %}"#C00000"
+                        {% else %}"#FFFFFF"
+                        {% endif %}
+                      {%- endmacro -%}
                       {
                         "text": "{{ text_to_display }}",
                         "icon": "{{ icon_to_use }}",
@@ -270,9 +301,15 @@ action:
                         "duration": {{ duration }},
                         "lifetime": {{ lifetime }},
                         "lifetimeMode": {{ lifetimeMode }},
-                        "color": {{ text_color }},
+                        "color": {{ get_rating_color(rating) }},
                         "pushIcon": {{ push_icon }},
                         "repeat": {{ repeat_count }},
                         "scrollSpeed": {{ scroll_speed }}
+                        {% if show_forecast and tomorrow_rating is not none and tomorrow_rating not in ['unavailable', 'unknown'] -%}
+                        , "draw": [
+                            {"dl": [11, 7, 18, 7, {{ get_rating_color(rating) }} ]},
+                            {"dl": [20, 7, 27, 7, {{ get_rating_color(tomorrow_rating) }} ]}
+                          ]
+                        {%- endif %}
                       }
 mode: restart

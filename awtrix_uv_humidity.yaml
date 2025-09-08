@@ -102,6 +102,33 @@ blueprint:
             - "TwinklingStars"
             - "ColorWaves"
       default: "TwinklingStars"
+    update_interval:
+      name: Update Interval
+      description: 'Updates will be sent as often as the UV/Humidity values change and whatever you set it here.'
+      selector:
+        select:
+          mode: dropdown
+          options:
+          - label: 1 minute
+            value: /1
+          - label: 2 minutes
+            value: /2
+          - label: 3 minutes
+            value: /3
+          - label: 4 minutes
+            value: /4
+          - label: 5 minutes
+            value: /5
+          - label: 10 minutes
+            value: /10
+          - label: 30 minutes
+            value: /30
+          - label: 1 hour
+            value: /0
+          multiple: false
+          custom_value: false
+          sort: false
+      default: /5
     lifetime:
       name: Lifetime of the app after no update from automation
       description: >-
@@ -160,6 +187,7 @@ variables:
   forecast_field: "uv_index"
   show_forecast: !input show_forecast
   effect: !input effect
+  update_interval: !input update_interval
   lifetime: !input lifetime
   lifetimeMode: !input lifetimeMode
 
@@ -169,6 +197,8 @@ trigger:
     entity_id:
       - !input hum
       - !input uv
+  - platform: time_pattern
+    minutes: !input update_interval
 
 condition: []
 
