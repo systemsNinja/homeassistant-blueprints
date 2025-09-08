@@ -326,8 +326,8 @@ action:
                 - variables:
                     # construct the final display text.
                     text_to_display: >-
-                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
-                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {%- set prefix = (subscriber_prefix + ' ') if subscriber_prefix else '' -%}
+                      {%- set suffix = (' ' + subscriber_suffix) if subscriber_suffix else '' -%}
                       {{- prefix ~ states(yt_subscriber_sensor) ~ suffix -}}
                 - service: mqtt.publish
                   data:
@@ -365,8 +365,8 @@ action:
                 - variables:
                     #construct the final display text.
                     text_to_display: >-
-                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
-                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {%- set prefix = (view_prefix + ' ') if view_prefix else '' -%}
+                      {%- set suffix = (' ' + view_suffix) if view_suffix else '' -%}
                       {{- prefix ~ states(yt_view_sensor) ~ suffix -}}
                 - service: mqtt.publish
                   data:
@@ -403,8 +403,8 @@ action:
                 - variables:
                     #construct the final display text.
                     text_to_display: >-
-                      {%- set prefix = (prefix_text + ' ') if prefix_text else '' -%}
-                      {%- set suffix = (' ' + suffix_text) if suffix_text else '' -%}
+                      {%- set prefix = (video_prefix + ' ') if video_prefix else '' -%}
+                      {%- set suffix = (' ' + video_suffix) if video_suffix else '' -%}
                       {{- prefix ~ states(yt_video_sensor) ~ suffix -}}
                 - service: mqtt.publish
                   data:
