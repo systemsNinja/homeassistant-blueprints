@@ -173,7 +173,7 @@ action:
               {"dt": [16, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
             {% else %}
               {# Centered for 3 digits #}
-              {"dt": [14, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
+              {"dt": [14, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]}
             {% endif %}
 
           ]
