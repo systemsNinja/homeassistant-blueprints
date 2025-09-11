@@ -1,7 +1,7 @@
 blueprint:
-  name: AWTRIX AQI (AirNow Text )
+  name: AWTRIX AQI (AirNow Text + AccuWeather Forecast)
   description: >
-    Displays a human-friendly AQI status from AirNow.gov
+    Displays a human-friendly AQI status from AirNow.gov and a 5-day forecast color-coded by AccuWeather's text descriptions.
     The status text will change color depending on the air quality level.
   domain: automation
   input:
@@ -26,6 +26,51 @@ blueprint:
       selector:
         entity:
           integration: airnow
+    accuweather_aqi_day0:
+      name: Accuweather Forecast Today (Text)
+      description: >
+        Accuweather sensor with a text state (e.g., "good", "moderate") for Today. 
+        EX: sensor.accuweather_guttenberg_air_quality_today
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day1:
+      name: Accuweather Forecast Tomorrow (Text)
+      description: >
+        Accuweather sensor with a text state for Tomorrow.
+        EX: sensor.accuweather_guttenberg_air_quality_day_1
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day2:
+      name: Accuweather Forecast Day 2 (Text)
+      description: >
+        Accuweather sensor with a text state for Day 2.
+        EX: sensor.accuweather_guttenberg_air_quality_day_2
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day3:
+      name: Accuweather Forecast Day 3 (Text)
+      description: >
+        Accuweather sensor with a text state for Day 3.
+        EX: sensor.accuweather_guttenberg_air_quality_day_3
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
+    accuweather_aqi_day4:
+      name: Accuweather Forecast Day 4 (Text)
+      description: >
+        Accuweather sensor with a text state for Day 4.
+        EX: sensor.accuweather_guttenberg_air_quality_day_4
+      selector:
+        entity:
+          integration: accuweather
+          device_class: enum
     # --- Configuration ---
     duration:
       name: Duration (in seconds)
@@ -116,9 +161,19 @@ mode: restart
 
 variables:
   # Get the entity IDs from the blueprint inputs
+  accuweather_sensor_day0: !input accuweather_aqi_day0
+  accuweather_sensor_day1: !input accuweather_aqi_day1
+  accuweather_sensor_day2: !input accuweather_aqi_day2
+  accuweather_sensor_day3: !input accuweather_aqi_day3
+  accuweather_sensor_day4: !input accuweather_aqi_day4
   airnow_entity: !input airnow_sensor
 
-  # Get the states of the sensors. AirNow is a number.
+  # Get the states of the sensors. Accuweather are text, AirNow is a number.
+  accuweather_today: "{{ states(accuweather_sensor_day0) | lower }}"
+  accuweather_day1: "{{ states(accuweather_sensor_day1) | lower }}"
+  accuweather_day2: "{{ states(accuweather_sensor_day2) | lower }}"
+  accuweather_day3: "{{ states(accuweather_sensor_day3) | lower }}"
+  accuweather_day4: "{{ states(accuweather_sensor_day4) | lower }}"
   airnow_current: "{{ states(airnow_entity) | int(0) }}"
   #device configuration and look and feel
   update_interval: !input update_interval
@@ -131,6 +186,11 @@ trigger:
   - platform: state
     entity_id:
       - !input airnow_sensor
+      - !input accuweather_aqi_day0
+      - !input accuweather_aqi_day1
+      - !input accuweather_aqi_day2
+      - !input accuweather_aqi_day3
+      - !input accuweather_aqi_day4
   - platform: time_pattern
     minutes: !input update_interval
 
@@ -153,6 +213,28 @@ action:
           {%- endif -%}
         {%- endmacro -%}
 
+        {# Macro to get color from text state (for AccuWeather forecast) #}
+        {%- macro get_forecast_color_from_text(state) -%}
+          {%- if state == 'good' -%}#00FF00 {# Bright Green #}
+          {%- elif state == 'moderate' -%}#FFFF00 {# Bright Yellow #}
+          {%- elif state == 'unhealthy' -%}#FFA500 {# Pumping Orange #}
+          {%- elif state == 'very_unhealthy' -%}#FF1493 {# Deep Pink #}
+          {%- elif state == 'hazardous' -%}#FF0000 {# Bright Red #}
+          {%- else -%}#808080 {# Default Gray #}
+          {%- endif -%}
+        {%- endmacro -%}
+        
+        {% set forecast_values = [
+          accuweather_today,
+          accuweather_day1,
+          accuweather_day2,
+          accuweather_day3,
+          accuweather_day4
+        ] %}
+
+        {% set forecast_positions = [
+          [10, 7], [14, 7], [18, 7], [22, 7], [26, 7]
+        ] %}
 
         {
           "lifetime": {{ lifetime }},
@@ -176,6 +258,10 @@ action:
               {"dt": [14, 1, "{{ airnow_current }}", "{{ get_aqi_color_from_value(airnow_current) }}"]},
             {% endif %}
 
+            {# Draw forecast lines using the text-based color logic #}
+            {% for i in range(5) %}
+              {"dl": [{{ forecast_positions[i][0] }}, {{ forecast_positions[i][1] }}, {{ forecast_positions[i][0] + 2 }}, {{ forecast_positions[i][1] }}, "{{ get_forecast_color_from_text(forecast_values[i]) }}"]}{% if not loop.last %},{% endif %}
+            {% endfor %}
           ]
         }
 
