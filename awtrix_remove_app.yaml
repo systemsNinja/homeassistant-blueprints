@@ -1,0 +1,73 @@
+blueprint:
+  name: AWTRIX App Remover via Button
+  description: >-
+    Removes a custom AWTRIX app when an input_button is pressed.
+    The app to be removed is determined by the current state of an input_select entity.
+  domain: automation
+  input:
+    awtrix_device:
+      name: AWTRIX Device(s)
+      description: Select the AWTRIX device(s) from which to remove the app.
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          multiple: true
+    trigger_button:
+      name: Trigger Button
+      description: This input_button will trigger the removal of the app.
+      selector:
+        entity:
+          domain: input_button
+    app_to_delete_selector:
+      name: App Name Selector (input_select)
+      description: The app name to remove is read from the state of this input_select entity.
+      selector:
+        entity:
+          domain: input_select
+
+# This ensures that if the button is pressed multiple times in quick succession,
+# the automation will only run once at a time.
+mode: single
+
+variables:
+  # Get the list of device IDs from the blueprint input.
+  device_ids: !input awtrix_device
+  # Get the entity ID of the input_select helper from the blueprint input.
+  app_selector_entity_id: !input app_to_delete_selector
+  # Get the current state (the selected option/app name) from the input_select helper.
+  app_name: "{{ states(app_selector_entity_id) }}"
+  # This template constructs the full MQTT topics for each selected device.
+  topics: >-
+    {%- macro get_device_topic(device_id) -%}
+      {{- states((device_entities(device_id) | select('search','device_topic') | list)[0]) -}}
+    {%- endmacro -%}
+
+    {%- set ns = namespace(topics_list=[]) -%}
+    {%- for device_id in device_ids -%}
+      {%- set base_topic = get_device_topic(device_id) | replace(' ','') -%}
+      {# Ensure we have a valid topic and app name before proceeding. #}
+      {%- if base_topic and base_topic != 'unavailable' and app_name -%}
+        {%- set full_topic = base_topic ~ '/custom/' ~ app_name -%}
+        {%- set ns.topics_list = ns.topics_list + [ full_topic ] -%}
+      {%- endif -%}
+    {%- endfor -%}
+    {{ ns.topics_list }}
+
+# This automation runs whenever the state of the selected input_button changes,
+# which happens on every press.
+trigger:
+  - platform: state
+    entity_id: !input trigger_button
+
+action:
+  # Loop through each topic generated in the 'variables' section.
+  - repeat:
+      for_each: "{{ topics }}"
+      sequence:
+        # For each topic, publish an empty JSON payload.
+        # This is the command to remove a custom app from an AWTRIX device.
+        - service: mqtt.publish
+          data:
+            topic: "{{ repeat.item }}"
+            payload: "{}"
