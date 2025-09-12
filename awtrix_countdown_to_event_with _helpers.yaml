@@ -1,5 +1,5 @@
 blueprint:
-  name: AWTRIX Countdown to Date/Time
+  name: AWTRIX Countdown to Date/Time with Helpers
   description: >
     Displays a countdown to a selected date and time on an AWTRIX Light device.
     The countdown format changes as the event gets closer (days/hours -> hours/minutes -> minutes).
@@ -203,11 +203,11 @@ action:
                     minutes: "{{ ((time_left % 3600) / 60) | int }}"
                     countdown_text: >-
                       {% if days > 0 %}
-                        {{ states(event_name_entity) }} in {{ days }}d {{ hours }}h
+                        {{ states(event_name) }} in {{ days }}d {{ hours }}h
                       {% elif hours > 0 %}
-                        {{ states(event_name_entity) }} in {{ hours }}h {{ minutes }}m
+                        {{ states(event_name) }} in {{ hours }}h {{ minutes }}m
                       {% else %}
-                        {{ states(event_name_entity) }} in {{ minutes }}m
+                        {{ states(event_name) }} in {{ minutes }}m
                       {% endif %}
                 - service: mqtt.publish
                   data:
@@ -238,7 +238,7 @@ action:
                     topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
                     payload: >-
                       {
-                        "text": "Its time for {{ states(event_name_entity) }}!"
+                        "text": "Its time for {{ states(event_name) }}!"
                         {%- if push_icon != "3" %},
                         "icon": "{{ icon }}"
                         {%- endif %},
