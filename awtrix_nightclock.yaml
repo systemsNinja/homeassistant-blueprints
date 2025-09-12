@@ -244,7 +244,16 @@ blueprint:
             - label: "1:30 PM with blinking colon"
               value: "%l %M %p"
       default: "%H:%M"
-
+    wakeup_time_duration:
+      name: Duration of the clock (in seconds)
+      description: Sets how long the clock should be displayed in the rotation.
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
+      default: 7
 variables:
   device_ids: !input awtrix
   wake_up_time: !input wake_up_time
@@ -268,6 +277,7 @@ variables:
   wakeup_inactive_weekday_maker_color: !input wakeup_inactive_weekday_maker_color
   wakeup_active_weekday_maker_color: !input wakeup_active_weekday_maker_color
   wakeup_time_format: !input wakeup_time_format
+  wakeup_time_duration: !input wakeup_time_duration
   awtrix_devices: >-
     {%- set ns = namespace(awtrix = []) -%}
     {%- for device_id in device_ids -%}
@@ -301,6 +311,7 @@ variables:
       "TFORMAT": "{{ wakeup_time_format }}",
       "WD": {{ wakeup_weekday_bar | lower }},
       "WDCA": {{ wakeup_active_weekday_maker_color }},
+      "ATIME": {{ wakeup_time_duration }},
       "WDCI": {{ wakeup_inactive_weekday_maker_color }}
       {% if wakeup_settings_rainbow_text %}
         , "rainbow": true
