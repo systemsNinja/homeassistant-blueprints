@@ -1,0 +1,263 @@
+blueprint:
+  name: AWTRIX Countdown to Date/Time
+  description: >
+    Displays a countdown to a selected date and time on an AWTRIX Light device.
+    The countdown format changes as the event gets closer (days/hours -> hours/minutes -> minutes).
+    When the event time is reached, it displays a custom message for a configurable duration and then removes the app.
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device(s)
+      description: Select the Awtrix device(s) to display the countdown.
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          multiple: true
+    app_name:
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
+      selector:
+        text: {}
+      default: "countdown_timer"
+    target_datetime:
+      name: Target Date/Time Entity
+      description: Select the target date and time entity for the countdown.
+      selector:
+        entity:
+          domain:
+            - input_datetime
+            - datetime
+    event_name:
+      name: Event Name input Entity
+      description: The name of the event you are counting down to (e.g., Vacation).
+      selector:
+        entity:
+          domain:
+            - input_text
+    event_duration:
+      name: Event Message Duration (Minutes)
+      description: How long the final event message should display after the event time is reached.
+      default: 60
+      selector:
+        number:
+          min: 1
+          max: 1440
+          step: 1
+          mode: slider
+    icon:
+      name: Icon (Optional)
+      description: The AWTRIX icon ID to display with the countdown. Not used if "No Icon" is selected in Icon Behavior.
+      selector:
+        text:
+      default: "50417"
+    push_icon:
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
+      selector:
+        select:
+          options:
+            - label: "Icon doesn't move"
+              value: "0"
+            - label: "Icon moves with text"
+              value: "1"
+            - label: "Icon moves & reappears"
+              value: "2"
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
+      default: "0"
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
+    text_color:
+      name: Text Color (Optional)
+      description: Set a color for the text. Overridden by Rainbow Effect.
+      selector:
+        color_rgb: {}
+      default: [160, 160, 0]
+    rainbow_effect:
+      name: Rainbow Effect
+      description: Enable to make the text cycle through rainbow colors.
+      default: false
+      selector:
+        boolean:
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
+    lifetime:
+      name: Lifetime of the app after no update from automation
+      description: >-
+        Defines how long the app should stay alive after there has been update from the automation.
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - label: "5 minutes"
+              value: "300"
+            - label: "10 minutes"
+              value: "600"
+            - label: "15 minutes"
+              value: "900"
+            - label: "30 minutes"
+              value: "1800"
+            - label: "45 minutes"
+              value: "2700"
+            - label: "1 hour"
+              value: "3600"
+      default: "300"
+    lifetimeMode:
+      name: Lifetime Mode
+      description: What happens after the app's lifetime expires.
+      selector:
+        select:
+          options:
+            - label: "Remove app from rotation"
+              value: "0"
+            - label: "Show a 'stale' indicator"
+              value: "1"
+      default: "0"
+variables:
+  # --- Inputs ---
+  awtrix_devices: !input awtrix
+  target_datetime: !input target_datetime
+  app_name: !input app_name
+  event_name: !input event_name
+  icon: !input icon
+  push_icon: !input push_icon
+  scroll_speed: !input scroll_speed
+  repeat_count: !input repeat_count
+  event_duration: !input event_duration
+  text_color: !input text_color
+  rainbow_effect: !input rainbow_effect
+  effect: !input effect
+  lifetime: !input lifetime
+  lifetimeMode: !input lifetimeMode
+
+trigger:
+  - platform: time_pattern
+    minutes: "/1"   # fires every minute
+
+
+
+action:
+  - variables:
+      # You must get the state of the entity first using states()
+      time_left: "{{ (as_timestamp(states(target_datetime)) - as_timestamp(now())) | int }}"
+      duration_seconds: "{{ event_duration * 60 }}"
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - variables:
+            device_topic: >-
+              {{ expand(device_entities(repeat.item)) | select('search', 'device_topic') | map(attribute='state') | first }}
+        - choose:
+            # Case 1: Countdown is active
+            - conditions:
+                - "{{ time_left > 0 }}"
+              sequence:
+                - variables:
+                    days: "{{ (time_left / 86400) | int }}"
+                    hours: "{{ ((time_left % 86400) / 3600) | int }}"
+                    minutes: "{{ ((time_left % 3600) / 60) | int }}"
+                    countdown_text: >-
+                      {% if days > 0 %}
+                        {{ states(event_name_entity) }} in {{ days }}d {{ hours }}h
+                      {% elif hours > 0 %}
+                        {{ states(event_name_entity) }} in {{ hours }}h {{ minutes }}m
+                      {% else %}
+                        {{ states(event_name_entity) }} in {{ minutes }}m
+                      {% endif %}
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
+                    payload: >-
+                      {
+                        "text": "{{ countdown_text }}"
+                        {%- if push_icon != "3" %},
+                        "icon": "{{ icon }}"
+                        {%- endif %},
+                        "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
+                        "repeat": {{ repeat_count }},
+                        "effect": "{{ effect }}"
+                        {% if rainbow_effect %}
+                          , "rainbow": true
+                        {% elif text_color is defined and text_color != none %}
+                          , "color": "#{{ '%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) }}"
+                        {% endif %}
+                      }
+
+
+            # Case 2: Event message is active
+            - conditions:
+                - "{{ 0 >= time_left > -duration_seconds }}"
+              sequence:
+                - service: mqtt.publish
+                  data:
+                    topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
+                    payload: >-
+                      {
+                        "text": "Its time for {{ states(event_name_entity) }}!"
+                        {%- if push_icon != "3" %},
+                        "icon": "{{ icon }}"
+                        {%- endif %},
+                        "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
+                        "repeat": {{ repeat_count }},
+                        "scrollSpeed": {{ scroll_speed }},
+                        "effect": "{{ effect }}"
+                        {% if rainbow_effect %}
+                          , "rainbow": true
+                        {% elif text_color is defined and text_color != none %}
+                          , "color": "#{{ '%02x%02x%02x' % (text_color[0], text_color[1], text_color[2]) }}"
+                        {% endif %}
+                      }
+
+          # Default Case: Time is up, remove the app
+          default:
+            - service: mqtt.publish
+              data:
+                topic: "{{ device_topic ~ '/custom/' ~ app_name }}"
+                payload: "{}"
+
+mode: single
