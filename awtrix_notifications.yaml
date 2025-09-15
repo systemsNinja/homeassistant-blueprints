@@ -1,7 +1,8 @@
 blueprint:
-  name: AWTRIX Persistent Notification
+  name: AWTRIX Notifications
   description: >
-    Displays a persistent notification on an AWTRIX device. Must be dismissed manually.
+    Displays a notification on an AWTRIX device. The notification text is taken from an input_text helper entity and is triggered by pressing an input_button helper entity.
+    Various display options are configurable, including icon, scrolling speed, text effects, and background effects, etc. The notification can be set to persist until dismissed.
   domain: automation
   input:
     awtrix:
@@ -30,6 +31,12 @@ blueprint:
       name: Persistent Notification
       description: If enabled, the notification will remain until dismissed manually on the AWTRIX device.
       default: true
+      selector:
+        boolean:
+    stack:
+      name: Stack Notifications
+      description: If enabled, new notifications will be stacked behind the existing ones. If disabled, it will replace existing notification.
+      default: false
       selector:
         boolean:
     icon:
@@ -67,7 +74,7 @@ blueprint:
     repeat_count:
       name: Scroll Repeat Count
       description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
-      default: 2
+      default: 0
       selector:
         number:
           min: 0
@@ -83,7 +90,7 @@ blueprint:
           max: 60
           step: 1
           mode: slider
-      default: 10
+      default: 0
     text_color:
       name: Text Color (Optional)
       description: Set a color for the text. Overridden by Rainbow Effect.
@@ -104,21 +111,27 @@ blueprint:
               value: "2"
           mode: dropdown
       default: "2"
+    text_color_gradient_toggle:
+      name: Use Text Color Gradient
+      description: Enable to use a gradient for the text color. Overrides solid text color.
+      default: false
+      selector:
+        boolean:
     text_color_gradient_start:
-      name: Text Color Gradient Start (Optional)
-      description: Set the starting color for the text gradient. Overridden by Rainbow Effect.
+      name: Text Color Gradient Start 
+      description: Set the starting color for the text gradient.
       selector:
         color_rgb: {}
-      default: [255, 0, 0]
+      default: ""
     text_color_gradient_end:
       name: Text Color Gradient End (Optional)
-      description: Set the ending color for the text gradient. Overridden by Rainbow Effect.
+      description: Set the ending color for the text gradient. 
       selector:
         color_rgb: {}
-      default: [0, 0, 255]
+      default: ""
     rainbow_effect:
       name: Rainbow Effect
-      description: Enable to make the text cycle through rainbow colors.
+      description: Enable to make the text cycle through rainbow colors. Overrides solid or gradient text color.
       default: false
       selector:
         boolean:
@@ -126,22 +139,42 @@ blueprint:
       name: Text Blink Speed
       description: If set to a value greater than 0, the text will blink at the specified speed (in ms). Not compatible with gradient or rainbow.
       selector:
-        number:
-          min: 0
-          max: 1000
-          step: 50
-          mode: slider
-      default: 0
+        select:
+          options:
+            - label: "No Blinking"
+              value: "0"
+            - label: "Very Slow Blink"
+              value: "1000"
+            - label: "Slow Blink"
+              value: "750"
+            - label: "Medium  Blink"
+              value: "550"
+            - label: "Fast Blink"
+              value: "400"
+            - label: "Very Fast Blink"
+              value: "250"
+          mode: dropdown
+      default: "No Blinking"
     text_fade_speed:
       name: Text Fade Speed
-      description: If set to a value greater than 0, the text will fade in and out at the specified speed (in ms). Not compatible with gradient or rainbow.
+      description: If set to a value greater than 0, the text will fade in and out at the specified speed (in ms). Not compatible with gradient or rainbow. Overwrites Blinking if both are set.
       selector:
-        number:
-          min: 0
-          max: 1000
-          step: 50
-          mode: slider
-      default: 0
+        select:
+          options:
+            - label: "No Fade"
+              value: "0"
+            - label: "Very Slow Fade"
+              value: "1000"
+            - label: "Slow Fade"
+              value: "750"
+            - label: "Medium  Fade"
+              value: "550"
+            - label: "Fast Fade"
+              value: "400"
+            - label: "Very Fast Fade"
+              value: "250"
+          mode: dropdown
+      default: "No Fade"
     background_color:
       name: Background Color (Optional)
       description: Set a color for the background. Overridden by Background Effect.
@@ -182,6 +215,7 @@ variables:
   notification_text_entity: !input notification_text
   notification_trigger_entity: !input notification_trigger_entity
   persistent: !input persistent
+  stack: !input stack
   icon: !input icon
   push_icon: !input push_icon
   scroll_speed: !input scroll_speed
@@ -189,6 +223,7 @@ variables:
   duration: !input duration
   text_case: !input text_case
   text_color: !input text_color
+  text_color_gradient_toggle: !input text_color_gradient_toggle
   text_color_gradient_start: !input text_color_gradient_start
   text_color_gradient_end: !input text_color_gradient_end 
   rainbow_effect: !input rainbow_effect
@@ -212,11 +247,11 @@ action:
               {{ expand(device_entities(repeat.item)) | select('search', 'device_topic') | map(attribute='state') | first }}
         - service: mqtt.publish
           data:
-            topic: "{{ device_topic ~ '/notify/'}}"
+            topic: "{{ device_topic ~ '/notify'}}"
             payload: >-
               {
                 "text": "{{ states(notification_text_entity) }}",
-                "hold": {{ persistent }}
+                "hold": {{ persistent | lower }}
                 {%- if push_icon != "3" %},
                 "icon": "{{ icon }}"
                 {%- endif %},
@@ -225,13 +260,18 @@ action:
                 "repeat": {{ repeat_count }},
                 "duration": {{ duration }},
                 "textCase": {{ text_case }},
-                "gradient": [{{ text_color_gradient_start | tojson }}, {{ text_color_gradient_end | tojson }}],
-                "color": {{ text_color | tojson }},
-                "rainbow": {{ rainbow_effect | lower }},
-                "blinkSpeed": {{ text_blink_speed }},
-                "fadeSpeed": {{ text_fade_speed }},
-                "backgroundColor": {{ background_color | tojson }},
-                "effect": "{{ effect }}"
+                {% if rainbow_effect %}
+                "rainbow": true
+                {% elif text_color_gradient_toggle %}
+                "gradient": [{{ text_color_gradient_start | tojson }}, {{ text_color_gradient_end | tojson }}]
+                {% else %}
+                "color": {{ text_color | tojson }}
+                {% endif %},
+                "blinkText": {{ text_blink_speed }},
+                "fadeText": {{ text_fade_speed }},
+                "background": {{ background_color | tojson }},
+                "effect": "{{ effect }}",
+                "stack": {{ stack | lower }}
               }
 
 mode: single
