@@ -1,0 +1,237 @@
+blueprint:
+  name: AWTRIX Persistent Notification
+  description: >
+    Displays a persistent notification on an AWTRIX device. Must be dismissed manually.
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device(s)
+      description: Select the Awtrix device(s) to display the countdown.
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          multiple: true
+    notification_text:
+      name: Notification Text Helper Entity
+      description: The text to display in the notification.
+      selector:
+        entity:
+          domain:
+            - input_text
+    notification_trigger_entity:
+      name: Notification Trigger Button
+      description: When this button is pressed, the notification will be sent to the AWTRIX device(s).
+      selector:
+        entity:
+          domain:
+            - input_button
+    persistent:
+      name: Persistent Notification
+      description: If enabled, the notification will remain until dismissed manually on the AWTRIX device.
+      default: true
+      selector:
+        boolean:
+    icon:
+      name: Icon 
+      description: The AWTRIX icon ID to display with the countdown. Not used if "No Icon" is selected in Icon Behavior.
+      selector:
+        text:
+      default: ""
+    push_icon:
+      name: Icon Behavior
+      description: Select how the icon should be displayed.
+      selector:
+        select:
+          options:
+            - label: "Icon doesn't move"
+              value: "0"
+            - label: "Icon moves with text"
+              value: "1"
+            - label: "Icon moves & reappears"
+              value: "2"
+            - label: "No Icon"
+              value: "3"
+          mode: dropdown
+      default: "0"
+    scroll_speed:
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+      default: 100
+    repeat_count:
+      name: Scroll Repeat Count
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
+    duration:
+      name: Duration (in seconds)
+      description: Sets how long the app should be displayed, IF not using Persistent Notification or Scroll counts.
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
+      default: 10
+    text_color:
+      name: Text Color (Optional)
+      description: Set a color for the text. Overridden by Rainbow Effect.
+      selector:
+        color_rgb: {}
+      default: [160, 160, 0]
+    text_case:
+      name: Text Case
+      description: Select how you would like your text to display.
+      selector:
+        select:
+          options:
+            - label: "Use global AWTRIX setting"
+              value: "0"
+            - label: "Force Uppercase"
+              value: "1"
+            - label: "Show as is (Default)"
+              value: "2"
+          mode: dropdown
+      default: "2"
+    text_color_gradient_start:
+      name: Text Color Gradient Start (Optional)
+      description: Set the starting color for the text gradient. Overridden by Rainbow Effect.
+      selector:
+        color_rgb: {}
+      default: [255, 0, 0]
+    text_color_gradient_end:
+      name: Text Color Gradient End (Optional)
+      description: Set the ending color for the text gradient. Overridden by Rainbow Effect.
+      selector:
+        color_rgb: {}
+      default: [0, 0, 255]
+    rainbow_effect:
+      name: Rainbow Effect
+      description: Enable to make the text cycle through rainbow colors.
+      default: false
+      selector:
+        boolean:
+    text_blink_speed:
+      name: Text Blink Speed
+      description: If set to a value greater than 0, the text will blink at the specified speed (in ms). Not compatible with gradient or rainbow.
+      selector:
+        number:
+          min: 0
+          max: 1000
+          step: 50
+          mode: slider
+      default: 0
+    text_fade_speed:
+      name: Text Fade Speed
+      description: If set to a value greater than 0, the text will fade in and out at the specified speed (in ms). Not compatible with gradient or rainbow.
+      selector:
+        number:
+          min: 0
+          max: 1000
+          step: 50
+          mode: slider
+      default: 0
+    background_color:
+      name: Background Color (Optional)
+      description: Set a color for the background. Overridden by Background Effect.
+      selector:
+        color_rgb: {}
+      default: [0, 0, 0]
+    effect:
+      name: Background Effect
+      description: The display effect to use for the background.
+      selector:
+        select:
+          options:
+            - "None"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
+            - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
+            - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
+
+variables:
+  # --- Inputs ---
+  awtrix_devices: !input awtrix
+  notification_text_entity: !input notification_text
+  notification_trigger_entity: !input notification_trigger_entity
+  persistent: !input persistent
+  icon: !input icon
+  push_icon: !input push_icon
+  scroll_speed: !input scroll_speed
+  repeat_count: !input repeat_count
+  duration: !input duration
+  text_case: !input text_case
+  text_color: !input text_color
+  text_color_gradient_start: !input text_color_gradient_start
+  text_color_gradient_end: !input text_color_gradient_end 
+  rainbow_effect: !input rainbow_effect
+  text_blink_speed: !input text_blink_speed
+  text_fade_speed: !input text_fade_speed
+  background_color: !input background_color
+  effect: !input effect
+
+trigger:
+  - platform: state
+    entity_id: !input notification_trigger_entity
+
+
+
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - variables:
+            device_topic: >-
+              {{ expand(device_entities(repeat.item)) | select('search', 'device_topic') | map(attribute='state') | first }}
+        - service: mqtt.publish
+          data:
+            topic: "{{ device_topic ~ '/notify/'}}"
+            payload: >-
+              {
+                "text": "{{ states(notification_text_entity) }}",
+                "hold": {{ persistent }}
+                {%- if push_icon != "3" %},
+                "icon": "{{ icon }}"
+                {%- endif %},
+                "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
+                "scrollSpeed": {{ scroll_speed }},
+                "repeat": {{ repeat_count }},
+                "duration": {{ duration }},
+                "textCase": {{ text_case }},
+                "gradient": [{{ text_color_gradient_start | tojson }}, {{ text_color_gradient_end | tojson }}],
+                "color": {{ text_color | tojson }},
+                "rainbow": {{ rainbow_effect | lower }},
+                "blinkSpeed": {{ text_blink_speed }},
+                "fadeSpeed": {{ text_fade_speed }},
+                "backgroundColor": {{ background_color | tojson }},
+                "effect": "{{ effect }}"
+              }
+
+mode: single
