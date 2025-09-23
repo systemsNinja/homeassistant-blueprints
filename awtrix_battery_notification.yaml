@@ -53,7 +53,7 @@ blueprint:
       selector:
         color_rgb:
 
-mode: single
+mode: single 
 
 trigger:
   - platform: state
