@@ -1,0 +1,82 @@
+blueprint:
+  name: Full Screen Icon App
+  description: >
+    Displays a full screen icon on an AWTRIX device for a specified duration.
+    App will auto remove after 10 minutes once the App automation is turned off.
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device(s)
+      description: Select the Awtrix light(s) you want to send the notification to.
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          model: AWTRIX 3
+          multiple: true
+    app_name:
+      name: Custom App Name
+      description: This is the app name listed in the MQTT topic. It should be unique.
+      selector:
+        text: {}
+      default: pacman
+    icon:
+      name: Icon
+      description: Fill in a full screen icon name that is on the AWTRIX device.
+      selector:
+        text:
+      default: "pacman2"
+    duration:
+      name: Duration (in seconds)
+      description: Sets how long the app or notification should be displayed.
+      default: "10"
+
+mode: restart
+
+variables:
+  icon: !input icon
+  duration: !input duration
+  app_name: !input app_name
+
+trigger:
+  - platform: time_pattern
+    minutes: /5
+
+condition: []
+
+action:
+  - variables:
+      device_ids: !input awtrix
+      app_topic: !input app_name
+      
+      payload_json: >
+        {
+          "lifetime": "600",
+          "lifetimeMode": "0",
+          "duration": {{ duration | int }},
+          "icon": {{ icon }}
+        }
+
+  - variables:
+      message_topics: >-
+        {%- macro get_device_topic(device_id) -%}
+          {{- states((device_entities(device_id) | select('search','device_topic') | list)[0]) -}}
+        {%- endmacro -%}
+        {%- set ns = namespace(devices=[]) -%}
+        {%- for device_id in device_ids -%}
+          {%- set device_topic = get_device_topic(device_id) | trim -%}
+          {%- if device_topic and device_topic not in ['unavailable', 'unknown'] -%}
+            {%- set ns.devices = ns.devices + [ device_topic ~ '/custom/' ~ app_name] -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {{ ns.devices | list }}
+
+  - repeat:
+      for_each: "{{ message_topics }}"
+      sequence:
+        - service: mqtt.publish
+          data:
+            qos: 0
+            retain: false
+            topic: "{{ repeat.item }}"
+            payload: "{{ payload_json }}"
