@@ -59,7 +59,7 @@ trigger:
   - platform: state
     entity_id: !input battery_sensor
 
-condition: []
+condition:
   - condition: numeric_state
     entity_id: sensor.minibyt_battery
     above: 0
