@@ -19,9 +19,9 @@ blueprint:
       description: Select the battery sensor to monitor.
       selector:
         entity:
-          device: !input awtrix_device
           domain: sensor
           device_class: battery
+          integration: mqtt
     active_threshold:
       name: Active Threshold
       description: The indicator will turn on when the battery is below this level.
