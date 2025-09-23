@@ -13,8 +13,8 @@ blueprint:
      - Highly customizable (colors, text case, icon behavior).
      - Works with multiple AWTRIX devices at the same time.
 
-    ## Prerequisites ##
-     - **AWTRIX Device**: An AWTRIX device running firmware v0.98.
+    ## ⚠️ REQUIREMENTS ⚠️
+     - **AWTRIX Device** running firmware v0.98+
      - **Spotify Integration**: For the progress bar to function correctly, you **must use** a `media_player` entity from the Spotify integration. Other media players might work for displaying text, but they often lack the required attributes (`media_position`, `media_duration`) for the progress bar.
 
   domain: automation

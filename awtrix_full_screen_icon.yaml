@@ -5,8 +5,10 @@ blueprint:
     App will auto remove after 10 minutes once the App automation is turned off.
 
     ## ⚠️ REQUIREMENTS ⚠️
-    1.  You need to download the icon you will use tom the device and upload it to your AWTRIX device.
-        - ex: pacman or pacman2 
+    1.  You need to download the icon you will use and upload it to your AWTRIX device.
+        - ex: pacman or pacman2 in my repo https://github.com/systemsNinja/homeassistant-blueprints/tree/main/icons 
+    ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/icon/pacman.gif)
+    ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/icon/pacman2.gif)
   domain: automation
   input:
     awtrix:

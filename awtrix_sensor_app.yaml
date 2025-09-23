@@ -3,6 +3,11 @@ blueprint:
   description: |
     This blueprint will show the value of a sensor or a specific attribute from that sensor on your AWTRIX device. You can optionally add static prefix and suffix text.
     If you want more than one sensor value displayed, simply create another automation from this blueprint with a unique App Name.
+    
+    ## ⚠️ REQUIREMENTS ⚠️
+
+    1. You need to upload any icon used here to your AWTRIX device.
+
   domain: automation
   input:
     awtrix:

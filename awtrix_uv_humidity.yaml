@@ -3,6 +3,7 @@ blueprint:
   description: |
     Display both a humidity value and the UV index on the AWTRIX device.
 
+    ## ⚠️ REQUIREMENTS ⚠️
     Supports readings from various integrations. 
 
     Humidity sensor reading is supported with Pirateweather and OpenWeather.

@@ -4,6 +4,7 @@ blueprint:
     Displays internal device statistics on a single AWTRIX Device display as a custom app.
     Select which stats to show (WiFi, Battery, RAM, Uptime, Version) and customize the appearance.
     
+    ## ⚠️ REQUIREMENTS ⚠️
     This blueprint requires your AWTRIX device to be integrated via MQTT.
   domain: automation
   author: SystemsNinja
