@@ -3,6 +3,10 @@ blueprint:
   description: >
     Displays a full screen icon on an AWTRIX device for a specified duration.
     App will auto remove after 10 minutes once the App automation is turned off.
+
+    ## ⚠️ REQUIREMENTS ⚠️
+    1.  You need to download the icon you will use tom the device and upload it to your AWTRIX device.
+        - ex: pacman or pacman2 
   domain: automation
   input:
     awtrix:

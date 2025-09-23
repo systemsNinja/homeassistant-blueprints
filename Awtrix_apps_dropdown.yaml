@@ -1,8 +1,17 @@
 blueprint:
   name: "AWTRIX Apps → Dropdown"
-  description: >
+  description: |
     Update an input_select dropdown with discovered AWTRIX apps
     from a selected AWTRIX Custom Apps sensor.
+    ## ⚠️ REQUIREMENTS ⚠️
+
+    1.  Create an input helper: input_select.awtrix_apps
+        - Go to Settings → Devices & Services → Helpers → Add Helper → Dropdown
+        - Name: AWTRIX Apps
+        - Options: You need to put at least one option here to create the entity.
+          You can put anything you want, as it will be replaced by the automation.
+        - Icon: mdi:apps
+        - Save
   domain: automation
   input:
     sensor_source:

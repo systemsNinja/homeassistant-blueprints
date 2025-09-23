@@ -4,6 +4,16 @@ blueprint:
     Displays a countdown to a selected date and time on an AWTRIX Light device.
     The countdown format changes as the event gets closer (days/hours -> hours/minutes -> minutes).
     When the event time is reached, it displays a custom message for a configurable duration and then removes the app.
+
+    ## ⚠️ REQUIREMENTS ⚠️
+    1.  Create an input helper: input_datetime.awtrix_countdown_date_time
+        - Go to Settings → Devices & Services → Helpers → Add Helper → Date and/or Time
+        - Name: AWTRIX Countdown Date Time
+        - Save
+    2.  Create an input helper: input_text.awtrix_countdown_event
+        - Go to Settings → Devices & Services → Helpers → Add Helper → Text
+        - Name: AWTRIX Countdown Event
+        - Save
   domain: automation
   input:
     awtrix:

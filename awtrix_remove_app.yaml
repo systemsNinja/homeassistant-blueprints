@@ -1,8 +1,16 @@
 blueprint:
   name: AWTRIX App Remover via Button
-  description: >-
+  description: |
     Removes a custom AWTRIX app when an input_button is pressed.
     The app to be removed is determined by the current state of an input_select entity.
+
+    ## ⚠️ REQUIREMENTS ⚠️
+
+    1.  You need to have the input helper: input_select.awtrix_apps
+        - This dropdown helper should be populated with the names of the custom apps on your AWTRIX device. Use the "AWTRIX Apps Dropdown" blueprint to automatically populate this dropdown.
+    2.  You need to create an input_button helper that will be used to trigger the removal of the selected app.
+        - Go to Settings → Devices & Services → Helpers → Add Helper → Button → Name it something "Awtrix Remove App" → Save 
+
   domain: automation
   input:
     awtrix_device:
