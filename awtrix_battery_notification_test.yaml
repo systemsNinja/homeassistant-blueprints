@@ -1,0 +1,108 @@
+blueprint:
+  name: AWTRIX Indicator for Battery Level
+  description: >
+    Monitors an AWTRIX battery sensor and controls the indicator light.
+    Two thresholds can be set for 'active' (e.g., yellow) and 'critical' (e.g., red, blinking) battery levels.
+  domain: automation
+  input:
+    awtrix_device:
+      name: AWTRIX Device
+      description: Select the Awtrix device you want to control.
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          model: AWTRIX 3
+    battery_sensor:
+      name: Battery Sensor
+      description: Select the battery sensor to monitor.
+      selector:
+        entity:
+          device: !input awtrix_device
+          domain: sensor
+          device_class: battery
+    active_threshold:
+      name: Active Threshold
+      description: The indicator will turn on when the battery is below this level.
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+    active_threshold_color:
+      name: Active Threshold Color
+      description: The color of the indicator for the 'active' state.
+      default: [255, 255, 0] # Yellow
+      selector:
+        color_rgb:
+    critical_threshold:
+      name: Critical Threshold
+      description: The indicator will change to the critical color and blink when below this level.
+      default: 25
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+    critical_threshold_color:
+      name: Critical Threshold Color
+      description: The color of the indicator for the 'critical' state.
+      default: [255, 0, 0] # Red
+      selector:
+        color_rgb:
+
+mode: single
+
+trigger:
+  - platform: state
+    entity_id: !input battery_sensor
+
+condition: []
+
+action:
+  # Step 1: Find the base MQTT topic for the selected device.
+  - variables:
+      device: !input awtrix_device
+      base_topic: >
+        {% set topic_entity = device_entities(device) | select('search', '_device_topic') | first %}
+        {{ states(topic_entity) if topic_entity else 'unknown' }}
+
+  # Step 2: Proceed only if the base topic was found.
+  - if:
+      - "{{ base_topic != 'unknown' }}"
+    then:
+      # Step 3: Define variables used in the actions.
+      - variables:
+          indicator_topic: "{{ base_topic }}/indicator1"
+          active_color: !input active_threshold_color
+          critical_color: !input critical_threshold_color
+
+      # Step 4: Choose the correct action based on the battery level.
+      - choose:
+          # Case 1: Battery is CRITICAL
+          - conditions:
+              - condition: numeric_state
+                entity_id: !input battery_sensor
+                below: !input critical_threshold
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: "{{ indicator_topic }}"
+                  payload: '{"color":{{ critical_color }},"blink":400}'
+          # Case 2: Battery is ACTIVE
+          - conditions:
+              - condition: numeric_state
+                entity_id: !input battery_sensor
+                below: !input active_threshold
+            sequence:
+              - service: mqtt.publish
+                data:
+                  topic: "{{ indicator_topic }}"
+                  payload: '{"color":{{ active_color }}}'
+        # Default Case: Battery is OK
+        default:
+          - service: mqtt.publish
+            data:
+              topic: "{{ indicator_topic }}"
+              payload: '{}'
