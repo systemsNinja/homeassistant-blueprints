@@ -59,13 +59,6 @@ trigger:
   - platform: state
     entity_id: !input battery_sensor
 
-condition:
-  - condition: numeric_state
-    entity_id: !input battery_sensor
-    above: 0
-    below: !input active_threshold
-
-
 action:
   # Step 1: Find the base MQTT topic for the selected device.
   - variables:
