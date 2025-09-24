@@ -15,8 +15,8 @@ blueprint:
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1.  **Spotify Integration:** You must have the official Spotify integration installed. 
-        [Spotify](https://www.home-assistant.io/integrations/spotify/) [![Add Spotify integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=spotify)
+    1.  **Spotify Integration:** You must have the official Spotify integration installed. [Spotify](https://www.home-assistant.io/integrations/spotify/) 
+        [![Add Spotify integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=spotify)
     2.  You **must use** a `media_player` entity from the Spotify integration. Other media players might work for displaying text, but they often lack the required attributes (`media_position`, `media_duration`) for the progress bar.
     3.  You need to upload any icon used here to your AWTRIX device. 
 

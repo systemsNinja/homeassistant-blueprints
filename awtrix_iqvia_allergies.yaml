@@ -9,8 +9,8 @@ blueprint:
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1.  **IQVIA Integration:** You must have the official IQVIA integration installed. 
-        [IQVIA](https://www.home-assistant.io/integrations/iqvia/) [![Add IQVIA integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=iqvia)
+    1.  **IQVIA Integration:** You must have the official IQVIA integration installed. [IQVIA](https://www.home-assistant.io/integrations/iqvia/) 
+        [![Add IQVIA integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=iqvia)
     2.  You need to upload any icon used here to your AWTRIX device.
 
   domain: automation

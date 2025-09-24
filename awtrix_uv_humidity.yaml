@@ -11,13 +11,12 @@ blueprint:
     UV index sensor reading is supported with OpenWeather.
     Hourly UV reading is supported with Pirateweather and OpenWeather.
 
-    **Pirate Weather** 
-    [Pirate Weather](https://docs.pirateweather.net/en/latest/ha/) 
+    **[Pirate Weather](https://docs.pirateweather.net/en/latest/ha/)** 
 
     or
     
-    **Openweather** 
-    [Openweather](https://www.home-assistant.io/integrations/openweathermap/) [![Add Openweather integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=openweathermap)
+    **[Openweather](https://www.home-assistant.io/integrations/openweathermap/)** 
+    [![Add Openweather integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=openweathermap)
 
   domain: automation
   input:

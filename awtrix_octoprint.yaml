@@ -9,8 +9,8 @@ blueprint:
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1.  **Octoprint Integration:** You must have the official Octoprint integration installed. 
-        [Octoprint](https://www.home-assistant.io/integrations/octoprint/) [![Add Octoprint integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=octoprint)
+    1.  **Octoprint Integration:** You must have the official Octoprint integration installed. [Octoprint](https://www.home-assistant.io/integrations/octoprint/) 
+        [![Add Octoprint integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=octoprint)
     2.  You need to upload any icon used here to your AWTRIX device. 
 
   domain: automation
