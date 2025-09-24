@@ -60,7 +60,7 @@ action:
           "lifetime": "600",
           "lifetimeMode": "0",
           "duration": {{ duration | int }},
-          "icon": "{{ icon }}""
+          "icon": "{{ icon }}"
         }
 
   - variables:
