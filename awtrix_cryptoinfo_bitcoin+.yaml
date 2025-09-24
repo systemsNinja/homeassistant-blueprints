@@ -6,7 +6,7 @@ blueprint:
     ## ⚠️ REQUIREMENTS ⚠️
 
     1. **Cryptoinfo:** You must have the official Cryptoinfo integration installed. 
-       [Cryptoinfo](https://www.home-assistant.io/integrations/cryptoinfo/) [![Add Cryptoinfo integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=cryptoinfo)
+       [Cryptoinfo](https://github.com/heyajohnny/cryptoinfo)
     2. You need to upload any icons used here to your AWTRIX device.
   domain: automation
   input:
