@@ -305,7 +305,7 @@ variables:
       "BRI": {{ wakeup_settings_bri }}, 
       "ABRI": {{ wakeup_settings_abri | lower }},
       "CHCOL": {{ wakeup_settings_calendar_header_color }},
-      "CCCOL": {{ wakeup_settings_calendar_color }},
+      "CBCOL": {{ wakeup_settings_calendar_color }},
       "CTCOL": {{ wakeup_settings_calendar_text_color }},
       "TMODE": {{ wakeup_calendar_style }},
       "TFORMAT": "{{ wakeup_time_format }}",
