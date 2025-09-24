@@ -5,8 +5,10 @@ blueprint:
     The status text will change color depending on the air quality level.
 
     ## ⚠️ REQUIREMENTS ⚠️
+
     1.  You need to have an AirNow.gov API key and set up the AirNow integration in Home Assistant.
         - Follow the instructions here: https://www.home-assistant.io/integrations/airnow/
+
   domain: automation
   input:
     awtrix:

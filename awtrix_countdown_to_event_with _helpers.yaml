@@ -6,6 +6,7 @@ blueprint:
     When the event time is reached, it displays a custom message for a configurable duration and then removes the app.
 
     ## ⚠️ REQUIREMENTS ⚠️
+
     1.  Create an input helper: input_datetime.awtrix_countdown_date_time
         - Go to Settings → Devices & Services → Helpers → Add Helper → Date and/or Time
         - Name: AWTRIX Countdown Date Time
@@ -14,6 +15,7 @@ blueprint:
         - Go to Settings → Devices & Services → Helpers → Add Helper → Text
         - Name: AWTRIX Countdown Event
         - Save
+    3. You need to upload any icon used here to your AWTRIX device.
   domain: automation
   input:
     awtrix:

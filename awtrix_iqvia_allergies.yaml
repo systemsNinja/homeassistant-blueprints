@@ -3,15 +3,15 @@ blueprint:
   description: |
     This blueprint displays the IQVIA allergy 'rating' on your AWTRIX Light device.
 
-    It automatically uses the 'rating' attribute from 'sensor.allergy_index_today'.
+    It automatically uses the 'rating' attribute from `sensor.allergy_index_today`.
     The text color and icon change dynamically based on the allergy level.
-    Includes an optional toggle to show colored forecast bars for today and tomorrow.
+    Includes an optional toggle to show colored forecast bars for today and tomorrow. Tomorrow uses `sensor.allergy_index_tomorrow`.
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1.  **IQVIA Integration:** You must have the official IQVIA integration installed.
-    2.  **Sensors:** Requires `sensor.allergy_index_today`. If using the forecast feature, `sensor.allergy_index_tomorrow` is also required.
-    3.  **Custom Icons:** You must upload any custom icons used in the options to your AWTRIX Light device.
+    1.  **IQVIA Integration:** You must have the official IQVIA integration installed. 
+        [IQVIA](https://www.home-assistant.io/integrations/iqvia/) [![Add IQVIA integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=iqvia)
+    2.  You need to upload any icon used here to your AWTRIX device.
 
   domain: automation
   input:
