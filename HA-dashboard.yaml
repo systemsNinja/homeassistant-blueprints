@@ -1,271 +1,326 @@
-# Notification Card stack for AWTRIX
-type: vertical-stack
+    ## ⚠️ REQUIREMENTS ⚠️
+    ## custom button-card https://github.com/custom-cards/button-card
+    ## mushroom cards https://github.com/piitaya/lovelace-mushroom
+    ## browser mod https://github.com/thomasloven/hass-browser_mod
+
+# Notification and Controls Card stacks for AWTRIX
+square: false
+type: grid
+columns: 1
 cards:
+  - type: heading
+    icon: mdi:remote
+    heading: Notifications
+    heading_style: title
   - type: entities
     entities:
       - entity: input_text.awtrix_notification
-  - type: horizontal-stack
+  - type: grid
+    columns: 3
+    square: false
     cards:
-      - show_name: false
+      - type: button
+        name: Send
+        show_name: true
         show_icon: true
-        type: button
         entity: input_button.awtrix_notification_send
         icon: mdi:bell-ring-outline
         tap_action:
           action: toggle
+      - type: button
+        name: Dismiss
+        show_name: true
+        show_icon: true
+        entity: button.minibyt_dismiss_notification
+        icon: mdi:bell-check-outline
+        tap_action:
+          action: toggle
+      - type: button
+        name: Settings
+        show_name: true
+        show_icon: true
+        show_state: false
+        icon: mdi:cog-outline
+        tap_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1757961813188
+  - type: heading
+    icon: mdi:remote
+    heading: Controls
+    heading_style: title
+  - square: false
+    type: grid
+    cards:
       - show_name: false
         show_icon: true
         type: button
-        icon: mdi:bell-check-outline
-        entity: button.minibyt_dismiss_notification
+        entity: button.minibyt_previous_app
         tap_action:
           action: toggle
-  - show_name: true
-    show_icon: false
-    type: button
-    entity: automation.awtrix_notifications
-    tap_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1757961813188
-    name: Edit Notification Settings
-grid_options:
-  columns: full
-  rows: 6
-title: Notification
+        icon_height: 50px
+      - show_name: false
+        show_icon: true
+        type: button
+        entity: button.minibyt_next_app
+        show_state: false
+        tap_action:
+          action: toggle
+        icon_height: 50px
+      - type: custom:mushroom-select-card
+        entity: select.minibyt_transition_effect
+        layout: vertical
+        secondary_info: none
+        name: Transition Effect
+        icon_type: icon
+        tap_action:
+          action: none
+        fill_container: true
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: switch.minibyt_transition
+        name: App rotation
+      - type: custom:mushroom-light-card
+        entity: light.minibyt_matrix
+        show_brightness_control: true
+        icon: mdi:brightness-percent
+        show_color_temp_control: true
+        layout: vertical
+        fill_container: true
+        secondary_info: none
+        name: Brightness
+      - show_name: true
+        show_icon: true
+        type: button
+        tap_action:
+          action: perform-action
+          perform_action: mqtt.publish
+          target: {}
+          data:
+            topic: Minibyt/reboot
+        icon: mdi:restart-alert
+        name: Reboot
+      - type: custom:mushroom-select-card
+        entity: input_select.awtrix_apps
+        name: Apps
+        layout: vertical
+        secondary_info: none
+        fill_container: true
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: input_button.awtrix_app_remove
+        tap_action:
+          action: toggle
+        name: Remove Selected App
+        icon_height: 75px
+        icon: mdi:delete-sweep-outline
+    columns: 2
+    grid_options:
+      columns: full
+      rows: auto
 
-# Countdown Card stack for AWTRIX
-type: vertical-stack
-cards:
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_countdown_to_date_time_with_helpers
-    icon_height: 40px
-    icon: mdi:calendar-clock-outline
-    show_state: false
-    name: "Helper based Countdown:"
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1757707208824
-  - type: entities
-    entities:
-      - entity: input_datetime.awtrix_countdown_date_time
-      - entity: input_text.awtrix_countdown_event
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_countdown_to_date_time
-    icon: mdi:calendar-clock-outline
-    name: Automation Based Countdown
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756247149758
-title: Countdown Apps
 
-# Apps Card Stack for Awtrix
+#Apps card stack. The navigation_path in each button needs to be updated to match your automation entity ID.
 square: false
 type: grid
-columns: 2
+columns: 1
 cards:
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_cryptoinfo_bitcoin
-    icon: mdi:bitcoin
-    name: Bitcoin
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756247163525
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_night_clock
-    icon: mdi:weather-night
-    name: Night Clock
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756344721902
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_aqi_airnow_text_accuweather_forecast
-    icon: mdi:air-filter
-    name: AQI
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756246994997
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_iqvia_allergy_app
-    icon: mdi:flower-pollen
-    name: Allergy
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1757354455350
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_uv_humidity
-    icon: mdi:sun-wireless-outline
-    name: Hum & UV
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756247337669
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_weather_forecast_service_calls
-    icon: mdi:weather-partly-cloudy
-    name: Weather
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756247383729
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_now_playing_with_progress_bar
-    icon: mdi:music
-    name: Now Playing
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756247234169
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_youtube_app
-    icon: mdi:youtube
-    name: Youtube
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1757354351029
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_full_screen_icon_app_pacman
-    icon: mdi:pac-man
-    name: Pacman
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1758639716389
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_random_effect
-    icon: mdi:shuffle-variant
-    name: Effects
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756247243473
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_octoprint_3d_print_status
-    icon: mdi:printer-3d-nozzle-outline
-    name: Octoprint
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1758638634987
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_sensor_or_sensor_attribute_app_fitbit_steps
-    icon: mdi:shoe-print
-    name: Fitbit Sensor
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1758641848731
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_battery_notification_indicator
-    icon: mdi:battery-alert-variant-outline
-    name: Battery notification
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1758646073810
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: automation.awtrix_device_self_stats
-    icon: mdi:chart-bar
-    name: Stats
-    icon_height: 60px
-    hold_action:
-      action: navigate
-      navigation_path: /config/automation/edit/1756247191619
-title: Apps
+  - type: heading
+    icon: mdi:apps
+    heading: Apps
+    heading_style: title
+  - square: false
+    type: grid
+    columns: 2
+    cards:
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_cryptoinfo_bitcoin
+        icon: mdi:bitcoin
+        name: Bitcoin
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756247163525
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_night_clock
+        icon: mdi:weather-night
+        name: Night Clock
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756344721902
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_aqi_airnow_text_accuweather_forecast
+        icon: mdi:air-filter
+        name: AQI
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756246994997
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_iqvia_allergy_app
+        icon: mdi:flower-pollen
+        name: Allergy
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1757354455350
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_uv_humidity
+        icon: mdi:sun-wireless-outline
+        name: Hum & UV
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756247337669
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_weather_forecast_service_calls
+        icon: mdi:weather-partly-cloudy
+        name: Weather
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756247383729
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_now_playing_with_progress_bar
+        icon: mdi:music
+        name: Now Playing
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756247234169
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_youtube_app
+        icon: mdi:youtube
+        name: Youtube
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1757354351029
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_full_screen_icon_app_pacman
+        icon: mdi:pac-man
+        name: Pacman
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1758639716389
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_random_effect
+        icon: mdi:shuffle-variant
+        name: Effects
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756247243473
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_octoprint_3d_print_status
+        icon: mdi:printer-3d-nozzle-outline
+        name: Octoprint
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1758638634987
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_sensor_or_sensor_attribute_app_fitbit_steps
+        icon: mdi:shoe-print
+        name: Fitbit Sensor
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1758641848731
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_battery_notification_indicator
+        icon: mdi:battery-alert-variant-outline
+        name: Battery notification
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1758646073810
+      - show_name: true
+        show_icon: true
+        type: button
+        entity: automation.awtrix_device_self_stats
+        icon: mdi:chart-bar
+        name: Stats
+        icon_height: 40px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756247191619
+      - type: custom:button-card
+        color_type: icon
+        name: Countdown
+        entity: automation.awtrix_countdown_to_date_time
+        icon: mdi:calendar-clock-outline
+        size: 25%
+        styles:
+          card:
+            - height: 90px
+          label:
+            - color: gray
+            - font-size: 9px
+            - justify-self: center
+            - padding: 0px 5px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1756247149758
+      - type: custom:button-card
+        color_type: icon
+        name: Helper Countdown
+        entity: automation.awtrix_countdown_to_date_time_with_helpers
+        label: Double Tap For Helpers
+        show_label: true
+        icon: mdi:calendar-clock-outline
+        size: 25%
+        styles:
+          card:
+            - height: 90px
+          label:
+            - color: gray
+            - font-size: 9px
+            - justify-self: center
+            - padding: 0px 5px
+        hold_action:
+          action: navigate
+          navigation_path: /config/automation/edit/1757707208824
+        double_tap_action:
+          action: fire-dom-event
+          browser_mod:
+            service: browser_mod.popup
+            data:
+              title: Countdown Helpers
+              content:
+                type: vertical-stack
+                cards:
+                  - type: entities
+                    entities:
+                      - entity: input_datetime.awtrix_countdown_date_time
+                      - entity: input_text.awtrix_countdown_event
 
-# Control Card stack for Awtrix
-square: false
-type: grid
-cards:
-  - show_name: false
-    show_icon: true
-    type: button
-    entity: button.minibyt_previous_app
-    tap_action:
-      action: toggle
-  - type: custom:mushroom-select-card
-    entity: select.minibyt_transition_effect
-    layout: vertical
-    secondary_info: none
-    name: Transition Effect
-    icon_type: icon
-    tap_action:
-      action: none
-    fill_container: true
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: switch.minibyt_transition
-    name: App rotation
-  - show_name: false
-    show_icon: true
-    type: button
-    entity: button.minibyt_next_app
-    show_state: false
-    tap_action:
-      action: toggle
-title: Controls
-columns: 4
-grid_options:
-  columns: full
-  rows: auto
-
-# Remove Apps Card stack for Awtrix
-square: false
-type: grid
-cards:
-  - type: custom:mushroom-select-card
-    entity: input_select.awtrix_apps
-    layout: vertical
-    fill_container: false
-    secondary_info: none
-  - show_name: true
-    show_icon: true
-    type: button
-    entity: input_button.awtrix_remove_app
-    tap_action:
-      action: toggle
-    name: Remove Selected App
-    icon_height: 45px
-title: Remove Apps
-grid_options:
-  columns: 24
-  rows: 3
-columns: 2

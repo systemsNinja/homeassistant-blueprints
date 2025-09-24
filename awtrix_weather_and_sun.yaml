@@ -19,12 +19,15 @@ blueprint:
         - [Pirate Weather](https://docs.pirateweather.net/en/latest/ha/)  
         or
         - [Openweather](https://www.home-assistant.io/integrations/openweathermap/) 
+
           [![Add Openweather integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=openweathermap)
         or
         - [tomorrow.io](https://www.home-assistant.io/integrations/tomorrowio/) 
+
           [![Add Tomorrow.io integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=tomorrowio)
 
     2.  **Sun Integration:** You must have the official Sun integration installed. [Sun](https://www.home-assistant.io/integrations/sun/) 
+
         [![Add Sun integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=sun)
     
     3.  You need to upload any icon used here to your AWTRIX device. 
