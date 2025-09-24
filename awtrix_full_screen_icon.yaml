@@ -1,6 +1,6 @@
 blueprint:
   name: AWTRIX Full Screen Icon App
-  description: >
+  description: |
     Displays a full screen icon on an AWTRIX device for a specified duration.
     App will auto remove after 10 minutes once the App automation is turned off.
 
@@ -8,7 +8,9 @@ blueprint:
 
     1.  You need to upload any icon used here to your AWTRIX device.
         - ex: pacman or pacman2 in my repo https://github.com/systemsNinja/homeassistant-blueprints/tree/main/icons 
+
     ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/icons/pacman.gif)
+
     ![](https://raw.githubusercontent.com/systemsNinja/homeassistant-blueprints/master/icons/pacman2.gif)
   domain: automation
   input:

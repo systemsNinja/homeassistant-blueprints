@@ -7,9 +7,9 @@ blueprint:
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1. You need the sun integration in home assistant
-
-    2. You need to upload all icons used here to your AWTRIX device.
+    1.  **Sun Integration:** You must have the official Sun integration installed.
+        [Sun](https://www.home-assistant.io/integrations/sun/) [![Add Sun integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=sun)
+    2.  You need to upload any icon used here to your AWTRIX device.
   domain: automation
   input:
     awtrix:

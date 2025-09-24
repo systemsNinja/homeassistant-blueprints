@@ -1,8 +1,9 @@
 blueprint:
   name: AWTRIX Battery Notification Indicator
-  description: >
+  description: |
     Monitors an AWTRIX battery sensor and controls the indicator light.
     Two thresholds can be set for 'active' (e.g., yellow) and 'critical' (e.g., red, blinking) battery levels.
+
   domain: automation
   input:
     awtrix_device:

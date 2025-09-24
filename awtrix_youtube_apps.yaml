@@ -6,12 +6,15 @@ blueprint:
     The automation updates the device(s) on a regular interval that you define. If you disable an app's toggle, it will be automatically removed from the AWTRIX device on the next update.
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1.  Youtube Integration: You must have the [YouTube integration](https://www.home-assistant.io/integrations/youtube/) set up in Home Assistant to create sensors for your channel's statistics. You are only able to get view and subscribers.
-      OR
-    2.  Rest API or Template Sensors: You can use REST API sensors to get the subscriber count, view count, and video count if you prefer not to use the YouTube integration. Here you get views, subscribers and video count.
+    1.  **Youtube Integration:** You must have the official Sun integration installed.
+        [YouTube](https://www.home-assistant.io/integrations/sun/) [![Add Sun integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=sun)
+    
+        OR
+       
+        Rest API or Template Sensors: You can use REST API sensors to get the subscriber count, view count, and video count if you prefer not to use the YouTube integration. Here you get views, subscribers and video count.
         You will need your channel ID and an API key. 
         I used this guide to create the API key: https://www.getphyllo.com/post/how-to-get-youtube-api-key
-        
+         
         Once you have the channel ID and an API key, go to configuration.yaml and create rest sensors:
         rest:
           - resource: "https://www.googleapis.com/youtube/v3/channels?part=statistics&id=[CHANNEL_ID]&key=[API_KEY]"
@@ -35,6 +38,8 @@ blueprint:
                 icon: mdi:video
                 value_template: >-
                   {{ value_json['items'][0]['statistics']['videoCount'] | default('unavailable') }}
+    
+     2.  You need to upload any icon used here to your AWTRIX device.
   domain: automation
   input:
     awtrix:

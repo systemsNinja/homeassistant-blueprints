@@ -1,7 +1,8 @@
 blueprint:
   name: AWTRIX AQI (AirNow Text + AccuWeather Forecast)
-  description: >
+  description: |
     Displays a human-friendly AQI status from AirNow.gov and a 5-day forecast color-coded by AccuWeather's text descriptions.
+
     The status text will change color depending on the air quality level.
   domain: automation
   input:

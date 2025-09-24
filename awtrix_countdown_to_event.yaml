@@ -8,6 +8,7 @@ blueprint:
     ## ⚠️ REQUIREMENTS ⚠️
 
     1. You need to upload any icon used here to your AWTRIX device.
+
   domain: automation
   input:
     awtrix:

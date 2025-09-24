@@ -4,14 +4,20 @@ blueprint:
     Display both a humidity value and the UV index on the AWTRIX device.
 
     ## ⚠️ REQUIREMENTS ⚠️
+
     Supports readings from various integrations. 
 
     Humidity sensor reading is supported with Pirateweather and OpenWeather.
     UV index sensor reading is supported with OpenWeather.
     Hourly UV reading is supported with Pirateweather and OpenWeather.
 
-      - [Pirate Weather](https://docs.pirateweather.net/en/latest/ha/)  
-      - [Openweather](https://www.home-assistant.io/integrations/openweathermap/) 
+    **Pirate Weather** 
+    [Pirate Weather](https://docs.pirateweather.net/en/latest/ha/) 
+
+    or
+    
+    **Openweather** 
+    [Openweather](https://www.home-assistant.io/integrations/openweathermap/) [![Add Openweather integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=openweathermap)
 
   domain: automation
   input:

@@ -5,6 +5,7 @@ blueprint:
     Various display options are configurable, including icon, scrolling speed, text effects, and background effects, etc. The notification can be set to persist until dismissed.
 
     ## ⚠️ REQUIREMENTS ⚠️
+
     1.  You need to have the input helper: input_text.awtrix_notification which will hold the text for the notification.
         - Go to Settings → Devices & Services → Helpers → Add Helper → Text
         - Name: Awtrix notification

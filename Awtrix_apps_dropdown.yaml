@@ -12,6 +12,7 @@ blueprint:
           You can put anything you want, as it will be replaced by the automation.
         - Icon: mdi:apps
         - Save
+
   domain: automation
   input:
     sensor_source:

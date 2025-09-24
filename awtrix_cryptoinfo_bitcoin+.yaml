@@ -5,9 +5,10 @@ blueprint:
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1. **Cryptoinfo:** You must have the official Cryptoinfo integration installed. 
-       [Cryptoinfo](https://github.com/heyajohnny/cryptoinfo)
-    2. You need to upload any icons used here to your AWTRIX device.
+    1.  **Cryptoinfo:** You must have the official Cryptoinfo integration installed. 
+        - [Cryptoinfo](https://github.com/heyajohnny/cryptoinfo)
+    2.  You need to upload any icons used here to your AWTRIX device.
+
   domain: automation
   input:
     awtrix:

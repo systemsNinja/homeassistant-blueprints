@@ -5,7 +5,9 @@ blueprint:
     Select which stats to show (WiFi, Battery, RAM, Uptime, Version) and customize the appearance.
     
     ## ⚠️ REQUIREMENTS ⚠️
+
     This blueprint requires your AWTRIX device to be integrated via MQTT.
+
   domain: automation
   author: SystemsNinja
   input:

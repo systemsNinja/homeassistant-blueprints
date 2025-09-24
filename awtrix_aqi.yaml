@@ -1,6 +1,6 @@
 blueprint:
   name: AWTRIX AQI (AirNow Text)
-  description: >
+  description: |
     Displays a human-friendly AQI status from AirNow.gov
     The status text will change color depending on the air quality level.
 

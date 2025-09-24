@@ -13,14 +13,19 @@ blueprint:
 
     ## ⚠️ REQUIREMENTS ⚠️
 
-    1. You will need one of the mentioned weather integrations that support hourly forecast:
-       - Openweathermap 
-       - Pirateweather 
-       - tomorrow.io 
+    1.  You need to have an AirNow.gov API key and set up the AirNow integration in Home Assistant.
+        - Follow the instructions here: https://www.home-assistant.io/integrations/airnow/
+    1.  You will need one of the mentioned weather integrations that support hourly forecast:
+        - [Pirate Weather](https://docs.pirateweather.net/en/latest/ha/)  
+        or
+        - [Openweather](https://www.home-assistant.io/integrations/openweathermap/) [![Add Openweather integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=openweathermap)
+        or
+        - [tomorrow.io](https://www.home-assistant.io/integrations/tomorrowio/) [![Add Tomorrow.io integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=tomorrowio)
 
-    2. You need the sun integration in home assistant
+    2.  **Sun Integration:** You must have the official Sun integration installed.
+        [Sun](https://www.home-assistant.io/integrations/sun/) [![Add Sun integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=sun)
     
-    3. You need to upload all icons used here to your AWTRIX device.
+    3.  You need to upload any icon used here to your AWTRIX device. 
 
   domain: automation
   input:
