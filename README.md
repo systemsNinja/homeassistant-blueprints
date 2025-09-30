@@ -1,4 +1,4 @@
-Some of these blueprints came from me, while others were adapted or adjusted from other peopls work.  
+Some of these blueprints came from me, while others were adapted or adjusted from other people's work.  
 They took quite a bit of time to perfect and test. I’ve been running them for a few weeks now and everything seems to work reliably.  
 
 All of these blueprints are configurable in some regard — whether it’s choosing the icon, color, update frequency, sensors, etc. 
@@ -17,7 +17,6 @@ Enjoy! 🚀
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_iqvia_allergies.yaml) | **Allergies App**: Shows allergen level from IQVIA integration |
 
 ### Countdowns
-
 | Import | Description |
 |--------|-------------|
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_countdown_to_event.yaml) | **Countdown App (Automation)**: Shows a countdown to an event set in the automation |
@@ -25,14 +24,12 @@ Enjoy! 🚀
 
 
 ### Effects
-
 | Import | Description |
 |--------|-------------|
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_effects.yaml) | **Effects App**: Shows random AWTRIX effects |
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_full_screen_icon.yaml) | **Full Screen GIF App**: Displays a chosen 8x32 pixel GIF |
 
 ### Others
-
 | Import | Description |
 |--------|-------------|
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_cryptoinfo_bitcoin%2B.yaml) | **Crypto App**: Shows value of Cryptos from CryptoInfo integration |
@@ -44,13 +41,11 @@ Enjoy! 🚀
 
 
 ### Notifications
-
 | Import | Description |
 |--------|-------------|
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_notifications.yaml) | **Custom Notification App**: Configurable notifications with HA Helpers |
 
 ### Utilities
-
 | Import | Description |
 |--------|-------------|
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_battery_notification.yaml) | **Battery Notification**: Shows indicator for when the AWTRIX battery goes below 2 thresholds |
