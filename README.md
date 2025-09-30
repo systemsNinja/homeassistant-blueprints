@@ -1,8 +1,12 @@
+# My collection of blueprints #
+
 Some of these blueprints came from me, while others were adapted or adjusted from other people's work.  
 They took quite a bit of time to perfect and test. I’ve been running them for a few weeks now and everything seems to work reliably.  
 
-All of these blueprints are configurable in some regard — whether it’s choosing the icon, color, update frequency, sensors, etc. 
-Each blueprint also comes with its own description, instructions, and prerequisites inside the YAML so you’ll know exactly how to use it.  
+#### All of these blueprints are configurable in some regard — whether it’s choosing the icon, color, update frequency, sensors, etc. ####
+
+## Each blueprint also comes with its own description, instructions, and prerequisites inside the blueprint. ##
+### Read them when importing the blueprint ###
 
 Enjoy! 🚀
 
@@ -16,7 +20,7 @@ Enjoy! 🚀
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_aqi.yaml) | **AQI App**: Shows Air Quality Index from AirNow integration |
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_iqvia_allergies.yaml) | **Allergies App**: Shows allergen level from IQVIA integration |
 
-### Countdowns
+### Countdown to Event
 | Import | Description |
 |--------|-------------|
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_countdown_to_event.yaml) | **Countdown App (Automation)**: Shows a countdown to an event set in the automation |
@@ -27,7 +31,7 @@ Enjoy! 🚀
 | Import | Description |
 |--------|-------------|
 | [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_effects.yaml) | **Effects App**: Shows random AWTRIX effects |
-| [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_full_screen_icon.yaml) | **Full Screen GIF App**: Displays a chosen 8x32 pixel GIF |
+| [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_full_screen_gif.yaml) | **Full Screen GIF App**: Displays a chosen 8x32 pixel GIF |
 
 ### Others
 | Import | Description |
