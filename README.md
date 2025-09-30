@@ -1,4 +1,4 @@
-# My collection of blueprints #
+# My collection of AWTRIX Apps (Blueprints) #
 
 Some of these blueprints came from me, while others were adapted or adjusted from other people's work.  
 They took quite a bit of time to perfect and test. I’ve been running them for a few weeks now and everything seems to work reliably.  
