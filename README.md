@@ -4,7 +4,7 @@
 
 - [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_countdown_to_event.yaml) **Countdown App (Automation)**: Shows a countdown to an event set in the automation  
 
-- [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_countdown_to_event_with%20_helpers.yaml) **Countdown App (HA Helpers)**: Shows a countdown to an event set in HA Helpers  
+- [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_countdown_to_event_with%2520_helpers.yaml) **Countdown App (HA Helpers)**: Shows a countdown to an event set in HA Helpers  
 
 - [![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FsystemsNinja%2Fhomeassistant-blueprints%2Fblob%2Fmain%2Fawtrix_cryptoinfo_bitcoin%2B.yaml) **Crypto App**: Shows value of Cryptos from CryptoInfo integration  
 
