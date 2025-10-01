@@ -1,3 +1,6 @@
+# Full guide avilable on my site 
+[ewwbananas](https://sites.google.com/view/ewwbananas/my-projects/awtrix) 
+
 # My collection of AWTRIX Apps (Blueprints) #
 
 Some of these blueprints came from me, while others were adapted or adjusted from other people's work.  
