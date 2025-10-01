@@ -23,6 +23,7 @@ cards:
         name: Send
         show_name: true
         show_icon: true
+#MAYBE NEEDS A CHANGE: input helper you created for the notification blueprint, you MAY need to change it to match your entity ID
         entity: input_button.awtrix_notification_send
         icon: mdi:bell-ring-outline
         tap_action:
@@ -31,6 +32,7 @@ cards:
         name: Dismiss
         show_name: true
         show_icon: true
+#NEEDS A CHANGE: Dismiss notification button created by the AWTRIX integration is here, change it to match your entity ID
         entity: button.minibyt_dismiss_notification
         icon: mdi:bell-check-outline
         tap_action:
@@ -43,6 +45,7 @@ cards:
         icon: mdi:cog-outline
         tap_action:
           action: navigate
+#NEEDS A CHANGE: this is the path to your notification automation entity, change it to match your path
           navigation_path: /config/automation/edit/1757961813188
   - type: heading
     icon: mdi:remote
@@ -54,6 +57,7 @@ cards:
       - show_name: false
         show_icon: true
         type: button
+#NEEDS A CHANGE: Previous app button created by the AWTRIX integration is here, change it to match your entity ID
         entity: button.minibyt_previous_app
         tap_action:
           action: toggle
@@ -61,12 +65,14 @@ cards:
       - show_name: false
         show_icon: true
         type: button
+#NEEDS A CHANGE: Next app button created by the AWTRIX integration is here, change it to match your entity ID
         entity: button.minibyt_next_app
         show_state: false
         tap_action:
           action: toggle
         icon_height: 50px
       - type: custom:mushroom-select-card
+#NEEDS A CHANGE: Transition effect select created by the AWTRIX integration is here, change it to match your entity ID
         entity: select.minibyt_transition_effect
         layout: vertical
         secondary_info: none
@@ -78,9 +84,11 @@ cards:
       - show_name: true
         show_icon: true
         type: button
+#NEEDS A CHANGE: Transition effect toggle created by the AWTRIX integration is here, change it to match your entity ID
         entity: switch.minibyt_transition
         name: App rotation
       - type: custom:mushroom-light-card
+#NEEDS A CHANGE: Brightness control created by the AWTRIX integration is here, change it to match your entity ID
         entity: light.minibyt_matrix
         show_brightness_control: true
         icon: mdi:brightness-percent
@@ -97,10 +105,12 @@ cards:
           perform_action: mqtt.publish
           target: {}
           data:
+#NEEDS A CHANGE: Reboot command topic. Change "Minibyt" to match the the topic of your device. You can check your device topic in the AWTRIX integration settings.
             topic: Minibyt/reboot
         icon: mdi:restart-alert
         name: Reboot
       - type: custom:mushroom-select-card
+#MAYBE NEEDS A CHANGE: App select input helper you created for the app blueprint, you MAY need to change it to match your entity ID
         entity: input_select.awtrix_apps
         name: Apps
         layout: vertical
@@ -109,6 +119,7 @@ cards:
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: App remove input helper you created for the app blueprint, you MAY need to change it to match your entity ID
         entity: input_button.awtrix_app_remove
         tap_action:
           action: toggle
@@ -137,146 +148,176 @@ cards:
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_cryptoinfo_bitcoin
         icon: mdi:bitcoin
         name: Bitcoin
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756247163525
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_night_clock
         icon: mdi:weather-night
         name: Night Clock
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756344721902
       - show_name: true
         show_icon: true
         type: button
-        entity: automation.awtrix_aqi_airnow_text_accuweather_forecast
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
+        entity: automation.awtrix_aqi_airnow_text
         icon: mdi:air-filter
         name: AQI
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756246994997
       - show_name: true
         show_icon: true
         type: button
+
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_iqvia_allergy_app
         icon: mdi:flower-pollen
         name: Allergy
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1757354455350
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_uv_humidity
         icon: mdi:sun-wireless-outline
         name: Hum & UV
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756247337669
       - show_name: true
         show_icon: true
         type: button
-        entity: automation.awtrix_weather_forecast_service_calls
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
+        entity: automation.awtrix_weather_forecast_sunrise_and_sunset_optional
         icon: mdi:weather-partly-cloudy
         name: Weather
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756247383729
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_now_playing_with_progress_bar
         icon: mdi:music
         name: Now Playing
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756247234169
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_youtube_app
         icon: mdi:youtube
         name: Youtube
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1757354351029
       - show_name: true
         show_icon: true
         type: button
-        entity: automation.awtrix_full_screen_icon_app_pacman
+#MAYBE NEEDS A CHANGE: I added pacman to the name when creating the automation from the blueprint, if you did too it should be the same as below.
+        entity: automation.awtrix_full_screen_gif_app_pacman
         icon: mdi:pac-man
         name: Pacman
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1758639716389
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_random_effect
         icon: mdi:shuffle-variant
         name: Effects
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756247243473
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_octoprint_3d_print_status
         icon: mdi:printer-3d-nozzle-outline
         name: Octoprint
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1758638634987
       - show_name: true
         show_icon: true
         type: button
+#NEEDS A CHANGEL: This is the sensor or sensor attribute app blueprint. I used mine for fitbit steps. You change yours to whatever you are using yours for, otherwise remove it.
         entity: automation.awtrix_sensor_or_sensor_attribute_app_fitbit_steps
         icon: mdi:shoe-print
         name: Fitbit Sensor
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1758641848731
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_battery_notification_indicator
         icon: mdi:battery-alert-variant-outline
         name: Battery notification
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1758646073810
       - show_name: true
         show_icon: true
         type: button
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_device_self_stats
         icon: mdi:chart-bar
         name: Stats
         icon_height: 40px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756247191619
       - type: custom:button-card
         color_type: icon
         name: Countdown
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_countdown_to_date_time
         icon: mdi:calendar-clock-outline
         size: 25%
@@ -290,10 +331,12 @@ cards:
             - padding: 0px 5px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1756247149758
       - type: custom:button-card
         color_type: icon
         name: Helper Countdown
+#MAYBE NEEDS A CHANGE: If you didnt change it when creatig the automation from the blueprint it should be the same as below.
         entity: automation.awtrix_countdown_to_date_time_with_helpers
         label: Double Tap For Helpers
         show_label: true
@@ -309,6 +352,7 @@ cards:
             - padding: 0px 5px
         hold_action:
           action: navigate
+#NEEDS A CHANGE: Change the navigation_path to match your automation entity ID
           navigation_path: /config/automation/edit/1757707208824
         double_tap_action:
           action: fire-dom-event
@@ -321,6 +365,7 @@ cards:
                 cards:
                   - type: entities
                     entities:
+#MAYBE NEEDS A CHANGE: These are the input helpers you created for the countdown blueprint, you MAY need to change them to match your entity IDs
                       - entity: input_datetime.awtrix_countdown_date_time
                       - entity: input_text.awtrix_countdown_event
 
