@@ -1,7 +1,7 @@
 blueprint:
   name: AWTRIX Full Screen Icon App
   description: |
-    Displays a full screen icon on an AWTRIX device for a specified duration.
+    Displays a full screen icon on an AWTRIX device for a specified duration. This automation will run every 5 minutes to keep the app alive or if you have rebooted your device it will recreate the app after a max of 5 minutes.
     App will auto remove after 10 minutes once the App automation is turned off.
 
     ## ⚠️ REQUIREMENTS ⚠️
