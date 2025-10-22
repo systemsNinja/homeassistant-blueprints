@@ -262,17 +262,49 @@ action:
             entity_id: !input media_player
             state: "playing"
         sequence:
-          - repeat:
-              for_each: "{{ awtrix_devices_topics }}"
-              sequence:
-                - service: mqtt.publish
-                  data:
-                    qos: 0
-                    retain: false
-                    topic: "{{ repeat.item ~ '/' ~ display_type ~ ('/mediaplayer' if display_type == 'custom' else '') }}"
-                    payload: "{{ payload_content }}"
+          # This new 'choose' block is the fix.
+          # It decides *if* we should send an update while playing.
+          - choose:
+              # OPTION 1.1: CUSTOM APP MODE
+              # If it's a custom app, we *always* send an update
+              # to refresh the text and progress bar.
+              - conditions:
+                  - condition: template
+                    value_template: "{{ display_type == 'custom' }}"
+                sequence:
+                  - repeat:
+                      for_each: "{{ awtrix_devices_topics }}"
+                      sequence:
+                        - service: mqtt.publish
+                          data:
+                            qos: 0
+                            retain: false
+                            topic: "{{ repeat.item ~ '/' ~ display_type ~ ('/mediaplayer' if display_type == 'custom' else '') }}"
+                            payload: "{{ payload_content }}"
+
+              # OPTION 1.2: NOTIFY MODE
+              # If it's a notification, we *only* send an update if
+              # the song title has just changed. This stops the
+              # automation from sending a new notification on every
+              # media_position update.
+              - conditions:
+                  - condition: template
+                    value_template: "{{ display_type == 'notify' }}"
+                  - condition: template
+                    value_template: "{{ trigger.to_state.attributes.media_title != trigger.from_state.attributes.media_title }}"
+                sequence:
+                  - repeat:
+                      for_each: "{{ awtrix_devices_topics }}"
+                      sequence:
+                        - service: mqtt.publish
+                          data:
+                            qos: 0
+                            retain: false
+                            topic: "{{ repeat.item ~ '/' ~ display_type ~ ('/mediaplayer' if display_type == 'custom' else '') }}"
+                            payload: "{{ payload_content }}"
 
       # CASE 2: Music is NOT playing (paused, stopped, idle, etc.)
+      # This part remains unchanged. It correctly clears the custom app.
       - conditions:
           - condition: template
             value_template: "{{ states(media_player) != 'playing' }}"
