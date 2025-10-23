@@ -89,7 +89,9 @@ blueprint:
       default: 100
     repeat_text:
       name: Repeat Scroll
-      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      description:  |
+        How many times the text should scroll. 0 means it scrolls until removed (default app time).
+        For notifications, this needs to be 1 or higher. If set to 0 in notify mode, it will default to 1.
       default: 1
       selector:
         number:
@@ -229,7 +231,7 @@ variables:
       "textCase": {{ text_case }},
       "pushIcon": {{ push_icon if push_icon not in ["3", "4"] else "0" }},
       "scrollSpeed": {{ scroll_speed }},
-      "repeat": {{ repeat_text }},
+      "repeat": {{ iif(display_type == 'notify' and repeat_text == 0, 1, repeat_text) }},
       "effect": "{{ effect }}",
       "lifetime": {{ lifetime }},
       "lifetimeMode": "0"
