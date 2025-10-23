@@ -73,6 +73,8 @@ blueprint:
               value: "2"
             - label: "No Icon (Progress Bar Only)"
               value: "3"
+            - label: "Icon doesn't move (No Progress Bar)"
+              value: "4"
           mode: dropdown
       default: "0"
     scroll_speed:
@@ -225,7 +227,7 @@ variables:
       "color": {{ text_color }},
       "rainbow": {{ rainbox_text | lower }},
       "textCase": {{ text_case }},
-      "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
+      "pushIcon": {{ push_icon if push_icon not in ["3", "4"] else "0" }},
       "scrollSpeed": {{ scroll_speed }},
       "repeat": {{ repeat_text }},
       "effect": "{{ effect }}",
