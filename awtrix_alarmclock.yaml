@@ -1,7 +1,7 @@
 blueprint:
   name: AWTRIX Alarm Clock
   description: >
-    Displays a notification on a AWTRIX device and play a RTTTL melody can be played along with the notification.
+    Displays a notification on a AWTRIX device and play a RTTTL melody.
     Various display options are configurable, including icon, scrolling speed, text effects, and background effects, etc. 
   domain: automation
   input:
@@ -62,6 +62,8 @@ blueprint:
       default: ""
       selector:
         datetime:
+          has_date: true
+          has_time: true
 
     rtttl_string:
       name: RTTTL Melody
