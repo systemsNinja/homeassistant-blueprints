@@ -58,10 +58,10 @@ blueprint:
 
     specific_datetime:
       name: One-Time Specific Date & Time
-      description: Optional one-time alarm trigger.
-      default: ""
+      description: Select an input_datetime helper.
       selector:
-        datetime:
+        entity:
+          domain: input_datetime
 
     rtttl_string:
       name: RTTTL Melody
@@ -289,15 +289,8 @@ trigger:
     id: repeating_alarm
 
   # One-time specific date/time alarm
-  - platform: template
-    value_template: >
-      {% if specific_datetime %}
-        {{ now().strftime('%Y-%m-%d %H:%M:00') ==
-           strptime(specific_datetime, '%Y-%m-%d %H:%M:%S')
-           .strftime('%Y-%m-%d %H:%M:00') }}
-      {% else %}
-        false
-      {% endif %}
+  - platform: time
+    at: !input specific_datetime
     id: one_time_alarm
 
 condition:
