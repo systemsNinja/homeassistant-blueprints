@@ -29,7 +29,7 @@ blueprint:
 
     rtttl_string:
       name: RTTTL Melody
-      default: "alarm:d=8,o=6,b=180:c,c,g,g,a,a,g"
+      default: ""
       selector:
         text:
 
@@ -240,6 +240,9 @@ variables:
   text_fade_speed: !input text_fade_speed
   background_color: !input background_color
   effect: !input effect
+  rtttl_string: !input rtttl_string
+  loop_sound: !input loop_sound
+  volume: !input volume
 
 trigger:
   - platform: time
@@ -279,7 +282,10 @@ action:
                 "blinkText": {{ text_blink_speed }},
                 "fadeText": {{ text_fade_speed }},
                 "background": {{ background_color | tojson }},
-                "effect": "{{ effect }}"
+                "effect": "{{ effect }}",
+                "rtttl": "{{ rtttl_string }}",
+                "loopSound": {{ loop_sound | lower }},
+                "volume": {{ volume }}
               }
 
 mode: single
