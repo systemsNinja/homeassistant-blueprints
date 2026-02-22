@@ -1,31 +1,39 @@
 blueprint:
-  name: AWTRIX Alarm Clock
+  name: AWTRIX Notifications
   description: >
-    Triggers at a selected time, displays a customizable notification,
-    and plays an RTTTL alarm using raw MQTT.
+    Displays a notification on an AWTRIX device. The notification text is taken from an input_text helper entity and is triggered by pressing an input_button helper entity.
+    Various display options are configurable, including icon, scrolling speed, text effects, and background effects, etc. The notification can be set to persist until dismissed.
 
+    ## ⚠️ REQUIREMENTS ⚠️
+
+    1.  You need to have the input helper: input_text.awtrix_notification which will hold the text for the notification.
+        - Go to Settings → Devices & Services → Helpers → Add Helper → Text
+        - Name: Awtrix notification
+        - Save
+    2.  You need to create an input_button helper input_button.awtrix_notification_send which will be used to trigger the notification.
+        - Go to Settings → Devices & Services → Helpers → Add Helper → Button → Name it something "Awtrix Notification Send" → Save
   domain: automation
-
   input:
     awtrix:
       name: AWTRIX Device(s)
+      description: Select the Awtrix device(s) to display the countdown.
       selector:
         device:
           integration: mqtt
           manufacturer: Blueforcer
           multiple: true
-
+    notification_text:
+      name: Notification Text Helper Entity
+      description: The text to display in the notification.
+      selector:
+        entity:
+          domain:
+            - input_text
     wake_up_time:
       name: Wake up Time
       selector:
         time: {}
       default: "08:00:00"
-
-    notification_text:
-      name: Notification Text
-      default: "Wake Up!"
-      selector:
-        text:
 
     rtttl_string:
       name: RTTTL Melody
@@ -49,37 +57,16 @@ blueprint:
           step: 5
           mode: slider
 
-    duration:
-      name: Display Duration (seconds)
-      default: 10
-      selector:
-        number:
-          min: 1
-          max: 60
-          step: 1
-          mode: slider
-
-    persistent:
-      name: Persistent Notification
-      default: false
-      selector:
-        boolean:
-
-    stack:
-      name: Stack Notifications
-      default: false
-      selector:
-        boolean:
 
     icon:
-      name: Icon ID
-      default: ""
+      name: Icon 
+      description: The AWTRIX icon ID to display with the countdown. Not used if "No Icon" is selected in Icon Behavior.
       selector:
         text:
-
+      default: ""
     push_icon:
       name: Icon Behavior
-      default: "0"
+      description: Select how the icon should be displayed.
       selector:
         select:
           options:
@@ -91,125 +78,183 @@ blueprint:
               value: "2"
             - label: "No Icon"
               value: "3"
-
+          mode: dropdown
+      default: "0"
     scroll_speed:
-      name: Scroll Speed
-      default: 100
+      name: Scrolling Speed
+      description: How fast should the text scroll. 50 = 🐢 | 250 = 🐆
       selector:
         number:
           min: 50
           max: 250
           step: 25
           mode: slider
-
+      default: 100
     repeat_count:
       name: Scroll Repeat Count
-      default: 0
+      description: How many times the text should scroll. 0 means it scrolls until removed (default app time).
+      default: 1
       selector:
         number:
           min: 0
           max: 10
           step: 1
           mode: slider
-
+    duration:
+      name: Duration (in seconds)
+      description: Sets how long the app should be displayed
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
+      default: 10
     text_color:
-      name: Text Color
+      name: Text Color (Optional)
+      description: Set a color for the text. Overridden by Rainbow Effect.
       selector:
         color_rgb: {}
-      default: [255, 255, 255]
-
+      default: [160, 160, 0]
     text_case:
       name: Text Case
-      default: "2"
+      description: Select how you would like your text to display.
       selector:
         select:
           options:
-            - label: "Global"
+            - label: "Use global AWTRIX setting"
               value: "0"
-            - label: "Uppercase"
+            - label: "Force Uppercase"
               value: "1"
-            - label: "As Is"
+            - label: "Show as is (Default)"
               value: "2"
-
-    rainbow_effect:
-      name: Rainbow Effect
+          mode: dropdown
+      default: "2"
+    text_color_gradient_toggle:
+      name: Use Text Color Gradient
+      description: Enable to use a gradient for the text color. Overrides solid text color.
       default: false
       selector:
         boolean:
-
+    text_color_gradient_start:
+      name: Text Color Gradient Start 
+      description: Set the starting color for the text gradient.
+      selector:
+        color_rgb: {}
+      default: ""
+    text_color_gradient_end:
+      name: Text Color Gradient End (Optional)
+      description: Set the ending color for the text gradient. 
+      selector:
+        color_rgb: {}
+      default: ""
+    rainbow_effect:
+      name: Rainbow Effect
+      description: Enable to make the text cycle through rainbow colors. Overrides solid or gradient text color.
+      default: false
+      selector:
+        boolean:
     text_blink_speed:
-      name: Blink Speed
-      default: "0"
+      name: Text Blink Speed
+      description: If set to a value greater than 0, the text will blink at the specified speed (in ms). Not compatible with gradient or rainbow.
       selector:
         select:
           options:
-            - label: "No Blink"
+            - label: "No Blinking"
               value: "0"
-            - label: "Slow"
+            - label: "Very Slow Blink"
+              value: "1000"
+            - label: "Slow Blink"
               value: "750"
-            - label: "Medium"
+            - label: "Medium  Blink"
               value: "550"
-            - label: "Fast"
+            - label: "Fast Blink"
               value: "400"
-
-    text_fade_speed:
-      name: Fade Speed
+            - label: "Very Fast Blink"
+              value: "250"
+          mode: dropdown
       default: "0"
+    text_fade_speed:
+      name: Text Fade Speed
+      description: If set to a value greater than 0, the text will fade in and out at the specified speed (in ms). Not compatible with gradient or rainbow. Overwrites Blinking if both are set.
       selector:
         select:
           options:
             - label: "No Fade"
               value: "0"
-            - label: "Slow"
+            - label: "Very Slow Fade"
+              value: "1000"
+            - label: "Slow Fade"
               value: "750"
-            - label: "Medium"
+            - label: "Medium  Fade"
               value: "550"
-            - label: "Fast"
+            - label: "Fast Fade"
               value: "400"
-
+            - label: "Very Fast Fade"
+              value: "250"
+          mode: dropdown
+      default: "0"
     background_color:
-      name: Background Color
+      name: Background Color (Optional)
+      description: Set a color for the background. Overridden by Background Effect.
       selector:
         color_rgb: {}
       default: [0, 0, 0]
-
     effect:
       name: Background Effect
-      default: "None"
+      description: The display effect to use for the background.
       selector:
         select:
           options:
             - "None"
-            - "TwinklingStars"
-            - "Matrix"
+            - "Fade"
+            - "MovingLine"
+            - "BrickBreaker"
+            - "PingPong"
+            - "Radar"
+            - "Checkerboard"
             - "Fireworks"
+            - "PlasmaCloud"
+            - "Ripple"
+            - "Snake"
+            - "Pacifica"
+            - "TheaterChase"
             - "Plasma"
+            - "Matrix"
+            - "SwirlIn"
+            - "SwirlOut"
+            - "LookingEyes"
+            - "TwinklingStars"
+            - "ColorWaves"
+      default: "TwinklingStars"
+
+variables:
+  # --- Inputs ---
+  awtrix_devices: !input awtrix
+  notification_text_entity: !input notification_text
+
+  icon: !input icon
+  push_icon: !input push_icon
+  scroll_speed: !input scroll_speed
+  repeat_count: !input repeat_count
+  duration: !input duration
+  text_case: !input text_case
+  text_color: !input text_color
+  text_color_gradient_toggle: !input text_color_gradient_toggle
+  text_color_gradient_start: !input text_color_gradient_start
+  text_color_gradient_end: !input text_color_gradient_end 
+  rainbow_effect: !input rainbow_effect
+  text_blink_speed: !input text_blink_speed
+  text_fade_speed: !input text_fade_speed
+  background_color: !input background_color
+  effect: !input effect
 
 trigger:
   - platform: time
     at: !input wake_up_time
     id: wakeup_timer
 
-variables:
-  awtrix_devices: !input awtrix
-  text: !input notification_text
-  rtttl: !input rtttl_string
-  loop_sound: !input loop_sound
-  volume: !input volume
-  duration: !input duration
-  persistent: !input persistent
-  stack: !input stack
-  icon: !input icon
-  push_icon: !input push_icon
-  scroll_speed: !input scroll_speed
-  repeat_count: !input repeat_count
-  text_color: !input text_color
-  text_case: !input text_case
-  rainbow_effect: !input rainbow_effect
-  blink: !input text_blink_speed
-  fade: !input text_fade_speed
-  background: !input background_color
-  effect: !input effect
+
 
 action:
   - repeat:
@@ -217,39 +262,32 @@ action:
       sequence:
         - variables:
             device_topic: >-
-              {{ expand(device_entities(repeat.item))
-                 | select('search', 'device_topic')
-                 | map(attribute='state')
-                 | first }}
-
+              {{ expand(device_entities(repeat.item)) | select('search', 'device_topic') | map(attribute='state') | first }}
         - service: mqtt.publish
           data:
-            topic: "{{ device_topic ~ '/notify' }}"
+            topic: "{{ device_topic ~ '/notify'}}"
             payload: >-
               {
-                "text": "{{ text }}",
-                "hold": {{ persistent | lower }},
-                {% if push_icon != "3" %}
-                "icon": "{{ icon }}",
-                {% endif %}
+                "text": "{{ states(notification_text_entity) }}",
+                {%- if push_icon != "3" %},
+                "icon": "{{ icon }}"
+                {%- endif %},
                 "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
                 "scrollSpeed": {{ scroll_speed }},
                 "repeat": {{ repeat_count }},
                 "duration": {{ duration }},
                 "textCase": {{ text_case }},
                 {% if rainbow_effect %}
-                "rainbow": true,
+                "rainbow": true
+                {% elif text_color_gradient_toggle %}
+                "gradient": [{{ text_color_gradient_start | tojson }}, {{ text_color_gradient_end | tojson }}]
                 {% else %}
-                "color": {{ text_color | tojson }},
-                {% endif %}
-                "blinkText": {{ blink }},
-                "fadeText": {{ fade }},
-                "background": {{ background | tojson }},
-                "effect": "{{ effect }}",
-                "stack": {{ stack | lower }},
-                "rtttl": "{{ rtttl }}",
-                "loopSound": {{ loop_sound | lower }},
-                "volume": {{ volume }}
+                "color": {{ text_color | tojson }}
+                {% endif %},
+                "blinkText": {{ text_blink_speed }},
+                "fadeText": {{ text_fade_speed }},
+                "background": {{ background_color | tojson }},
+                "effect": "{{ effect }}"
               }
 
 mode: single
