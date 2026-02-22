@@ -3,7 +3,6 @@ blueprint:
   description: >
     Displays a notification on an AWTRIX device. An RTTTL melody can be played along with the notification.
     Various display options are configurable, including icon, scrolling speed, text effects, and background effects, etc. 
-
   domain: automation
   input:
     awtrix:
@@ -15,12 +14,12 @@ blueprint:
           manufacturer: Blueforcer
           multiple: true
     notification_text:
-      name: Notification Text Helper Entity
+      name: Notification Text
       description: The text to display in the notification.
+      default: "Wake up!"
       selector:
-        entity:
-          domain:
-            - input_text
+        text:
+
     wake_up_time:
       name: Wake up Time
       selector:
