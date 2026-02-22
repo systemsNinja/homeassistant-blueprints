@@ -262,7 +262,7 @@ action:
             topic: "{{ device_topic ~ '/notify'}}"
             payload: >-
               {
-                "text": "{{ notification_text }}",
+                "text": "{{ notification_text }}"
                 {%- if push_icon != "3" %},
                 "icon": "{{ icon }}"
                 {%- endif %},
