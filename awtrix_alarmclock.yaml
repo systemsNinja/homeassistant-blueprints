@@ -222,8 +222,8 @@ blueprint:
 variables:
   # --- Inputs ---
   awtrix_devices: !input awtrix
-  notification_text_entity: !input notification_text
-
+  notification_text: !input notification_text
+  wake_up_time: !input wake_up_time
   icon: !input icon
   push_icon: !input push_icon
   scroll_speed: !input scroll_speed
@@ -262,7 +262,7 @@ action:
             topic: "{{ device_topic ~ '/notify'}}"
             payload: >-
               {
-                "text": "{{ states(notification_text_entity) }}",
+                "text": "{{ notification_text }}",
                 {%- if push_icon != "3" %},
                 "icon": "{{ icon }}"
                 {%- endif %},
