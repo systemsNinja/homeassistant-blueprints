@@ -62,8 +62,6 @@ blueprint:
       default: ""
       selector:
         datetime:
-          has_date: true
-          has_time: true
 
     rtttl_string:
       name: RTTTL Melody
@@ -291,8 +289,15 @@ trigger:
     id: repeating_alarm
 
   # One-time specific date/time alarm
-  - platform: time
-    at: !input specific_datetime
+  - platform: template
+    value_template: >
+      {% if specific_datetime %}
+        {{ now().strftime('%Y-%m-%d %H:%M:00') ==
+           strptime(specific_datetime, '%Y-%m-%d %H:%M:%S')
+           .strftime('%Y-%m-%d %H:%M:00') }}
+      {% else %}
+        false
+      {% endif %}
     id: one_time_alarm
 
 condition:
