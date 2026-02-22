@@ -1,5 +1,5 @@
 blueprint:
-  name: AWTRIX Alarm Clock (Raw MQTT)
+  name: AWTRIX Alarm Clock
   description: >
     Triggers at a selected time, displays a customizable notification,
     and plays an RTTTL alarm using raw MQTT.
