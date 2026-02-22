@@ -99,7 +99,7 @@ blueprint:
           max: 60
           step: 1
           mode: slider
-      default: 0
+      default: 10
     text_color:
       name: Text Color (Optional)
       description: Set a color for the text. Overridden by Rainbow Effect.
@@ -163,7 +163,7 @@ blueprint:
             - label: "Very Fast Blink"
               value: "250"
           mode: dropdown
-      default: "No Blinking"
+      default: "0"
     text_fade_speed:
       name: Text Fade Speed
       description: If set to a value greater than 0, the text will fade in and out at the specified speed (in ms). Not compatible with gradient or rainbow. Overwrites Blinking if both are set.
@@ -183,7 +183,7 @@ blueprint:
             - label: "Very Fast Fade"
               value: "250"
           mode: dropdown
-      default: "No Fade"
+      default: "0"
     background_color:
       name: Background Color (Optional)
       description: Set a color for the background. Overridden by Background Effect.
