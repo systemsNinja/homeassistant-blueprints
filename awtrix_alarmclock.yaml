@@ -26,6 +26,43 @@ blueprint:
         time: {}
       default: "08:00:00"
 
+    alarm_days:
+      name: Alarm Days
+      description: Select which days this alarm should run.
+      selector:
+        select:
+          multiple: true
+          options:
+            - label: Monday
+              value: mon
+            - label: Tuesday
+              value: tue
+            - label: Wednesday
+              value: wed
+            - label: Thursday
+              value: thu
+            - label: Friday
+              value: fri
+            - label: Saturday
+              value: sat
+            - label: Sunday
+              value: sun
+      default:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+        - sat
+        - sun
+
+    specific_datetime:
+      name: One-Time Specific Date & Time
+      description: Optional one-time alarm trigger.
+      default: ""
+      selector:
+        datetime:
+
     rtttl_string:
       name: RTTTL Melody
       default: ""
@@ -224,6 +261,8 @@ variables:
   awtrix_devices: !input awtrix
   notification_text: !input notification_text
   wake_up_time: !input wake_up_time
+  alarm_days: !input alarm_days
+  specific_datetime: !input specific_datetime
   icon: !input icon
   push_icon: !input push_icon
   scroll_speed: !input scroll_speed
@@ -244,11 +283,24 @@ variables:
   volume: !input volume
 
 trigger:
+  # Regular repeating alarm
   - platform: time
     at: !input wake_up_time
-    id: wakeup_timer
+    id: repeating_alarm
 
+  # One-time specific date/time alarm
+  - platform: time
+    at: !input specific_datetime
+    id: one_time_alarm
 
+condition:
+  - condition: template
+    value_template: >
+      {% if trigger.id == 'repeating_alarm' %}
+        {{ now().strftime('%a') | lower in alarm_days }}
+      {% else %}
+        true
+      {% endif %}
 
 action:
   - repeat:
