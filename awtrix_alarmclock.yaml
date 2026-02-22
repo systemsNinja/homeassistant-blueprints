@@ -1,17 +1,9 @@
 blueprint:
-  name: AWTRIX Notifications
+  name: AWTRIX Alarm Clock
   description: >
-    Displays a notification on an AWTRIX device. The notification text is taken from an input_text helper entity and is triggered by pressing an input_button helper entity.
-    Various display options are configurable, including icon, scrolling speed, text effects, and background effects, etc. The notification can be set to persist until dismissed.
+    Displays a notification on an AWTRIX device. An RTTTL melody can be played along with the notification.
+    Various display options are configurable, including icon, scrolling speed, text effects, and background effects, etc. 
 
-    ## ⚠️ REQUIREMENTS ⚠️
-
-    1.  You need to have the input helper: input_text.awtrix_notification which will hold the text for the notification.
-        - Go to Settings → Devices & Services → Helpers → Add Helper → Text
-        - Name: Awtrix notification
-        - Save
-    2.  You need to create an input_button helper input_button.awtrix_notification_send which will be used to trigger the notification.
-        - Go to Settings → Devices & Services → Helpers → Add Helper → Button → Name it something "Awtrix Notification Send" → Save
   domain: automation
   input:
     awtrix:
