@@ -1,0 +1,255 @@
+blueprint:
+  name: AWTRIX Alarm Clock (Raw MQTT)
+  description: >
+    Triggers at a selected time, displays a customizable notification,
+    and plays an RTTTL alarm using raw MQTT.
+
+  domain: automation
+
+  input:
+    awtrix:
+      name: AWTRIX Device(s)
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          multiple: true
+
+    wake_up_time:
+      name: Wake up Time
+      selector:
+        time: {}
+      default: "08:00:00"
+
+    notification_text:
+      name: Notification Text
+      default: "Wake Up!"
+      selector:
+        text:
+
+    rtttl_string:
+      name: RTTTL Melody
+      default: "alarm:d=8,o=6,b=180:c,c,g,g,a,a,g"
+      selector:
+        text:
+
+    loop_sound:
+      name: Loop Sound
+      default: true
+      selector:
+        boolean:
+
+    volume:
+      name: Volume
+      default: 80
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 5
+          mode: slider
+
+    duration:
+      name: Display Duration (seconds)
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 60
+          step: 1
+          mode: slider
+
+    persistent:
+      name: Persistent Notification
+      default: false
+      selector:
+        boolean:
+
+    stack:
+      name: Stack Notifications
+      default: false
+      selector:
+        boolean:
+
+    icon:
+      name: Icon ID
+      default: ""
+      selector:
+        text:
+
+    push_icon:
+      name: Icon Behavior
+      default: "0"
+      selector:
+        select:
+          options:
+            - label: "Icon doesn't move"
+              value: "0"
+            - label: "Icon moves with text"
+              value: "1"
+            - label: "Icon moves & reappears"
+              value: "2"
+            - label: "No Icon"
+              value: "3"
+
+    scroll_speed:
+      name: Scroll Speed
+      default: 100
+      selector:
+        number:
+          min: 50
+          max: 250
+          step: 25
+          mode: slider
+
+    repeat_count:
+      name: Scroll Repeat Count
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 1
+          mode: slider
+
+    text_color:
+      name: Text Color
+      selector:
+        color_rgb: {}
+      default: [255, 255, 255]
+
+    text_case:
+      name: Text Case
+      default: "2"
+      selector:
+        select:
+          options:
+            - label: "Global"
+              value: "0"
+            - label: "Uppercase"
+              value: "1"
+            - label: "As Is"
+              value: "2"
+
+    rainbow_effect:
+      name: Rainbow Effect
+      default: false
+      selector:
+        boolean:
+
+    text_blink_speed:
+      name: Blink Speed
+      default: "0"
+      selector:
+        select:
+          options:
+            - label: "No Blink"
+              value: "0"
+            - label: "Slow"
+              value: "750"
+            - label: "Medium"
+              value: "550"
+            - label: "Fast"
+              value: "400"
+
+    text_fade_speed:
+      name: Fade Speed
+      default: "0"
+      selector:
+        select:
+          options:
+            - label: "No Fade"
+              value: "0"
+            - label: "Slow"
+              value: "750"
+            - label: "Medium"
+              value: "550"
+            - label: "Fast"
+              value: "400"
+
+    background_color:
+      name: Background Color
+      selector:
+        color_rgb: {}
+      default: [0, 0, 0]
+
+    effect:
+      name: Background Effect
+      default: "None"
+      selector:
+        select:
+          options:
+            - "None"
+            - "TwinklingStars"
+            - "Matrix"
+            - "Fireworks"
+            - "Plasma"
+
+trigger:
+  - platform: time
+    at: !input wake_up_time
+    id: wakeup_timer
+
+variables:
+  awtrix_devices: !input awtrix
+  text: !input notification_text
+  rtttl: !input rtttl_string
+  loop_sound: !input loop_sound
+  volume: !input volume
+  duration: !input duration
+  persistent: !input persistent
+  stack: !input stack
+  icon: !input icon
+  push_icon: !input push_icon
+  scroll_speed: !input scroll_speed
+  repeat_count: !input repeat_count
+  text_color: !input text_color
+  text_case: !input text_case
+  rainbow_effect: !input rainbow_effect
+  blink: !input text_blink_speed
+  fade: !input text_fade_speed
+  background: !input background_color
+  effect: !input effect
+
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - variables:
+            device_topic: >-
+              {{ expand(device_entities(repeat.item))
+                 | select('search', 'device_topic')
+                 | map(attribute='state')
+                 | first }}
+
+        - service: mqtt.publish
+          data:
+            topic: "{{ device_topic ~ '/notify' }}"
+            payload: >-
+              {
+                "text": "{{ text }}",
+                "hold": {{ persistent | lower }},
+                {% if push_icon != "3" %}
+                "icon": "{{ icon }}",
+                {% endif %}
+                "pushIcon": {{ push_icon if push_icon != "3" else "0" }},
+                "scrollSpeed": {{ scroll_speed }},
+                "repeat": {{ repeat_count }},
+                "duration": {{ duration }},
+                "textCase": {{ text_case }},
+                {% if rainbow_effect %}
+                "rainbow": true,
+                {% else %}
+                "color": {{ text_color | tojson }},
+                {% endif %}
+                "blinkText": {{ blink }},
+                "fadeText": {{ fade }},
+                "background": {{ background | tojson }},
+                "effect": "{{ effect }}",
+                "stack": {{ stack | lower }},
+                "rtttl": "{{ rtttl }}",
+                "loopSound": {{ loop_sound | lower }},
+                "volume": {{ volume }}
+              }
+
+mode: single
