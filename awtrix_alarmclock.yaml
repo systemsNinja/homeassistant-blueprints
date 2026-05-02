@@ -63,8 +63,7 @@ blueprint:
       selector:
         entity:
           domain: input_datetime
-          multiple: false
-          required: false # This tells the UI it's okay to leave blank          
+          multiple: false       
 
     rtttl_string:
       name: RTTTL Melody
