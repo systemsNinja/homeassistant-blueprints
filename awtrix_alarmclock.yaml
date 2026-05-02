@@ -59,9 +59,12 @@ blueprint:
     specific_datetime:
       name: One-Time Specific Date & Time
       description: Select an input_datetime helper.
+      default: []  # Set a default empty value
       selector:
         entity:
           domain: input_datetime
+          multiple: false
+          required: false # This tells the UI it's okay to leave blank          
 
     rtttl_string:
       name: RTTTL Melody
