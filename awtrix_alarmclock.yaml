@@ -339,7 +339,7 @@ action:
                 "effect": "{{ effect }}",
                 "rtttl": "{{ rtttl_string }}",
                 "loopSound": {{ loop_sound | lower }},
-                "volume": {{ volume }}
+                "vol": {{ volume }}
               }
 
 mode: single
