@@ -83,7 +83,7 @@ blueprint:
       selector:
         number:
           min: 0
-          max: 100
+          max: 30
           step: 5
           mode: slider
 
