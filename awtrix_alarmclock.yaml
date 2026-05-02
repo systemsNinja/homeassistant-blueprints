@@ -28,7 +28,7 @@ blueprint:
 
     alarm_days:
       name: Alarm Days
-      description: Select which days this alarm should run.
+      description: Select which days this alarm should run. MUST BE CHOSED for alarm to run.
       selector:
         select:
           multiple: true
